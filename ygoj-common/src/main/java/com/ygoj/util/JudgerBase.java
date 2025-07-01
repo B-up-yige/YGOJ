@@ -101,11 +101,11 @@ public class JudgerBase {
      * @return go-judger 中的文件缓存json
      */
     public JSONObject getAllFile(){
-        String reuslt = HttpRequest.get(judgerFileUrl)
+        String result = HttpRequest.get(judgerFileUrl)
                 .execute()
                 .body();
 
-        return JSONObject.parseObject(reuslt);
+        return JSONObject.parseObject(result);
     }
 
     /**
@@ -133,5 +133,13 @@ public class JudgerBase {
                 .body();
 
         return result.replaceAll("\"", "");
+    }
+
+    public String getFileById(String id){
+        String res = HttpRequest.get(judgerFileUrl + "/" + id)
+                .execute()
+                .body();
+
+        return res;
     }
 }
