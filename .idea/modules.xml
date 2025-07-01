@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/YGOJ.iml" filepath="$PROJECT_DIR$/YGOJ.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ygoj-frontend.iml" filepath="$PROJECT_DIR$/ygoj-frontend.iml" />
     </modules>
   </component>
 </project>
