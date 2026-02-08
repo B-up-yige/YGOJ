@@ -1,0 +1,26 @@
+spring:
+    application:
+        name: service-record
+    cloud:
+        nacos:
+            server-addr: 127.0.0.1:8848
+    config:
+        import: "nacos:service-record.yaml"
+    profiles:
+        include: feign
+    datasource:
+        url: jdbc:mysql://localhost:11111/record
+        username: root
+        password: 123456
+        driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis-plus:
+    configuration: # 配置打印 MyBatis日志
+        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+server:
+    port: 8002
+
+logging:
+    level:
+      com.ygoj.record.feign: debug
