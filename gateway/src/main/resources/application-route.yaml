@@ -1,24 +1,24 @@
-#spring:
-#    cloud:
-#        gateway:
-#            globalcors:
-#                cors-configurations:
-#                    '[/**]':
-#                        allowed-origin-patterns: '*'
-#                        allowed-headers: '*'
-#                        allowed-methods: '*'
-#            routes:
-#                - id: record-route
-#                  uri: lb://service-record
-#                  predicates:
-#                    - Path=/api/record/**
-#                - id: user-route
-#                  uri: lb://service-user
-#                  predicates:
-#                      - Path=/api/user/**
-#                - id: problem-route
-#                  uri: lb://service-problem
-#                  predicates:
-#                      - Path=/api/problem/**
-#            default-filters:
-#                - StripPrefix=2
+spring:
+    cloud:
+        gateway:
+            globalcors:
+                cors-configurations:
+                    '[/**]':
+                        allowed-origin-patterns: '*'
+                        allowed-headers: '*'
+                        allowed-methods: '*'
+            routes:
+                - id: record-route
+                  uri: lb://service-record
+                  predicates:
+                    - Path=/api/record/**
+                - id: user-route
+                  uri: lb://service-user
+                  predicates:
+                      - Path=/api/user/**
+                - id: problem-route
+                  uri: lb://service-problem
+                  predicates:
+                      - Path=/api/problem/**
+            default-filters:
+                - StripPrefix=2

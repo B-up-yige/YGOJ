@@ -1,10 +1,5 @@
 package com.ygoj.record.pojo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.ygoj.user.pojo.User;
 import lombok.Data;
 
 @Data

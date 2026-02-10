@@ -1,6 +1,5 @@
 package com.ygoj.problem.pojo;
 
-import com.ygoj.user.pojo.User;
 import lombok.Data;
 
 @Data
