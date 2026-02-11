@@ -2,13 +2,11 @@ package com.ygoj.user.controller;
 
 import cn.hutool.core.lang.Validator;
 import com.ygoj.common.Result;
+import com.ygoj.common.filter.Permission;
 import com.ygoj.user.pojo.Userinfo;
 import com.ygoj.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -30,16 +28,11 @@ public class UserController {
 
     /**
      * 用户注册接口
-     * @param userinfo
+     * @param userinfo 注册用户信息
      * @return {@link Result}
      */
     @PostMapping("/register")
-    public Result register(Userinfo userinfo, @RequestHeader("Role") String role) {
-        //角色为none才能使用
-        if(!role.equals("none")){
-            return Result.error(400, "没有权限!");
-        }
-
+    public Result register(Userinfo userinfo) {
         //数据检验
 
         //用户名是否合法
@@ -51,7 +44,7 @@ public class UserController {
             return Result.error(400, "用户名的长度要大于3小于20");
         }
 
-        //TODO: 用户名是否重复
+        //用户名是否重复
         if(userService.getUserinfoByUsername(userinfo.getUsername()) != null){
             return Result.error(400, "用户名重复");
         }

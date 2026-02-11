@@ -12,8 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -38,36 +36,27 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
 //        return filter;
 
+//        redisTemplate.opsForValue().set("1",
+//                "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJwZXJtaXNzaW9uIjoxfQ.1R-hKI4U1KNavoey_Ug-1yGKwelhlflDlvyYF9PnBlbVmou2u0LV7mTTKYqYSM_DtsEGDeDkgxSQaMn589C-aA");
+
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
 
         //获取token
         String token = request.getHeaders().getFirst("Authorization");
-        String role = "none";
+        String jwt = "NULL";
 
-        //在redis获取token相关信息
-        //给返回头添加token使用情况
+        //在redis获取token储存的jwt信息
+        //同时token续期
         if(token != null) {
-            if(redisTemplate.hasKey(token)) {
-                Map<String, Object> info = (Map<String, Object>) redisTemplate.opsForValue().get(token);
-
-                //token续期
-                redisTemplate.opsForValue().set(token, info, 7, TimeUnit.DAYS);
-
-                //设置角色
-                role = info.get("role").toString();
-
-                response.getHeaders().add("Authorization", "accept");
-            }else{
-                response.getHeaders().add("Authorization", "fail");
+            if (redisTemplate.hasKey(token)) {
+                jwt = (String) redisTemplate.opsForValue().getAndExpire(token, 7, TimeUnit.DAYS);
             }
-        }else{
-            response.getHeaders().add("Authorization", "none");
         }
 
         //更新请求头
         ServerHttpRequest mutatedRequest = request.mutate()
-                .header("Role", role)
+                .header("JWT", jwt)
                 .build();
         ServerWebExchange mutatedExchange = exchange.mutate()
                 .request(mutatedRequest)
