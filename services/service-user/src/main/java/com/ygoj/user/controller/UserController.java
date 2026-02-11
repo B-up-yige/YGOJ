@@ -6,6 +6,7 @@ import com.ygoj.common.filter.Permission;
 import com.ygoj.user.pojo.Userinfo;
 import com.ygoj.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -65,7 +66,24 @@ public class UserController {
             return Result.error(400, "邮箱不合法");
         }
 
-        Result result = Result.success(userService.register(userinfo));
-        return result;
+        userService.register(userinfo);
+        return Result.success();
+    }
+
+    @PostMapping("/login")
+    public Result login(String loginStr, String password) {
+        //登录功能
+        Userinfo userinfo = userService.login(loginStr, password);
+
+        if(userinfo == null){
+            return Result.error(400, "账号或密码错误");
+        }
+        return Result.success(userinfo.getPassword());
+    }
+
+    @GetMapping("/test")
+    @Permission(auth = 0)
+    public Result test() {
+        return Result.success();
     }
 }

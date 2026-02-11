@@ -53,8 +53,6 @@ public class AuthInterceptor implements HandlerInterceptor {
         Long userPermission = Long.parseLong(jwt.getPayload("permission").toString());
         Long res = userPermission&(1L << permission.auth());
 
-        System.out.println(res);
-
         return res != 0;
     }
 }
