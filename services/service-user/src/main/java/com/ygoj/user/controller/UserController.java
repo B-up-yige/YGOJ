@@ -5,8 +5,10 @@ import com.ygoj.common.Result;
 import com.ygoj.common.filter.Permission;
 import com.ygoj.user.pojo.Userinfo;
 import com.ygoj.user.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -81,9 +83,28 @@ public class UserController {
         return Result.success(userinfo.getPassword());
     }
 
-    @GetMapping("/test")
+    /**
+     * 注销
+     *
+     * @param request 请求
+     * @return {@link Result}
+     */
+    @PostMapping("/logout")
     @Permission(auth = 0)
-    public Result test() {
+    public Result logout(HttpServletRequest request) {
+        userService.logout(request.getHeader("Authorization"));
         return Result.success();
+    }
+
+    /**
+     * 根据id获取用户信息
+     *
+     * @param id id
+     * @return {@link Result}
+     */
+    @GetMapping("/userinfo/{id}")
+    public Result userinfo(@PathVariable("id") Long id) {
+        Userinfo userinfo = userService.getUserinfoById(id);
+        return Result.success(userinfo);
     }
 }

@@ -1,10 +1,8 @@
 package com.ygoj.user.service.impl;
 
 import cn.hutool.core.lang.Validator;
-import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.ygoj.common.Result;
 import com.ygoj.user.mapper.UserinfoMapper;
 import com.ygoj.user.pojo.Userinfo;
 import com.ygoj.user.service.UserService;
@@ -46,7 +44,6 @@ public class UserServiceImpl implements UserService {
     /**
      * 注册新用户
      * @param userinfo
-     * @return {@link Userinfo}
      */
     @Override
     @GlobalTransactional
@@ -113,6 +110,20 @@ public class UserServiceImpl implements UserService {
 
         //登录失败返回null
         //成功返回userinfo
+        return userinfo;
+    }
+
+    /**
+     * 用户注销
+     */
+    @Override
+    public void logout(String token) {
+        redisTemplate.delete(token);
+    }
+
+    @Override
+    public Userinfo getUserinfoById(Long id) {
+        Userinfo userinfo = userinfoMapper.selectById(id);
         return userinfo;
     }
 }
