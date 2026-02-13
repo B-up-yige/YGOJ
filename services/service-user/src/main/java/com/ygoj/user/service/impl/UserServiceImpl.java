@@ -59,6 +59,7 @@ public class UserServiceImpl implements UserService {
         LambdaQueryWrapper<Userinfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Userinfo::getUsername, username);
         Userinfo userinfo = userinfoMapper.selectOne(queryWrapper);
+        userinfo.setPassword(null);
 
         return userinfo;
     }
@@ -98,8 +99,10 @@ public class UserServiceImpl implements UserService {
             payload.put("username", userinfo.getUsername());
             payload.put("userId", userinfo.getId());
             payload.put("email", userinfo.getEmail());
+            //TODO:用户权限从数据库获取
             payload.put("permission", 1);
 
+            //TODO：密钥从配置文件获取
             jwt = JWTUtil.createToken(payload, "tes".getBytes());
 
             //设置redis缓存
@@ -124,6 +127,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public Userinfo getUserinfoById(Long id) {
         Userinfo userinfo = userinfoMapper.selectById(id);
+        userinfo.setPassword(null);
+
         return userinfo;
     }
 }

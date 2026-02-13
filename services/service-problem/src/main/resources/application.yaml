@@ -8,9 +8,14 @@ spring:
                 import-check:
                     enabled: false
     datasource:
-        url: jdbc:mysql://localhost:11111/user
+        url: jdbc:mysql://localhost:11111/problem?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
         username: root
         password: 123456
         driver-class-name: com.mysql.cj.jdbc.Driver
+    data:
+        redis:
+            host: localhost
+            port: 6379
+            database: 0
 server:
     port: 8000
