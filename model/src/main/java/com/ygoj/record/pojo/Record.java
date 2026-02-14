@@ -10,4 +10,5 @@ public class Record {
     private Long id;
     private Long userId;
     private Long problemId;
+    private String status;
 }

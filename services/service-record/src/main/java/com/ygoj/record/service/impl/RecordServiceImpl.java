@@ -1,8 +1,13 @@
 package com.ygoj.record.service.impl;
 
+import com.ygoj.record.mapper.RecordMapper;
+import com.ygoj.record.pojo.Record;
 import com.ygoj.record.service.RecordService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.seata.spring.annotation.GlobalTransactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -60,4 +65,30 @@ public class RecordServiceImpl implements RecordService {
 //
 //        return problem;
 //    }
+
+    @Autowired
+    private RecordMapper recordMapper;
+
+    @Override
+    public Record getRecordinfoById(Long id) {
+        Record record = recordMapper.selectById(id);
+        return record;
+    }
+
+    @Override
+    @GlobalTransactional
+    public void addRecord(Record record) {
+        //TODO:数据检验
+        //检验userId
+        //检验problemId
+        recordMapper.insert(record);
+    }
+
+    @Override
+    @GlobalTransactional
+    public void editRecordStatus(Long id, String status) {
+        Record record = recordMapper.selectById(id);
+        record.setStatus(status);
+        recordMapper.updateById(record);
+    }
 }

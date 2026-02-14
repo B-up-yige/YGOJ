@@ -33,13 +33,13 @@ public class ProblemController {
         return Result.success(probleminfo);
     }
 
-    @PutMapping("/add")
+    @PostMapping("/add")
     public Result addProblem(Probleminfo probleminfo) {
         problemService.addProbleminfo(probleminfo);
         return Result.success();
     }
 
-    @PatchMapping("/edit")
+    @PutMapping("/edit")
     public Result editProblem(Probleminfo probleminfo) {
         problemService.editProbleminfo(probleminfo);
         return Result.success();
