@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/fronter.iml" filepath="$PROJECT_DIR$/fronter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/services/service-judger/service-judger.iml" filepath="$PROJECT_DIR$/services/service-judger/service-judger.iml" />
     </modules>
   </component>
 </project>
