@@ -7,28 +7,26 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="service-judger" />
+        <module name="service-user" />
+        <module name="service-problem" />
         <module name="model" />
         <module name="service-record" />
-        <module name="service-user" />
         <module name="gateway" />
-        <module name="service-problem" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="com.ygoj.judger.service-record" target="17" />
-      <module name="com.ygoj.judger.service-user" target="17" />
-      <module name="fileManager" target="17" />
-      <module name="service-judger" target="17" />
+      <module name="service-problem (1)" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="YGOJ" options="" />
-      <module name="fileManager" options="-parameters" />
       <module name="gateway" options="-parameters" />
       <module name="model" options="-parameters" />
       <module name="service-judger" options="-parameters" />
       <module name="service-problem" options="-parameters" />
+      <module name="service-problem (1)" options="-parameters" />
       <module name="service-record" options="-parameters" />
       <module name="service-user" options="-parameters" />
       <module name="services" options="" />

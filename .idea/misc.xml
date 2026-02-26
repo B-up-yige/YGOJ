@@ -17,7 +17,6 @@
     <option name="ignoredFiles">
       <set>
         <option value="$PROJECT_DIR$/fileManager/pom.xml" />
-        <option value="$PROJECT_DIR$/services/service-judger/pom.xml" />
       </set>
     </option>
   </component>
