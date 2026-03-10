@@ -1,6 +1,6 @@
 package com.ygoj.problem.service;
 
-import com.ygoj.problem.pojo.Probleminfo;
+import com.ygoj.problem.Probleminfo;
 
 public interface ProblemService {
     Probleminfo getProbleminfoById(Long id);

@@ -1,6 +1,6 @@
 package com.ygoj.record.service;
 
-import com.ygoj.record.pojo.Record;
+import com.ygoj.record.Record;
 
 public interface RecordService {
 //    public Record getRecordById(Long id);

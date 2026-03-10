@@ -1,6 +1,6 @@
 package com.ygoj.user.service;
 
-import com.ygoj.user.pojo.Userinfo;
+import com.ygoj.user.Userinfo;
 
 public interface UserService {
     void register(Userinfo userinfo);

@@ -1,13 +1,12 @@
 package com.ygoj.record.service.impl;
 
 import com.ygoj.record.mapper.RecordMapper;
-import com.ygoj.record.pojo.Record;
+import com.ygoj.record.Record;
 import com.ygoj.record.service.RecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service

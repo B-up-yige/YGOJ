@@ -3,7 +3,7 @@ package com.ygoj.user.controller;
 import cn.hutool.core.lang.Validator;
 import com.ygoj.common.Result;
 import com.ygoj.common.filter.Permission;
-import com.ygoj.user.pojo.Userinfo;
+import com.ygoj.user.Userinfo;
 import com.ygoj.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;

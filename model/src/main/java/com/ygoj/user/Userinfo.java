@@ -1,4 +1,4 @@
-package com.ygoj.user.pojo;
+package com.ygoj.user;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

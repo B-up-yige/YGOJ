@@ -1,7 +1,7 @@
 package com.ygoj.record.controller;
 
 import com.ygoj.common.Result;
-import com.ygoj.record.pojo.Record;
+import com.ygoj.record.Record;
 import com.ygoj.record.service.RecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

@@ -1,6 +1,6 @@
 package com.ygoj.record.feign;
 
-import com.ygoj.problem.pojo.Probleminfo;
+import com.ygoj.problem.Probleminfo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

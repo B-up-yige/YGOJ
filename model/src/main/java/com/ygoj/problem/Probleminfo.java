@@ -1,9 +1,9 @@
-package com.ygoj.problem.pojo;
+package com.ygoj.problem;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.ygoj.user.pojo.Userinfo;
+import com.ygoj.user.Userinfo;
 import lombok.Data;
 
 @Data

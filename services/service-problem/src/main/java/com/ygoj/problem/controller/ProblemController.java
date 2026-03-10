@@ -1,10 +1,9 @@
 package com.ygoj.problem.controller;
 
 import com.ygoj.common.Result;
-import com.ygoj.problem.pojo.Probleminfo;
+import com.ygoj.problem.Probleminfo;
 import com.ygoj.problem.service.ProblemService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.parsing.Problem;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

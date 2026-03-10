@@ -16,6 +16,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="judger" target="17" />
       <module name="service-problem (1)" target="17" />
     </bytecodeTargetLevel>
   </component>
@@ -23,6 +24,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="YGOJ" options="" />
       <module name="gateway" options="-parameters" />
+      <module name="judger" options="-parameters" />
       <module name="model" options="-parameters" />
       <module name="service-judger" options="-parameters" />
       <module name="service-problem" options="-parameters" />

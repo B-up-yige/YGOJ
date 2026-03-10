@@ -4,7 +4,7 @@ import cn.hutool.core.lang.Validator;
 import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.ygoj.user.mapper.UserinfoMapper;
-import com.ygoj.user.pojo.Userinfo;
+import com.ygoj.user.Userinfo;
 import com.ygoj.user.service.UserService;
 import org.apache.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.factory.annotation.Autowired;
