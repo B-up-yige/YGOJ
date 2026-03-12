@@ -35,6 +35,11 @@
             <artifactId>docker-java-transport-httpclient5</artifactId>
             <version>3.3.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.core5</groupId>
+            <artifactId>httpcore5-h2</artifactId>
+            <version>5.2.5</version> <!-- 请使用与你的httpclient5核心库兼容的最新稳定版 -->
+        </dependency>
     </dependencies>
 
 </project>

@@ -15,4 +15,5 @@ public class SandboxExecuteRequest {
     String fileName;
     Long timeLimit;
     Long memoryLimit;
+    String image;
 }

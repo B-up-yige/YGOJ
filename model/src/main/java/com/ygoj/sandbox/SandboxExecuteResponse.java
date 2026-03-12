@@ -11,5 +11,5 @@ public class SandboxExecuteResponse {
     String status;
     String error;
     String warning;
-    Map<String, String>compileInfo;
+    Map<String, Object>compileInfo;
 }
