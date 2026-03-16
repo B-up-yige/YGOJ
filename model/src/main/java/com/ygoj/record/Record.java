@@ -7,8 +7,8 @@ import lombok.Data;
 @Data
 public class Record {
     @TableId(type = IdType.AUTO)
-    private Long id;
-    private Long userId;
-    private Long problemId;
-    private String status;
+    Long id;
+    Long userId;
+    Long problemId;
+    String status;
 }

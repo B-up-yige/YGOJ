@@ -9,12 +9,12 @@ import lombok.Data;
 @Data
 public class Probleminfo {
     @TableId(type = IdType.AUTO)
-    private Long id;
-    private String title;
-    private String description;
-    private Long authorId;
+    Long id;
+    String title;
+    String description;
+    Long authorId;
     @TableField(exist = false)
-    private Userinfo author;
-    private Long timeLimit;
-    private Long memoryLimit;
+    Userinfo author;
+    Long timeLimit;
+    Long memoryLimit;
 }

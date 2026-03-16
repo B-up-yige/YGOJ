@@ -1,4 +1,4 @@
-package com.ygoj.sandbox;
+package com.ygoj.judger.sandbox;
 
 import lombok.Data;
 
