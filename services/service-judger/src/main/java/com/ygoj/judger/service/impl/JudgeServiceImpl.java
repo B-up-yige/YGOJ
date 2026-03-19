@@ -12,6 +12,11 @@ public class JudgeServiceImpl implements JudgeService {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
+    /**
+     * 添加判题任务到消息队列
+     *
+     * @param sandboxExecuteRequest 沙箱执行请求
+     */
     @Override
     public void addJudgeTask(SandboxExecuteRequest sandboxExecuteRequest) {
         String json = JSON.toJSONString(sandboxExecuteRequest);

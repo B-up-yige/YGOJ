@@ -9,6 +9,12 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Enumeration;
 
+/**
+ * 假装请求拦截器，添加请求头到下游请求
+ *
+ * @author xushangyi
+ * @date 2026/03/19 15:20
+ */
 @Component
 public class FeignRequestInterceptor implements RequestInterceptor {
     @Override

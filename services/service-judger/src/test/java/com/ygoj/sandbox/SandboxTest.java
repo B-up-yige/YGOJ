@@ -4,13 +4,13 @@ import java.util.Arrays;
 import com.ygoj.judger.sandbox.Sandbox;
 import com.ygoj.judger.sandbox.SandboxExecuteRequest;
 import com.ygoj.judger.sandbox.SandboxExecuteResponse;
-import com.ygoj.judger.sandbox.impl.SandboxImplByDocker;
+import com.ygoj.judger.sandbox.impl.SandboxImpl;
 import org.junit.jupiter.api.Test;
 
 public class SandboxTest {
     @Test
     public void sandboxTest() {
-        Sandbox sandbox = new SandboxImplByDocker();
+        Sandbox sandbox = new SandboxImpl();
 
         String code = """
 import java.util.ArrayList;

@@ -19,34 +19,13 @@ public class ProblemServiceImpl implements ProblemService {
     ProbleminfoMapper probleminfoMapper;
     @Autowired
     UserFeignClient userFeignClient;
-//    @Autowired
-//    DiscoveryClient discoveryClient;
-//    @Autowired
-//    RestTemplate restTemplate;
-//
-//    @Override
-//    public Problem getProblemById(Long id) {
-//        Problem problem = new Problem();
-//        problem.setId(id);
-//        problem.setTitle("loop");
-//        problem.setDescription("loop");
-//
-//        User user = getUserFromRemoteById(id);
-//        problem.setCreator(user);
-//        return problem;
-//    }
-//
-//    public User getUserFromRemoteById(Long id){
-//        List<ServiceInstance> instances = discoveryClient.getInstances("service-user");
-//        ServiceInstance serviceInstance = instances.get(0);
-//        String url = serviceInstance.getUri().toString()+"/user/"+id;
-//
-//        log.info("远程调用：{}", url);
-//        User user = restTemplate.getForObject(url, User.class);
-//
-//        return user;
-//    }
 
+    /**
+     * 根据题目id获取题目信息
+     *
+     * @param id 题目id
+     * @return {@link Probleminfo}
+     */
     @Override
     public Probleminfo getProbleminfoById(Long id) {
         Probleminfo probleminfo = probleminfoMapper.selectById(id);
@@ -60,18 +39,33 @@ public class ProblemServiceImpl implements ProblemService {
         return probleminfo;
     }
 
+    /**
+     * 删除题目
+     *
+     * @param id 题目id
+     */
     @Override
     @GlobalTransactional
     public void delProbleminfo(Long id) {
         probleminfoMapper.deleteById(id);
     }
 
+    /**
+     * 新增题目
+     *
+     * @param probleminfo 题目信息
+     */
     @Override
     @GlobalTransactional
     public void addProbleminfo(Probleminfo probleminfo) {
         probleminfoMapper.insert(probleminfo);
     }
 
+    /**
+     * 修改题目信息
+     *
+     * @param probleminfo 题目信息
+     */
     @Override
     @GlobalTransactional
     public void editProbleminfo(Probleminfo probleminfo) {

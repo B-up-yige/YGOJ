@@ -11,44 +11,37 @@ public class RecordController {
     @Autowired
     private RecordService recordService;
 
-//    @Autowired
-//    private RecordProperties recordProperties;
-//
-//    @GetMapping("/config")
-//    public String config(){
-//        return "test=" + recordProperties.getTest() + "; a=" + recordProperties.getA();
-//    }
-//
-//    @GetMapping("/record/{id}")
-////    @SentinelResource(value = "///record/{id}", fallback = "getRecordByIdFallback")
-//    public Record getRecordById(@PathVariable("id") Long id){
-//        Record record = recordService.getRecordById(id);
-//        return record;
-//    }
-//
-//    public Record getRecordByIdFallback(@PathVariable("id") Long id,
-//                                        Throwable throwable){
-//        return new Record();
-//    }
-//
-//    @GetMapping("/submit")
-//    public Result submit(@RequestParam(name = "status") String status, @RequestParam(name = "userId") Long userId){
-//        recordService.submit(status, userId);
-//        return Result.success();
-//    }
-
+    /**
+     * 获取提交记录信息
+     *
+     * @param id 提交记录id
+     * @return {@link Result}
+     */
     @GetMapping("/recordinfo/{id}")
     public Result getRecordInfo(@PathVariable Long id) {
         Record record = recordService.getRecordinfoById(id);
         return Result.success(record);
     }
 
+    /**
+     * 添加提交记录
+     *
+     * @param record 提交记录
+     * @return {@link Result}
+     */
     @PostMapping("/add")
     public Result addRecord(Record record) {
         recordService.addRecord(record);
         return Result.success();
     }
 
+    /**
+     * 编辑提交记录状态
+     *
+     * @param id     提交记录id
+     * @param status 状态
+     * @return {@link Result}
+     */
     @PutMapping("/editStatus")
     public Result editRecordStatus(Long id, String status) {
         recordService.editRecordStatus(id, status);

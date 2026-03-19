@@ -60,6 +60,13 @@ public class UserController {
         return Result.success();
     }
 
+    /**
+     * 登录功能接口
+     *
+     * @param loginStr 登录str（用户名称或邮箱）
+     * @param password 密码
+     * @return {@link Result}
+     */
     @PostMapping("/login")
     public Result login(String loginStr, String password) {
         //登录功能
@@ -87,7 +94,7 @@ public class UserController {
     /**
      * 根据id获取用户信息
      *
-     * @param id id
+     * @param id 用户id
      * @return {@link Result}
      */
     @GetMapping("/userinfo/{id}")

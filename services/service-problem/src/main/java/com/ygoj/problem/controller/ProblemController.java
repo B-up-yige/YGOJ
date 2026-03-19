@@ -10,40 +10,49 @@ import org.springframework.web.bind.annotation.*;
 public class ProblemController {
     @Autowired
     private ProblemService problemService;
-//
-//    @GetMapping("/problem/{id}")
-//    public Problem getProblemById(@PathVariable("id") Long id,
-//                                  HttpServletRequest request) {
-//        Problem problem = problemService.getProblemById(id);
-//        System.out.println(request.getHeader("X-Token"));
-//
-////        try {
-////            TimeUnit.SECONDS.sleep(2);
-////        } catch (InterruptedException e) {
-////            throw new RuntimeException(e);
-////        }
-//
-//        return problem;
-//    }
 
+    /**
+     * 获取题目信息
+     *
+     * @param id 题目id
+     * @return {@link Result}
+     */
     @GetMapping("/probleminfo/{id}")
     public Result getProblemInfo(@PathVariable("id") Long id) {
         Probleminfo probleminfo = problemService.getProbleminfoById(id);
         return Result.success(probleminfo);
     }
 
+    /**
+     * 添加题目
+     *
+     * @param probleminfo 题目信息
+     * @return {@link Result}
+     */
     @PostMapping("/add")
     public Result addProblem(Probleminfo probleminfo) {
         problemService.addProbleminfo(probleminfo);
         return Result.success();
     }
 
+    /**
+     * 编辑题目信息
+     *
+     * @param probleminfo 题目信息
+     * @return {@link Result}
+     */
     @PutMapping("/edit")
     public Result editProblem(Probleminfo probleminfo) {
         problemService.editProbleminfo(probleminfo);
         return Result.success();
     }
 
+    /**
+     * 删除题目
+     *
+     * @param id 题目id
+     * @return {@link Result}
+     */
     @DeleteMapping("/del/{id}")
     public Result delProblemInfo(@PathVariable("id") Long id) {
         problemService.delProbleminfo(id);

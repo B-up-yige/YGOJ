@@ -11,69 +11,26 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class RecordServiceImpl implements RecordService {
-//    @Autowired
-//    private LoadBalancerClient loadBalancer;
-//    @Autowired
-//    private RestTemplate restTemplate;
-//    @Autowired
-//    private ProblemFeignClient ProblemfeignClient;
-//    @Autowired
-//    private RecordMapper recordMapper;
-//
-////    @SentinelResource(value = "queryRecord", blockHandler = "getRecordByIdFallback")
-////    @SentinelResource(value = "queryRecord")
-//    public Record getRecordById(Long id) {
-//        Record record = recordMapper.selectById(id);
-//        System.out.println(record.toString());
-//        User user = getUserFromRemoteById(record.getUserId());
-//        record.setUser(user);
-//        return record;
-//    }
-//
-//    @Override
-//    @GlobalTransactional
-//    public void submit(String status, Long userId) {
-//        Record record = new Record();
-//        record.setStatus(status);
-//        record.setUserId(userId);
-//        recordMapper.insert(record);
-//
-//        String url = "http://service-user/addcnt?userId="+userId;
-//        restTemplate.getForObject(url, String.class);
-//    }
-//
-//    //兜底回调
-//    public Record getRecordByIdFallback(Long id, BlockException e) {
-//        Record record = new Record();
-//        record.setId(id);
-//        record.setStatus("AC");
-//        return record;
-//    }
-//
-//    public User getUserFromRemoteById(Long id){
-//        String url = "http://service-user/user/"+id;
-//
-//        log.info("远程调用：{}", url);
-//        User user = restTemplate.getForObject(url, User.class);
-//
-//        return user;
-//    }
-//
-//    public Problem getProblemFromRemoteById(Long id){
-//        Problem problem = ProblemfeignClient.getProblemById(id);
-//
-//        return problem;
-//    }
-
     @Autowired
     private RecordMapper recordMapper;
 
+    /**
+     * 通过提交记录id获取提交记录信息
+     *
+     * @param id 提交记录id
+     * @return {@link Record}
+     */
     @Override
     public Record getRecordinfoById(Long id) {
         Record record = recordMapper.selectById(id);
         return record;
     }
 
+    /**
+     * 添加提交记录
+     *
+     * @param record 提交记录
+     */
     @Override
     @GlobalTransactional
     public void addRecord(Record record) {
@@ -83,6 +40,12 @@ public class RecordServiceImpl implements RecordService {
         recordMapper.insert(record);
     }
 
+    /**
+     * 编辑提交记录状态
+     *
+     * @param id     提交记录id
+     * @param status 状态
+     */
     @Override
     @GlobalTransactional
     public void editRecordStatus(Long id, String status) {

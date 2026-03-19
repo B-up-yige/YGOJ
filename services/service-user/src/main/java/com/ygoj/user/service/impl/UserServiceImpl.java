@@ -24,26 +24,10 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private RedisTemplate redisTemplate;
 
-//    @Override
-//    public User getUserById(Long id) {
-//        User user = userMapper.selectById(id);
-//        return user;
-//    }
-//
-//    @Override
-//    @Transactional
-//    public void addcnt(Long userId) {
-//        UpdateWrapper<User> updateWrapper = new UpdateWrapper<>();
-//        updateWrapper.eq("id", userId);
-//        updateWrapper.setSql("cnt = cnt+1");
-//        userMapper.update(updateWrapper);
-//
-//        int i = 10/0;
-//    }
-
     /**
      * 注册新用户
-     * @param userinfo
+     *
+     * @param userinfo 用户信息
      */
     @Override
     @GlobalTransactional
@@ -54,6 +38,12 @@ public class UserServiceImpl implements UserService {
         userinfoMapper.insert(userinfo);
     }
 
+    /**
+     * 通过用户名获取用户信息
+     *
+     * @param username 用户名
+     * @return {@link Userinfo}
+     */
     @Override
     public Userinfo getUserinfoByUsername(String username) {
         LambdaQueryWrapper<Userinfo> queryWrapper = new LambdaQueryWrapper<>();
@@ -66,6 +56,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 用户登录
+     *
      * @param loginStr 登录str
      * @param password 密码
      * @return {@link Userinfo}
@@ -117,13 +108,21 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 用户注销
+     * 注销，直接在redis中删除令牌
+     *
+     * @param token 令牌
      */
     @Override
     public void logout(String token) {
         redisTemplate.delete(token);
     }
 
+    /**
+     * 通过id获取用户信息
+     *
+     * @param id id
+     * @return {@link Userinfo}
+     */
     @Override
     public Userinfo getUserinfoById(Long id) {
         Userinfo userinfo = userinfoMapper.selectById(id);

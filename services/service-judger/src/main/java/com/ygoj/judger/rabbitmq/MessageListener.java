@@ -2,9 +2,10 @@ package com.ygoj.judger.rabbitmq;
 
 import com.alibaba.fastjson2.JSON;
 import com.rabbitmq.client.Channel;
+import com.ygoj.judger.sandbox.Sandbox;
 import com.ygoj.judger.sandbox.SandboxExecuteRequest;
 import com.ygoj.judger.sandbox.SandboxExecuteResponse;
-import com.ygoj.judger.sandbox.impl.SandboxImplByDocker;
+import com.ygoj.judger.sandbox.impl.SandboxImpl;
 import lombok.SneakyThrows;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -24,7 +25,7 @@ public class MessageListener {
         //json对象化
         SandboxExecuteRequest sandboxExecuteRequest = JSON.parseObject(message, SandboxExecuteRequest.class);
         //处理判题
-        SandboxImplByDocker sandbox = new SandboxImplByDocker();
+        Sandbox sandbox = new SandboxImpl();
         SandboxExecuteResponse result = sandbox.sandboxExecute(sandboxExecuteRequest);
 
         //处理结果
