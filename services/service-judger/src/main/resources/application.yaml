@@ -8,14 +8,14 @@ spring:
                 import-check:
                     enabled: false
     datasource:
-        url: jdbc:mysql://localhost:11111/problem?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+        url: jdbc:mysql://localhost:3306/problem?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
         username: root
         password: 123456
         driver-class-name: com.mysql.cj.jdbc.Driver
     rabbitmq:
         host: localhost
         port: 5672
-        virtual-host: /ygoj
+        virtual-host: /judgeQueue
         username: root
         password: root
     data:
@@ -26,3 +26,6 @@ spring:
 server:
     port: 8000
 
+logging:
+    level:
+        com.alibaba.nacos: DEBUG

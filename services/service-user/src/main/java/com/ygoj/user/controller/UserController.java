@@ -17,18 +17,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-//    @GetMapping("/user/{id}")
-//    public User getUser(@PathVariable("id") Long id){
-//        User user = userService.getUserById(id);
-//        return user;
-//    }
-//
-//    @GetMapping("/addcnt")
-//    public Result addcnt(@RequestParam Long userId){
-//        userService.addcnt(userId);
-//        return Result.success();
-//    }
-
     /**
      * 用户注册接口
      * @param userinfo 注册用户信息
