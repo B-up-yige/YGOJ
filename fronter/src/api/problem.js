@@ -42,3 +42,33 @@ export function delProblem(id) {
     method: 'delete'
   })
 }
+
+// 获取测试用例列表
+export function getTestCaseList(problemId) {
+  return request({
+    url: '/problem/getTestCase',
+    method: 'get',
+    params: { problemId }
+  })
+}
+
+// 添加测试用例
+export function addTestCase(formData) {
+  return request({
+    url: '/problem/addTestCase',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+// 删除测试用例
+export function delTestCase(data) {
+  return request({
+    url: '/problem/delTestCase',
+    method: 'delete',
+    data
+  })
+}

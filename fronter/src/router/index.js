@@ -40,6 +40,11 @@ const router = createRouter({
           component: () => import('@/views/problem/ProblemEdit.vue')
         },
         {
+          path: '/problem/testcase/:id',
+          name: 'TestCaseEdit',
+          component: () => import('@/views/problem/TestCaseEdit.vue')
+        },
+        {
           path: '/problem/create',
           name: 'ProblemCreate',
           component: () => import('@/views/problem/ProblemEdit.vue')

@@ -3,14 +3,18 @@ package com.ygoj.problem.controller;
 import com.ygoj.common.Result;
 import com.ygoj.problem.Probleminfo;
 import com.ygoj.problem.Testcase;
+import com.ygoj.problem.feign.FileSystemFeignClient;
 import com.ygoj.problem.service.ProblemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 public class ProblemController {
     @Autowired
     private ProblemService problemService;
+    @Autowired
+    FileSystemFeignClient fileSystemFeignClient;
 
     /**
      * 获取题目信息
@@ -66,7 +70,23 @@ public class ProblemController {
     }
 
     @PostMapping("/addTestCase")
-    public Result addTestCase(@RequestBody Testcase testcase) {
+    public Result addTestCase(@RequestParam Long problemId,
+                              @RequestParam MultipartFile input, @RequestParam MultipartFile output) {
+
+        System.out.println(input.getContentType());
+        System.out.println(output.getContentType());
+
+        //上传input和output文件
+        String inputId = (String) fileSystemFeignClient.uploadFile(input).getData();
+        String outputId = (String) fileSystemFeignClient.uploadFile(output).getData();
+
+        Testcase testcase = new Testcase();
+        testcase.setProblemId(problemId);
+        testcase.setInputFileId(inputId);
+        testcase.setOutputFileId(outputId);
+        testcase.setInputFileName(input.getOriginalFilename());
+        testcase.setOutputFileName(output.getOriginalFilename());
+
         problemService.addTestCase(testcase);
         return Result.success();
     }
@@ -74,11 +94,13 @@ public class ProblemController {
     @DeleteMapping("/delTestCase")
     public Result delTestCase(@RequestBody Testcase testcase) {
         problemService.delTestCase(testcase);
+        fileSystemFeignClient.deleteFile(testcase.getInputFileId());
+        fileSystemFeignClient.deleteFile(testcase.getOutputFileId());
         return Result.success();
     }
 
     @GetMapping("/getTestCase")
-    public Result getTestCase(Long problemId) {
+    public Result getTestCase(@RequestParam Long problemId) {
         return Result.success(problemService.getTestCase(problemId));
     }
 }

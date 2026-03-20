@@ -50,6 +50,11 @@ public class UserServiceImpl implements UserService {
         LambdaQueryWrapper<Userinfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Userinfo::getUsername, username);
         Userinfo userinfo = userinfoMapper.selectOne(queryWrapper);
+
+        if(userinfo == null){
+            return null;
+        }
+
         userinfo.setPassword(null);
 
         return userinfo;

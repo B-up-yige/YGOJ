@@ -36,6 +36,16 @@
           <el-button @click="goBack">取消</el-button>
         </el-form-item>
       </el-form>
+
+      <!-- 测试用例管理入口 -->
+      <div v-if="isEdit" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+        <h3>测试用例管理</h3>
+        <p style="color: #666; margin-bottom: 15px;">题目信息保存后，可以添加或编辑测试用例</p>
+        <el-button type="warning" @click="goToTestCaseEdit">
+          <el-icon><Setting /></el-icon>
+          管理测试用例
+        </el-button>
+      </div>
     </el-card>
   </div>
 </template>
@@ -44,6 +54,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Setting } from '@element-plus/icons-vue'
 import { getProblemInfo, addProblem, editProblem } from '@/api/problem'
 import { useUserStore } from '@/stores/user'
 
@@ -131,6 +142,12 @@ const goBack = () => {
   router.back()
 }
 
+const goToTestCaseEdit = () => {
+  if (route.params.id) {
+    router.push(`/problem/testcase/${route.params.id}`)
+  }
+}
+
 onMounted(() => {
   loadProblem()
 })
@@ -139,5 +156,11 @@ onMounted(() => {
 <style scoped>
 .problem-edit {
   padding: 20px;
+}
+
+.problem-edit h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 16px;
 }
 </style>
