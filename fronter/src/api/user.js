@@ -50,3 +50,12 @@ export function getUserIdByToken(token) {
     data: { token }
   })
 }
+
+// 更新用户信息
+export function updateUserInfo(data) {
+  return request({
+    url: '/user/update',
+    method: 'put',
+    data
+  })
+}

@@ -1,11 +1,14 @@
 package com.ygoj.problem.service.impl;
 
 import com.alibaba.fastjson2.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ygoj.common.Result;
+import com.ygoj.problem.Testcase;
 import com.ygoj.problem.feign.UserFeignClient;
 import com.ygoj.problem.mapper.ProbleminfoMapper;
 import com.ygoj.problem.Probleminfo;
+import com.ygoj.problem.mapper.TestcaseMapper;
 import com.ygoj.problem.service.ProblemService;
 import com.ygoj.user.Userinfo;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +23,8 @@ import java.util.List;
 public class ProblemServiceImpl implements ProblemService {
     @Autowired
     ProbleminfoMapper probleminfoMapper;
+    @Autowired
+    TestcaseMapper testcaseMapper;
     @Autowired
     UserFeignClient userFeignClient;
 
@@ -75,9 +80,41 @@ public class ProblemServiceImpl implements ProblemService {
         probleminfoMapper.updateById(probleminfo);
     }
 
+    /**
+     * 分页查询题目信息
+     *
+     * @param page     页面
+     * @param pageSize 页面大小
+     * @return {@link List<Probleminfo>}
+     */
     @Override
     public List<Probleminfo> list(Long page, Long pageSize) {
         Page<Probleminfo> probleminfoPage = new Page<>(page, pageSize);
         return probleminfoMapper.selectPage(probleminfoPage, null).getRecords();
+    }
+
+    /**
+     * 为题目添加测试用例
+     *
+     * @param testcase testcase
+     */
+    @Override
+    @GlobalTransactional
+    public void addTestCase(Testcase testcase) {
+        testcaseMapper.insert(testcase);
+    }
+
+    @Override
+    @GlobalTransactional
+    public void delTestCase(Testcase testcase) {
+        testcaseMapper.deleteById(testcase);
+    }
+
+    @Override
+    public List<Testcase> getTestCase(Long problemId) {
+        LambdaQueryWrapper<Testcase> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Testcase::getProblemId, problemId);
+
+        return testcaseMapper.selectList(queryWrapper);
     }
 }

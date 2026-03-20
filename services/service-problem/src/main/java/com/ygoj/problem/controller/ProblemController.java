@@ -2,6 +2,7 @@ package com.ygoj.problem.controller;
 
 import com.ygoj.common.Result;
 import com.ygoj.problem.Probleminfo;
+import com.ygoj.problem.Testcase;
 import com.ygoj.problem.service.ProblemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -62,5 +63,22 @@ public class ProblemController {
     @GetMapping("/list")
     public Result list(Long page, Long pageSize){
         return Result.success(problemService.list(page, pageSize));
+    }
+
+    @PostMapping("/addTestCase")
+    public Result addTestCase(@RequestBody Testcase testcase) {
+        problemService.addTestCase(testcase);
+        return Result.success();
+    }
+
+    @DeleteMapping("/delTestCase")
+    public Result delTestCase(@RequestBody Testcase testcase) {
+        problemService.delTestCase(testcase);
+        return Result.success();
+    }
+
+    @GetMapping("/getTestCase")
+    public Result getTestCase(Long problemId) {
+        return Result.success(problemService.getTestCase(problemId));
     }
 }
