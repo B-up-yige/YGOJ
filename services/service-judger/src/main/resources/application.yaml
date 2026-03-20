@@ -3,28 +3,28 @@ spring:
         name: service-judger
     cloud:
         nacos:
-            server-addr: 127.0.0.1:8848
+            server-addr: 192.168.61.135:8848
             config:
                 import-check:
                     enabled: false
     datasource:
-        url: jdbc:mysql://localhost:3306/problem?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+        url: jdbc:mysql://192.168.61.135:3306/problem?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
         username: root
         password: 123456
         driver-class-name: com.mysql.cj.jdbc.Driver
     rabbitmq:
-        host: localhost
+        host: 192.168.61.135
         port: 5672
         virtual-host: /judgeQueue
         username: root
         password: root
     data:
         redis:
-            host: localhost
+            host: 192.168.61.135
             port: 6379
             database: 0
 server:
-    port: 8000
+    port: 8003
 
 logging:
     level:

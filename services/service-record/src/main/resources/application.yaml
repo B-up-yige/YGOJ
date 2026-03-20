@@ -3,13 +3,13 @@ spring:
         name: service-record
     cloud:
         nacos:
-            server-addr: 127.0.0.1:8848
+            server-addr: 192.168.61.135:8848
     config:
         import: "nacos:service-record.yaml"
     profiles:
         include: feign
     datasource:
-        url: jdbc:mysql://localhost:3306/record?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+        url: jdbc:mysql://192.168.61.135:3306/record?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
         username: root
         password: 123456
         driver-class-name: com.mysql.cj.jdbc.Driver

@@ -17,8 +17,13 @@ const router = createRouter({
       path: '/',
       name: 'Layout',
       component: () => import('@/layouts/MainLayout.vue'),
-      redirect: '/problems',
+      redirect: '/home',
       children: [
+        {
+          path: '/home',
+          name: 'Home',
+          component: () => import('@/views/Home.vue')
+        },
         {
           path: '/problems',
           name: 'ProblemList',
@@ -43,6 +48,11 @@ const router = createRouter({
           path: '/records',
           name: 'RecordList',
           component: () => import('@/views/record/RecordList.vue')
+        },
+        {
+          path: '/record/:id',
+          name: 'RecordDetail',
+          component: () => import('@/views/record/RecordDetail.vue')
         },
         {
           path: '/user/:id',

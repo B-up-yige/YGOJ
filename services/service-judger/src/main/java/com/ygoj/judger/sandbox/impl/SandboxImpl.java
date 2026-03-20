@@ -32,7 +32,7 @@ public class SandboxImpl implements Sandbox {
     static {
         //创建默认dockerClient
         DockerHttpClient dockerHttpClient =  new ApacheDockerHttpClient.Builder()
-                .dockerHost(URI.create("tcp://localhost:2376"))
+                .dockerHost(URI.create("tcp://192.168.61.135:2376"))
                 .build();
         DockerClient dockerClient = DockerClientBuilder.getInstance()
                 .withDockerHttpClient(dockerHttpClient)
@@ -102,7 +102,7 @@ public class SandboxImpl implements Sandbox {
 
         //创建默认dockerClient
         DockerHttpClient dockerHttpClient =  new ApacheDockerHttpClient.Builder()
-                .dockerHost(URI.create("tcp://localhost:2376"))
+                .dockerHost(URI.create("tcp://192.168.61.135:2376"))
                 .build();
         DockerClient dockerClient = DockerClientBuilder.getInstance()
                 .withDockerHttpClient(dockerHttpClient)

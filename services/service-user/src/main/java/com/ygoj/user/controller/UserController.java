@@ -7,10 +7,9 @@ import com.ygoj.user.Userinfo;
 import com.ygoj.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 public class UserController {
@@ -23,7 +22,7 @@ public class UserController {
      * @return {@link Result}
      */
     @PostMapping("/register")
-    public Result register(Userinfo userinfo) {
+    public Result register(@RequestBody Userinfo userinfo) {
         //数据检验
 
         //用户名是否合法
@@ -101,5 +100,10 @@ public class UserController {
     public Result userinfo(@PathVariable("id") Long id) {
         Userinfo userinfo = userService.getUserinfoById(id);
         return Result.success(userinfo);
+    }
+
+    @PostMapping("/userinfo")
+    public Result getUserIdByToken(@RequestBody Map<String, Object> json) {
+        return Result.success(userService.getUserIdByToken((String) json.get("token")));
     }
 }

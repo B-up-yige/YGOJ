@@ -28,7 +28,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { login } from '@/api/user'
+import { login, getUserIdByToken, getUserinfo } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
@@ -60,9 +60,31 @@ const handleLogin = async () => {
         const res = await login(loginForm.loginStr, loginForm.password)
         
         // 保存 token
-        userStore.setToken(res.data)
+        const token = res.data
+        userStore.setToken(token)
         
         ElMessage.success('登录成功')
+        
+        // 延迟一下，确保 token 已经保存
+        setTimeout(async () => {
+          try {
+            // 第一步：通过 token 获取用户 ID
+            const idRes = await getUserIdByToken(token)
+            if (idRes.data) {
+              const userId = idRes.data
+              
+              // 第二步：通过用户 ID 获取完整用户信息
+              const userInfoRes = await getUserinfo(userId)
+              if (userInfoRes.data) {
+                userStore.setUserInfo(userInfoRes.data)
+                console.log('登录成功后获取到用户信息:', userInfoRes.data)
+              }
+            }
+          } catch (err) {
+            console.error('获取用户信息失败:', err)
+          }
+        }, 100)
+        
         router.push('/')
       } catch (error) {
         console.error('登录失败:', error)

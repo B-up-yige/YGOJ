@@ -1,6 +1,7 @@
 package com.ygoj.problem.service.impl;
 
 import com.alibaba.fastjson2.JSON;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ygoj.common.Result;
 import com.ygoj.problem.feign.UserFeignClient;
 import com.ygoj.problem.mapper.ProbleminfoMapper;
@@ -11,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @Slf4j
@@ -70,5 +73,11 @@ public class ProblemServiceImpl implements ProblemService {
     @GlobalTransactional
     public void editProbleminfo(Probleminfo probleminfo) {
         probleminfoMapper.updateById(probleminfo);
+    }
+
+    @Override
+    public List<Probleminfo> list(Long page, Long pageSize) {
+        Page<Probleminfo> probleminfoPage = new Page<>(page, pageSize);
+        return probleminfoMapper.selectPage(probleminfoPage, null).getRecords();
     }
 }

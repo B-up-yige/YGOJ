@@ -8,7 +8,7 @@ public class InitRabbitMQ {
     public static void init() {
         try{
             ConnectionFactory factory = new ConnectionFactory();
-            factory.setHost("localhost");
+            factory.setHost("192.168.61.135");
             factory.setPort(5672);
             factory.setUsername("root");
             factory.setPassword("root");

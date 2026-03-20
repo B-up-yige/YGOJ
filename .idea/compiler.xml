@@ -7,6 +7,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="fileSystem" />
         <module name="service-judger" />
         <module name="service-user" />
         <module name="service-problem" />
@@ -23,6 +24,7 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="YGOJ" options="" />
+      <module name="fileSystem" options="-parameters" />
       <module name="gateway" options="-parameters" />
       <module name="judger" options="-parameters" />
       <module name="model" options="-parameters" />

@@ -12,7 +12,13 @@
         text-color="#fff"
         active-text-color="#ffd04b"
         style="flex: 1; min-width: 0;"
+        router
+        @select="handleMenuSelect"
       >
+        <el-menu-item index="/home">
+          <el-icon><Home /></el-icon>
+          <span>首页</span>
+        </el-menu-item>
         <el-menu-item index="/problems">
           <el-icon><Document /></el-icon>
           <span>题目列表</span>
@@ -59,7 +65,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
-import { getUserinfo } from '@/api/user'
+import { getUserIdByToken, getUserinfo } from '@/api/user'
 
 const route = useRoute()
 const router = useRouter()
@@ -68,8 +74,12 @@ const userStore = useUserStore()
 const isLoggedIn = computed(() => !!userStore.token)
 const currentUser = computed(() => userStore.userInfo)
 
+console.log('当前是否登录:', isLoggedIn.value)
+console.log('当前用户信息:', currentUser.value)
+
 const activeMenu = computed(() => {
   const path = route.path
+  if (path.startsWith('/home')) return '/home'
   if (path.startsWith('/problems')) return '/problems'
   if (path.startsWith('/records')) return '/records'
   return ''
@@ -77,15 +87,28 @@ const activeMenu = computed(() => {
 
 // 加载当前用户信息
 const loadUserInfo = async () => {
-  if (!userStore.token) return
+  console.log('开始加载用户信息，token:', userStore.token)
+  
+  if (!userStore.token) {
+    console.log('没有 token，跳过加载')
+    return
+  }
   
   try {
-    // 从 token 中解析用户 ID（这里简化处理，实际应该从 token 解析）
-    // 暂时从 localStorage 获取用户 ID
-    const userId = localStorage.getItem('userId')
-    if (userId) {
-      const res = await getUserinfo(userId)
-      userStore.setUserInfo(res.data)
+    // 第一步：通过 token 获取用户 ID
+    const idRes = await getUserIdByToken(userStore.token)
+    console.log('获取到用户 ID:', idRes.data)
+    
+    if (idRes.data) {
+      const userId = idRes.data
+      
+      // 第二步：通过用户 ID 获取完整用户信息
+      const userInfoRes = await getUserinfo(userId)
+      if (userInfoRes.data) {
+        userStore.setUserInfo(userInfoRes.data)
+        console.log('获取到用户信息:', userInfoRes.data)
+        console.log('用户昵称:', userInfoRes.data.nickname)
+      }
     }
   } catch (error) {
     console.error('加载用户信息失败:', error)
@@ -115,6 +138,14 @@ const handleLogout = async () => {
   } catch (error) {
     console.error('退出登录失败:', error)
   }
+}
+
+// 处理菜单选择
+const handleMenuSelect = (index) => {
+  console.log('菜单被点击:', index)
+  router.push(index).catch(err => {
+    console.error('路由跳转失败:', err)
+  })
 }
 
 onMounted(() => {

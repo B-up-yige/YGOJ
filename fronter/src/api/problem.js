@@ -1,5 +1,14 @@
 import request from '@/utils/request'
 
+// 获取题目列表
+export function getProblemList(page = 1, pageSize = 10) {
+  return request({
+    url: '/problem/list',
+    method: 'get',
+    params: { page, pageSize }
+  })
+}
+
 // 获取题目信息
 export function getProblemInfo(id) {
   return request({

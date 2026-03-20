@@ -12,12 +12,16 @@ export const useUserStore = defineStore('user', () => {
 
   function setUserInfo(info) {
     userInfo.value = info
+    if (info && info.id) {
+      localStorage.setItem('userId', info.id.toString())
+    }
   }
 
   function logout() {
     token.value = ''
     userInfo.value = null
     localStorage.removeItem('token')
+    localStorage.removeItem('userId')
   }
 
   return {

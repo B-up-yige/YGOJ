@@ -33,3 +33,20 @@ export function getUserinfo(id) {
     method: 'get'
   })
 }
+
+// 根据用户名获取用户信息
+export function getUserinfoByUsername(username) {
+  return request({
+    url: `/user/userinfo/username/${username}`,
+    method: 'get'
+  })
+}
+
+// 通过 token 获取用户 ID
+export function getUserIdByToken(token) {
+  return request({
+    url: '/user/userinfo',
+    method: 'post',
+    data: { token }
+  })
+}

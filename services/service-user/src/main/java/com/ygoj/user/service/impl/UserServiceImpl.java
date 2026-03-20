@@ -1,6 +1,7 @@
 package com.ygoj.user.service.impl;
 
 import cn.hutool.core.lang.Validator;
+import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.ygoj.user.mapper.UserinfoMapper;
@@ -129,5 +130,21 @@ public class UserServiceImpl implements UserService {
         userinfo.setPassword(null);
 
         return userinfo;
+    }
+
+    /**
+     * 通过令牌获取用户id
+     *
+     * @param token 令牌
+     * @return {@link Long}
+     */
+    @Override
+    public Long getUserIdByToken(String token) {
+        JWT jwt = JWTUtil.parseToken(
+                (String) redisTemplate.opsForValue().getAndExpire(token, 7, TimeUnit.DAYS)
+        );
+        Map<String, Object> payload = jwt.getPayloads();
+
+        return ((Number) payload.get("userId")).longValue();
     }
 }

@@ -1,5 +1,6 @@
 package com.ygoj.record.service.impl;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ygoj.record.mapper.RecordMapper;
 import com.ygoj.record.Record;
 import com.ygoj.record.service.RecordService;
@@ -7,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -52,5 +55,18 @@ public class RecordServiceImpl implements RecordService {
         Record record = recordMapper.selectById(id);
         record.setStatus(status);
         recordMapper.updateById(record);
+    }
+
+    /**
+     * 分页获取提交列表
+     *
+     * @param page     页面
+     * @param pageSize 页面大小
+     * @return {@link List<Record>}
+     */
+    @Override
+    public List<Record> list(Long page, Long pageSize) {
+        Page<Record> recordPage = new Page<>(page, pageSize);
+        return recordMapper.selectPage(recordPage, null).getRecords();
     }
 }

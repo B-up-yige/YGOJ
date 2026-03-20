@@ -2,6 +2,8 @@ package com.ygoj.user.service;
 
 import com.ygoj.user.Userinfo;
 
+import java.util.Map;
+
 public interface UserService {
     void register(Userinfo userinfo);
     Userinfo getUserinfoByUsername(String username);
@@ -10,4 +12,6 @@ public interface UserService {
     void logout(String token);
 
     Userinfo getUserinfoById(Long id);
+
+    Long getUserIdByToken(String token);
 }

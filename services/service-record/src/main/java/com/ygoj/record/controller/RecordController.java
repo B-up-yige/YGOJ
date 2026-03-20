@@ -47,4 +47,16 @@ public class RecordController {
         recordService.editRecordStatus(id, status);
         return Result.success();
     }
+
+    /**
+     * 分页获取提交列表
+     *
+     * @param page     页面
+     * @param pageSize 页面大小
+     * @return {@link Result}
+     */
+    @GetMapping("/list")
+    public Result list(Long page, Long pageSize) {
+        return Result.success(recordService.list(page, pageSize));
+    }
 }

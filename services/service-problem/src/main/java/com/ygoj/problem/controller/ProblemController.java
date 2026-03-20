@@ -30,7 +30,7 @@ public class ProblemController {
      * @return {@link Result}
      */
     @PostMapping("/add")
-    public Result addProblem(Probleminfo probleminfo) {
+    public Result addProblem(@RequestBody Probleminfo probleminfo) {
         problemService.addProbleminfo(probleminfo);
         return Result.success();
     }
@@ -42,7 +42,7 @@ public class ProblemController {
      * @return {@link Result}
      */
     @PutMapping("/edit")
-    public Result editProblem(Probleminfo probleminfo) {
+    public Result editProblem(@RequestBody Probleminfo probleminfo) {
         problemService.editProbleminfo(probleminfo);
         return Result.success();
     }
@@ -57,5 +57,10 @@ public class ProblemController {
     public Result delProblemInfo(@PathVariable("id") Long id) {
         problemService.delProbleminfo(id);
         return Result.success();
+    }
+
+    @GetMapping("/list")
+    public Result list(Long page, Long pageSize){
+        return Result.success(problemService.list(page, pageSize));
     }
 }

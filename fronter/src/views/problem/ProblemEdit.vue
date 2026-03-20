@@ -45,6 +45,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getProblemInfo, addProblem, editProblem } from '@/api/problem'
+import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
 const router = useRouter()
@@ -101,14 +102,19 @@ const handleSubmit = async () => {
     if (valid) {
       loading.value = true
       try {
+        // 获取当前用户 ID
+        const userStore = useUserStore()
+        const authorId = userStore.userInfo?.id || localStorage.getItem('userId')
+        
         if (isEdit.value) {
           // 编辑模式，添加 ID
           const submitData = { ...form, id: route.params.id }
           await editProblem(submitData)
           ElMessage.success('更新成功')
         } else {
-          // 创建模式
-          await addProblem(form)
+          // 创建模式，添加作者 ID
+          const submitData = { ...form, authorId: authorId }
+          await addProblem(submitData)
           ElMessage.success('创建成功')
         }
         router.push('/problems')

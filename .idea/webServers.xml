@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="db8886fd-7347-45ab-8a4a-39170ac11f3b" name="vm虚拟机">
+        <fileTransfer rootFolder="/home/yige123" accessType="SFTP" host="192.168.61.135" port="22" sshConfigId="ddd3a688-1b20-4956-b7ad-cddf387b60f8" sshConfig="yige123@192.168.61.135:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

@@ -5,6 +5,6 @@ spring:
     cloud:
         sentinel:
             transport:
-                dashboard: 127.0.0.1:9999
+                dashboard: 192.168.61.135:8858
             eager: true
             web-context-unify: false

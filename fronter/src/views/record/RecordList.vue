@@ -21,6 +21,19 @@
       </el-table-column>
     </el-table>
 
+    <!-- 分页 -->
+    <div class="pagination" style="margin-top: 20px; text-align: right;">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :page-sizes="[10, 20, 50, 100]"
+        :total="total"
+        layout="total, sizes, prev, pager, next, jumper"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
+
     <!-- 修改状态对话框 -->
     <el-dialog v-model="dialogVisible" title="修改状态" width="30%">
       <el-form :model="statusForm" label-width="80px">
@@ -47,22 +60,52 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getRecordInfo, editRecordStatus } from '@/api/record'
+import { getRecordList, editRecordStatus } from '@/api/record'
 
 const router = useRouter()
 const loading = ref(false)
 const dialogVisible = ref(false)
 const currentRecord = ref(null)
 
-const records = ref([
-  // 临时测试数据
-  { id: 1, userId: 1, problemId: 1, status: 'Accepted' },
-  { id: 2, userId: 1, problemId: 2, status: 'Wrong Answer' }
-])
+const records = ref([])
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 
 const statusForm = ref({
   status: ''
 })
+
+// 加载记录列表
+const loadRecords = async () => {
+  loading.value = true
+  try {
+    const res = await getRecordList(currentPage.value, pageSize.value)
+    // 假设后端返回的数据格式为：{ data: { records: [...], total: 100 } }
+    if (res.data) {
+      records.value = res.data.records || res.data.list || []
+      total.value = res.data.total || 0
+    }
+  } catch (error) {
+    console.error('加载记录列表失败:', error)
+    ElMessage.error('加载记录列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 分页大小改变时触发
+const handleSizeChange = (size) => {
+  pageSize.value = size
+  currentPage.value = 1
+  loadRecords()
+}
+
+// 页码改变时触发
+const handleCurrentChange = (page) => {
+  currentPage.value = page
+  loadRecords()
+}
 
 const getStatusType = (status) => {
   const statusMap = {
@@ -89,8 +132,7 @@ const getStatusText = (status) => {
 }
 
 const handleView = (id) => {
-  // TODO: 查看详情
-  console.log('查看记录:', id)
+  router.push(`/record/${id}`)
 }
 
 const handleEditStatus = (record) => {
@@ -107,18 +149,14 @@ const handleConfirmEdit = async () => {
     ElMessage.success('更新成功')
     dialogVisible.value = false
     // 刷新列表
-    const index = records.value.findIndex(r => r.id === currentRecord.value.id)
-    if (index !== -1) {
-      records.value[index].status = statusForm.value.status
-    }
+    loadRecords()
   } catch (error) {
     console.error('更新失败:', error)
   }
 }
 
 onMounted(() => {
-  // TODO: 加载记录列表
-  // loadRecords()
+  loadRecords()
 })
 </script>
 

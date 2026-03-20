@@ -22,6 +22,19 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 分页 -->
+    <div class="pagination" style="margin-top: 20px; text-align: right;">
+      <el-pagination
+        v-model:current-page="currentPage"
+        v-model:page-size="pageSize"
+        :page-sizes="[10, 20, 50, 100]"
+        :total="total"
+        layout="total, sizes, prev, pager, next, jumper"
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+      />
+    </div>
   </div>
 </template>
 
@@ -29,16 +42,56 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-// TODO: 需要添加获取所有题目的 API
-// import { getProblemList } from '@/api/problem'
+import { getProblemList, delProblem } from '@/api/problem'
 
 const router = useRouter()
 const loading = ref(false)
-const problems = ref([
-  // 临时测试数据
-  { id: 1, title: 'A+B Problem', authorId: 1, timeLimit: 1000, memoryLimit: 256 },
-  { id: 2, title: 'Hello World', authorId: 1, timeLimit: 500, memoryLimit: 128 }
-])
+const problems = ref([])
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+
+// 加载题目列表
+const loadProblems = async () => {
+  loading.value = true
+  try {
+    const res = await getProblemList(currentPage.value, pageSize.value)
+    // 后端返回的数据格式：{ data: [...] }
+    if (res.data) {
+      // 如果返回的是数组
+      if (Array.isArray(res.data)) {
+        problems.value = res.data
+        total.value = res.data.length
+      } else if (res.data.records || res.data.list) {
+        // 如果是分页对象
+        problems.value = res.data.records || res.data.list
+        total.value = res.data.total || 0
+      } else {
+        // 其他情况
+        problems.value = []
+        total.value = 0
+      }
+    }
+  } catch (error) {
+    console.error('加载题目列表失败:', error)
+    ElMessage.error('加载题目列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 分页大小改变时触发
+const handleSizeChange = (size) => {
+  pageSize.value = size
+  currentPage.value = 1
+  loadProblems()
+}
+
+// 页码改变时触发
+const handleCurrentChange = (page) => {
+  currentPage.value = page
+  loadProblems()
+}
 
 const handleCreate = () => {
   router.push('/problem/create')
@@ -60,18 +113,17 @@ const handleDelete = async (id) => {
       type: 'warning'
     })
     
-    // TODO: 调用删除 API
-    // await delProblem(id)
+    await delProblem(id)
     ElMessage.success('删除成功')
     // 刷新列表
+    loadProblems()
   } catch {
     // 取消删除
   }
 }
 
 onMounted(() => {
-  // TODO: 加载题目列表
-  // loadProblems()
+  loadProblems()
 })
 </script>
 
