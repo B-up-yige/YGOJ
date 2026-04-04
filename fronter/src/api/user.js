@@ -34,14 +34,6 @@ export function getUserinfo(id) {
   })
 }
 
-// 根据用户名获取用户信息
-export function getUserinfoByUsername(username) {
-  return request({
-    url: `/user/userinfo/username/${username}`,
-    method: 'get'
-  })
-}
-
 // 通过 token 获取用户 ID
 export function getUserIdByToken(token) {
   return request({
@@ -51,11 +43,3 @@ export function getUserIdByToken(token) {
   })
 }
 
-// 更新用户信息
-export function updateUserInfo(data) {
-  return request({
-    url: '/user/update',
-    method: 'put',
-    data
-  })
-}

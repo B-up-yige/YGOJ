@@ -72,7 +72,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { UserFilled, Edit } from '@element-plus/icons-vue'
-import { getUserinfo, updateUserInfo } from '@/api/user'
+import { getUserinfo } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 
@@ -160,51 +160,7 @@ const loadUser = async () => {
 
 // 显示编辑对话框
 const showEditDialog = () => {
-  editForm.value = {
-    nickname: user.value.nickname || '',
-    email: user.value.email || ''
-  }
-  editDialogVisible.value = true
-}
-
-// 处理更新用户信息
-const handleUpdate = async () => {
-  if (!editFormRef.value) return
-  
-  await editFormRef.value.validate(async (valid) => {
-    if (valid) {
-      updating.value = true
-      try {
-        const updateData = {
-          id: user.value.id,
-          ...editForm.value
-        }
-        
-        await updateUserInfo(updateData)
-        
-        ElMessage.success('更新成功')
-        editDialogVisible.value = false
-        
-        // 更新本地用户信息
-        user.value.nickname = editForm.value.nickname
-        user.value.email = editForm.value.email
-        
-        // 如果是当前登录用户，同时更新 store 中的信息
-        if (isCurrentUser.value) {
-          userStore.setUserInfo({
-            ...userStore.userInfo,
-            nickname: editForm.value.nickname,
-            email: editForm.value.email
-          })
-        }
-      } catch (error) {
-        console.error('更新用户信息失败:', error)
-        ElMessage.error('更新失败，请稍后重试')
-      } finally {
-        updating.value = false
-      }
-    }
-  })
+  ElMessage.info('编辑功能暂未实现')
 }
 
 const goBack = () => {

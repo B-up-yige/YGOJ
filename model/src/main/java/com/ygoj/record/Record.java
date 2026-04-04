@@ -10,5 +10,7 @@ public class Record {
     Long id;
     Long userId;
     Long problemId;
+    String code;
     String status;
+    String language;
 }

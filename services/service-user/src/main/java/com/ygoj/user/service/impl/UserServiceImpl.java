@@ -145,9 +145,13 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Long getUserIdByToken(String token) {
-        JWT jwt = JWTUtil.parseToken(
-                (String) redisTemplate.opsForValue().getAndExpire(token, 7, TimeUnit.DAYS)
-        );
+        String JWTstr = (String) redisTemplate.opsForValue().getAndExpire(token, 7, TimeUnit.DAYS);
+
+        if(JWTstr == null || JWTstr.isBlank()){
+            return null;
+        }
+
+        JWT jwt = JWTUtil.parseToken(JWTstr);
         Map<String, Object> payload = jwt.getPayloads();
 
         return ((Number) payload.get("userId")).longValue();

@@ -20,19 +20,27 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.ygoj.judger.CompileInfo;
 import com.ygoj.judger.ExecuteDetail;
+import com.ygoj.judger.feign.FileSystemFeignClient;
 import com.ygoj.judger.sandbox.Sandbox;
 import com.ygoj.judger.sandbox.SandboxExecuteRequest;
 import com.ygoj.judger.sandbox.SandboxExecuteResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
+@Component
 public class SandboxImpl implements Sandbox {
     private static final String GLOBAL_TEMP_DIR_NAME = "temp";
     private static final Map<String, Boolean> IMAGE = new HashMap<>();
 
+    @Autowired
+    private FileSystemFeignClient fileSystemFeignClient;
+
     static {
         //创建默认dockerClient
         DockerHttpClient dockerHttpClient =  new ApacheDockerHttpClient.Builder()
-                .dockerHost(URI.create("tcp://192.168.61.135:2376"))
+                .dockerHost(URI.create("tcp://127.0.0.1:2376"))
                 .build();
         DockerClient dockerClient = DockerClientBuilder.getInstance()
                 .withDockerHttpClient(dockerHttpClient)
@@ -84,6 +92,7 @@ public class SandboxImpl implements Sandbox {
 
         SandboxExecuteResponse result = new SandboxExecuteResponse();
         result.setDetail(new ArrayList<>());
+        result.setRecordId(sandboxExecuteRequest.getRecordId());
 
 
         //拼接临时目录
@@ -228,9 +237,10 @@ public class SandboxImpl implements Sandbox {
 
             for (int i = 0; i < inputList.size(); i++) {
                 //下载输入输出
-                //TODO 后续根据文件系统调整下载下载方式
-                FileUtil.writeString(inputList.get(i), inputFilePath, StandardCharsets.UTF_8);
-                FileUtil.writeString(outputList.get(i), outputFilePath, StandardCharsets.UTF_8);
+                ResponseEntity<byte[]> inputFile = fileSystemFeignClient.downloadFile(inputList.get(i));
+                ResponseEntity<byte[]> outputFile = fileSystemFeignClient.downloadFile(outputList.get(i));
+                FileUtil.writeBytes(inputFile.getBody(), inputFilePath);
+                FileUtil.writeBytes(outputFile.getBody(), outputFilePath);
 
                 //执行代码
                 execCreateCmdResponse = dockerClient.execCreateCmd(containerId)

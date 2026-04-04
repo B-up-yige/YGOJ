@@ -1,5 +1,6 @@
 package com.ygoj.record.service;
 
+import com.ygoj.common.Result;
 import com.ygoj.record.Record;
 
 import java.util.List;
@@ -11,9 +12,7 @@ public interface RecordService {
 
     Record getRecordinfoById(Long id);
 
-    void addRecord(Record record);
-
-    void editRecordStatus(Long id, String status);
+    Result addRecord(Record record);
 
     List<Record> list(Long page, Long pageSize);
 }

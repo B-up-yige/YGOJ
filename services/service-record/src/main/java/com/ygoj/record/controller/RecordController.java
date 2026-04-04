@@ -2,6 +2,9 @@ package com.ygoj.record.controller;
 
 import com.ygoj.common.Result;
 import com.ygoj.record.Record;
+import com.ygoj.record.feign.JudgerFeignClient;
+import com.ygoj.record.feign.ProblemFeignClient;
+import com.ygoj.record.feign.UserFeignClient;
 import com.ygoj.record.service.RecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -29,23 +32,9 @@ public class RecordController {
      * @param record 提交记录
      * @return {@link Result}
      */
-    @PostMapping("/add")
-    public Result addRecord(Record record) {
-        recordService.addRecord(record);
-        return Result.success();
-    }
-
-    /**
-     * 编辑提交记录状态
-     *
-     * @param id     提交记录id
-     * @param status 状态
-     * @return {@link Result}
-     */
-    @PutMapping("/editStatus")
-    public Result editRecordStatus(Long id, String status) {
-        recordService.editRecordStatus(id, status);
-        return Result.success();
+    @PostMapping("/submit")
+    public Result addRecord(@RequestBody Record record) {
+        return recordService.addRecord(record);
     }
 
     /**

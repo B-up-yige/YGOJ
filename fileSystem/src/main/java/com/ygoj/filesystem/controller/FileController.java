@@ -33,7 +33,7 @@ public class FileController {
             String fileId = fileService.uploadFile(file);
             return Result.success(fileId);
         } catch (IOException e) {
-            return Result.error(500, "上传失败：" + e.getMessage());
+            return Result.error(400, "上传失败：" + e.getMessage());
         }
     }
     
@@ -73,7 +73,7 @@ public class FileController {
             fileService.deleteFile(fileId);
             return Result.success();
         } catch (IOException e) {
-            return Result.error(500, "删除失败：" + e.getMessage());
+            return Result.error(400, "删除失败：" + e.getMessage());
         }
     }
 }

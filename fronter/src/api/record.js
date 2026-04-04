@@ -17,24 +17,6 @@ export function getRecordInfo(id) {
   })
 }
 
-// 添加提交记录
-export function addRecord(data) {
-  return request({
-    url: '/record/add',
-    method: 'post',
-    data
-  })
-}
-
-// 编辑提交记录状态
-export function editRecordStatus(id, status) {
-  return request({
-    url: '/record/editStatus',
-    method: 'put',
-    params: { id, status }
-  })
-}
-
 // 提交代码
 export function submitCode(data) {
   return request({

@@ -1,0 +1,7 @@
+language:
+    java:
+        name: "Java"
+        compile: "javac -encoding utf-8 -Xlint ./Main.java"
+        run: "java -Dfile.encoding=utf-8 -Xmx2g Main"
+        fileName: "Main.java"
+        image: "amazoncorretto:18"

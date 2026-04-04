@@ -16,4 +16,5 @@ public class SandboxExecuteRequest {
     Long timeLimit;
     Long memoryLimit;
     String image;
+    Long recordId;
 }

@@ -18,6 +18,8 @@ import org.springframework.stereotype.Component;
 public class MessageListener {
     @Autowired
     RabbitTemplate rabbitTemplate;
+    @Autowired
+    Sandbox sandbox;
 
     @SneakyThrows
     @RabbitListener(queues = {"judger_queue"}, ackMode = "MANUAL")
@@ -25,12 +27,11 @@ public class MessageListener {
         //json对象化
         SandboxExecuteRequest sandboxExecuteRequest = JSON.parseObject(message, SandboxExecuteRequest.class);
         //处理判题
-        Sandbox sandbox = new SandboxImpl();
         SandboxExecuteResponse result = sandbox.sandboxExecute(sandboxExecuteRequest);
 
         //处理结果
-        //TODO 传输结果
-        System.out.println(result);
+        String json = JSON.toJSONString(result);
+        rabbitTemplate.convertAndSend("judgeResult_exchange", "ygoj", json);
 
         //确认消息
         channel.basicAck(deliveryTag, false);

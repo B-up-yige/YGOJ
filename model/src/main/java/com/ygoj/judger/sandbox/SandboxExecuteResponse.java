@@ -11,4 +11,5 @@ public class SandboxExecuteResponse {
     List<ExecuteDetail> detail;
     String status;
     CompileInfo compileInfo;
+    Long recordId;
 }

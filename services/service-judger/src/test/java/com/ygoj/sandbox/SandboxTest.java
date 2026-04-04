@@ -36,8 +36,9 @@ public class Main{
 //            s += "a";
 //        }
 
-        List<String> a = new ArrayList<>();
-        a.get(3);
+//        List<String> a = new ArrayList<>();
+//        a.get(3);
+          System.out.printfln("123");
     }
 }
                 """;
@@ -64,10 +65,10 @@ public class Main{
 //                }""";
 
         SandboxExecuteRequest request = new SandboxExecuteRequest();
-        request.setInputList(Arrays.asList("a", "b", "c"));
-        request.setOutputList(Arrays.asList("a", "b", "c"));
+        request.setInputList(Arrays.asList("", "", ""));
+        request.setOutputList(Arrays.asList("123", "245", "147"));
         request.setCode(code);
-        request.setLanguage("123");
+        request.setLanguage("java");
         request.setCompileCommand("javac -encoding utf-8 -Xlint ./Main.java");
         request.setRunCommand("java -Dfile.encoding=utf-8 -Xmx2g Main");
         request.setFileName("Main.java");

@@ -60,7 +60,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getRecordList, editRecordStatus } from '@/api/record'
+import { getRecordList } from '@/api/record'
 
 const router = useRouter()
 const loading = ref(false)
@@ -136,23 +136,7 @@ const handleView = (id) => {
 }
 
 const handleEditStatus = (record) => {
-  currentRecord.value = record
-  statusForm.value.status = record.status
-  dialogVisible.value = true
-}
-
-const handleConfirmEdit = async () => {
-  if (!currentRecord.value) return
-  
-  try {
-    await editRecordStatus(currentRecord.value.id, statusForm.value.status)
-    ElMessage.success('更新成功')
-    dialogVisible.value = false
-    // 刷新列表
-    loadRecords()
-  } catch (error) {
-    console.error('更新失败:', error)
-  }
+  ElMessage.info('修改状态功能暂未实现')
 }
 
 onMounted(() => {

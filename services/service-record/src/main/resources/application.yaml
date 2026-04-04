@@ -7,12 +7,20 @@ spring:
     config:
         import: "nacos:service-record.yaml"
     profiles:
-        include: feign
+        include:
+            - feign
+            - language
     datasource:
         url: jdbc:mysql://192.168.61.135:3306/record?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
         username: root
         password: 123456
         driver-class-name: com.mysql.cj.jdbc.Driver
+    rabbitmq:
+        host: 192.168.61.135
+        port: 5672
+        virtual-host: /judgeQueue
+        username: root
+        password: root
 
 server:
     port: 8002

@@ -99,16 +99,22 @@ const loadUserInfo = async () => {
     const idRes = await getUserIdByToken(userStore.token)
     console.log('获取到用户 ID:', idRes.data)
     
-    if (idRes.data) {
-      const userId = idRes.data
-      
-      // 第二步：通过用户 ID 获取完整用户信息
-      const userInfoRes = await getUserinfo(userId)
-      if (userInfoRes.data) {
-        userStore.setUserInfo(userInfoRes.data)
-        console.log('获取到用户信息:', userInfoRes.data)
-        console.log('用户昵称:', userInfoRes.data.nickname)
-      }
+    // 如果 token 无效 (返回 null)，清除本地存储并跳转到登录页
+    if (!idRes.data) {
+      console.log('token 已失效，清除本地存储')
+      userStore.logout()
+      router.push('/login')
+      return
+    }
+    
+    const userId = idRes.data
+    
+    // 第二步：通过用户 ID 获取完整用户信息
+    const userInfoRes = await getUserinfo(userId)
+    if (userInfoRes.data) {
+      userStore.setUserInfo(userInfoRes.data)
+      console.log('获取到用户信息:', userInfoRes.data)
+      console.log('用户昵称:', userInfoRes.data.nickname)
     }
   } catch (error) {
     console.error('加载用户信息失败:', error)

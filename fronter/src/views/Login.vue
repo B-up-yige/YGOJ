@@ -70,15 +70,22 @@ const handleLogin = async () => {
           try {
             // 第一步：通过 token 获取用户 ID
             const idRes = await getUserIdByToken(token)
-            if (idRes.data) {
-              const userId = idRes.data
-              
-              // 第二步：通过用户 ID 获取完整用户信息
-              const userInfoRes = await getUserinfo(userId)
-              if (userInfoRes.data) {
-                userStore.setUserInfo(userInfoRes.data)
-                console.log('登录成功后获取到用户信息:', userInfoRes.data)
-              }
+            
+            // 如果 token 无效 (返回 null)，清除本地存储并跳转到登录页
+            if (!idRes.data) {
+              console.log('token 已失效，清除本地存储')
+              userStore.logout()
+              router.push('/login')
+              return
+            }
+            
+            const userId = idRes.data
+            
+            // 第二步：通过用户 ID 获取完整用户信息
+            const userInfoRes = await getUserinfo(userId)
+            if (userInfoRes.data) {
+              userStore.setUserInfo(userInfoRes.data)
+              console.log('登录成功后获取到用户信息:', userInfoRes.data)
             }
           } catch (err) {
             console.error('获取用户信息失败:', err)
