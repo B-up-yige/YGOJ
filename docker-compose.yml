@@ -1,7 +1,7 @@
 services:
   # MySQL 数据库
   mysql:
-    image: mysql:5.7.40
+    image: mysql/mysql-server:5.7.40
     container_name: ygoj-mysql
     restart: always
     environment:
@@ -44,7 +44,7 @@ services:
 
   # RabbitMQ
   rabbitmq:
-    image: rabbitmq:3.12-management
+    image: rabbitmq:3-management
     container_name: ygoj-rabbitmq
     restart: always
     environment:
@@ -85,6 +85,34 @@ services:
       interval: 15s
       timeout: 5s
       retries: 10
+
+  # Seata Server
+  seata-server:
+    image: seataio/seata-server:2.1.0
+    container_name: ygoj-seata-server
+    restart: always
+    environment:
+      SEATA_PORT: 8091
+      STORE_MODE: file
+      TZ: Asia/Shanghai
+    ports:
+      - "8091:8091"
+    volumes:
+      - seata-data:/root/seata-data
+    networks:
+      - ygoj-network
+
+  # Sentinel Dashboard
+  sentinel-dashboard:
+    image: bladex/sentinel-dashboard:1.8.6
+    container_name: ygoj-sentinel-dashboard
+    restart: always
+    environment:
+      TZ: Asia/Shanghai
+    ports:
+      - "8858:8858"
+    networks:
+      - ygoj-network
 
   # Gateway
   gateway:
@@ -128,6 +156,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: 123456
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      SEATA_REGISTRY_ADDRESS: seata-server:8091
+      SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel-dashboard:8858
       TZ: Asia/Shanghai
     depends_on:
       nacos:
@@ -136,6 +166,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      seata-server:
+        condition: service_started
+      sentinel-dashboard:
+        condition: service_started
     networks:
       - ygoj-network
 
@@ -156,6 +190,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: 123456
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      SEATA_REGISTRY_ADDRESS: seata-server:8091
+      SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel-dashboard:8858
       TZ: Asia/Shanghai
     volumes:
       - file-data:/app/file
@@ -166,6 +202,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      seata-server:
+        condition: service_started
+      sentinel-dashboard:
+        condition: service_started
     networks:
       - ygoj-network
 
@@ -188,6 +228,8 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: root
       SPRING_RABBITMQ_PASSWORD: root
+      SEATA_REGISTRY_ADDRESS: seata-server:8091
+      SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel-dashboard:8858
       TZ: Asia/Shanghai
     depends_on:
       nacos:
@@ -196,6 +238,10 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      seata-server:
+        condition: service_started
+      sentinel-dashboard:
+        condition: service_started
     networks:
       - ygoj-network
 
@@ -221,6 +267,8 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       DOCKER_HOST: unix:///var/run/docker.sock
+      SEATA_REGISTRY_ADDRESS: seata-server:8091
+      SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel-dashboard:8858
       TZ: Asia/Shanghai
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -234,6 +282,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      seata-server:
+        condition: service_started
+      sentinel-dashboard:
+        condition: service_started
     networks:
       - ygoj-network
 
@@ -280,6 +332,7 @@ volumes:
   nacos-data:
   file-data:
   judger-temp:
+  seata-data:
 
 networks:
   ygoj-network:
