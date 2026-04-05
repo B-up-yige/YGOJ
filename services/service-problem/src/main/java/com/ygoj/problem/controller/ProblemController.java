@@ -2,12 +2,15 @@ package com.ygoj.problem.controller;
 
 import com.ygoj.common.Result;
 import com.ygoj.problem.Probleminfo;
+import com.ygoj.problem.Tag;
 import com.ygoj.problem.Testcase;
 import com.ygoj.problem.feign.FileSystemFeignClient;
 import com.ygoj.problem.service.ProblemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 public class ProblemController {
@@ -102,5 +105,44 @@ public class ProblemController {
     @GetMapping("/getTestCase")
     public Result getTestCase(@RequestParam Long problemId) {
         return Result.success(problemService.getTestCase(problemId));
+    }
+
+    @GetMapping("/probleminfo/{id}/tag")
+    public Result getTag(@PathVariable("id") Long id) {
+        return Result.success(problemService.getTag(id));
+    }
+
+    @PostMapping("/probleminfo/{id}/addTag")
+    public Result addTag(@PathVariable("id") Long id, @RequestBody String tagName) {
+        //检验数据
+        if(id == null){
+            return Result.error(400, "id不能为空");
+        }
+        if(problemService.getProbleminfoById(id) == null){
+            return Result.error(400, "题目不存在");
+        }
+        if(tagName == null || tagName.isEmpty()){
+            return Result.error(400, "tag不能为空");
+        }
+        if(tagName.length() > 20){
+            return Result.error(400, "tag长度不能超过20");
+        }
+
+        //检查标签是否重复
+        List<Tag> tags = problemService.getTag(id);
+        for(Tag tag : tags){
+            if(tag.getTag().equals(tagName)){
+                return Result.error(400, "标签重复");
+            }
+        }
+
+        problemService.addTag(id, tagName);
+        return Result.success();
+    }
+
+    @DeleteMapping("/probleminfo/{id}/delTag")
+    public Result delTag(@PathVariable("id") Long id, @RequestBody String tagName) {
+        problemService.delTag(id, tagName);
+        return Result.success();
     }
 }

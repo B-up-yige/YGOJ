@@ -29,6 +29,34 @@
           <span style="margin-left: 10px; color: #999;">(MB)</span>
         </el-form-item>
 
+        <!-- 标签管理 -->
+        <el-form-item label="标签" v-if="isEdit">
+          <div class="tag-management">
+            <div class="tags-display" v-if="tags.length > 0">
+              <el-tag
+                v-for="tag in tags"
+                :key="tag"
+                closable
+                @close="handleRemoveTag(tag)"
+                style="margin-right: 8px; margin-bottom: 8px;"
+              >
+                {{ tag }}
+              </el-tag>
+            </div>
+            <div class="add-tag">
+              <el-input
+                v-model="newTag"
+                placeholder="输入标签名称"
+                style="width: 200px; margin-right: 8px;"
+                @keyup.enter="handleAddTag"
+              />
+              <el-button type="primary" @click="handleAddTag" :disabled="!newTag.trim()">
+                添加标签
+              </el-button>
+            </div>
+          </div>
+        </el-form-item>
+
         <el-form-item>
           <el-button type="primary" @click="handleSubmit" :loading="loading">
             提交
@@ -55,7 +83,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Setting } from '@element-plus/icons-vue'
-import { getProblemInfo, addProblem, editProblem } from '@/api/problem'
+import { getProblemInfo, addProblem, editProblem, getProblemTags, addProblemTag, delProblemTag } from '@/api/problem'
 import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
@@ -71,6 +99,9 @@ const form = reactive({
   timeLimit: 1000,
   memoryLimit: 256
 })
+
+const tags = ref([])
+const newTag = ref('')
 
 const rules = {
   title: [
@@ -99,10 +130,60 @@ const loadProblem = async () => {
     form.description = data.description
     form.timeLimit = data.timeLimit
     form.memoryLimit = data.memoryLimit
+    
+    // 加载标签
+    await loadTags()
   } catch (error) {
     console.error('加载题目失败:', error)
   } finally {
     loading.value = false
+  }
+}
+
+const loadTags = async () => {
+  try {
+    const res = await getProblemTags(route.params.id)
+    if (res.data) {
+      // 后端返回的是 Tag 对象数组，需要提取 tag 字段
+      tags.value = res.data.map(item => item.tag)
+    }
+  } catch (error) {
+    console.error('加载标签失败:', error)
+  }
+}
+
+const handleAddTag = async () => {
+  if (!newTag.value.trim()) {
+    ElMessage.warning('请输入标签名称')
+    return
+  }
+  
+  if (newTag.value.length > 20) {
+    ElMessage.warning('标签长度不能超过20个字符')
+    return
+  }
+  
+  try {
+    await addProblemTag(route.params.id, newTag.value.trim())
+    ElMessage.success('添加标签成功')
+    newTag.value = ''
+    // 重新加载标签
+    await loadTags()
+  } catch (error) {
+    console.error('添加标签失败:', error)
+    ElMessage.error('添加标签失败')
+  }
+}
+
+const handleRemoveTag = async (tag) => {
+  try {
+    await delProblemTag(route.params.id, tag)
+    ElMessage.success('删除标签成功')
+    // 重新加载标签
+    await loadTags()
+  } catch (error) {
+    console.error('删除标签失败:', error)
+    ElMessage.error('删除标签失败')
   }
 }
 
@@ -162,5 +243,21 @@ onMounted(() => {
   margin: 0 0 15px 0;
   color: #333;
   font-size: 16px;
+}
+
+.tag-management {
+  width: 100%;
+}
+
+.tags-display {
+  margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.add-tag {
+  display: flex;
+  align-items: center;
 }
 </style>

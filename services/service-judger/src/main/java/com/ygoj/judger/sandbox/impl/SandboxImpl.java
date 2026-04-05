@@ -93,6 +93,7 @@ public class SandboxImpl implements Sandbox {
         SandboxExecuteResponse result = new SandboxExecuteResponse();
         result.setDetail(new ArrayList<>());
         result.setRecordId(sandboxExecuteRequest.getRecordId());
+        result.setStatus("waiting");
 
 
         //拼接临时目录
@@ -318,6 +319,7 @@ public class SandboxImpl implements Sandbox {
                         //对比答案
                         detail.setStatus(checkAnswer(outputFilePath, userOutputFilepath));
                     }
+                    result.setStatus(updateStatus(result.getStatus(), detail.getStatus()));
 
                     result.getDetail().add(detail);
                 } catch (InterruptedException e) {
@@ -339,5 +341,15 @@ public class SandboxImpl implements Sandbox {
         FileUtil.del(userTempDir);
 
         return result;
+    }
+
+    static List<String> statusList = Arrays.asList("CE", "RE", "MLE", "TLE", "WA", "AC");
+    private String updateStatus(String status, String detailStatus) {
+        for(String s : statusList){
+            if(s.equals(detailStatus) || s.equals(status)){
+                return s;
+            }
+        }
+        return "AC";
     }
 }

@@ -15,6 +15,20 @@
         <el-descriptions-item label="内存限制">{{ problem.memoryLimit }} MB</el-descriptions-item>
       </el-descriptions>
 
+      <!-- 标签区域 -->
+      <div class="tags-section" v-if="tags.length > 0">
+        <h3>标签</h3>
+        <div class="tags-container">
+          <el-tag
+            v-for="tag in tags"
+            :key="tag"
+            style="margin-right: 8px; margin-bottom: 8px;"
+          >
+            {{ tag }}
+          </el-tag>
+        </div>
+      </div>
+
       <el-divider />
 
       <div class="section">
@@ -61,7 +75,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getProblemInfo } from '@/api/problem'
+import { getProblemInfo, getProblemTags } from '@/api/problem'
 import { submitCode } from '@/api/record'
 import { useUserStore } from '@/stores/user'
 
@@ -81,6 +95,8 @@ const problem = ref({
   memoryLimit: 0
 })
 
+const tags = ref([])
+
 const submitForm = ref({
   language: 'Java',
   code: ''
@@ -91,10 +107,25 @@ const loadProblem = async () => {
   try {
     const res = await getProblemInfo(route.params.id)
     problem.value = res.data
+    
+    // 加载标签
+    await loadTags()
   } catch (error) {
     console.error('加载题目失败:', error)
   } finally {
     loading.value = false
+  }
+}
+
+const loadTags = async () => {
+  try {
+    const res = await getProblemTags(route.params.id)
+    if (res.data) {
+      // 后端返回的是 Tag 对象数组，需要提取 tag 字段
+      tags.value = res.data.map(item => item.tag)
+    }
+  } catch (error) {
+    console.error('加载标签失败:', error)
   }
 }
 
@@ -168,6 +199,21 @@ onMounted(() => {
 .section h3 {
   margin-bottom: 10px;
   color: #333;
+}
+
+.tags-section {
+  margin: 20px 0;
+}
+
+.tags-section h3 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .actions {

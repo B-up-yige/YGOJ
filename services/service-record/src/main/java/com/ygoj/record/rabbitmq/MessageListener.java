@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 import com.ygoj.record.Record;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class MessageListener {
@@ -27,7 +28,7 @@ public class MessageListener {
     @Autowired
     private RecordMapper recordMapper;
 
-    @GlobalTransactional
+    @Transactional
     @SneakyThrows
     @RabbitListener(queues = {"judgeResult_queue"}, ackMode = "MANUAL")
     public void receiveMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {

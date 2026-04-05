@@ -81,10 +81,20 @@ const loadRecords = async () => {
   loading.value = true
   try {
     const res = await getRecordList(currentPage.value, pageSize.value)
-    // 假设后端返回的数据格式为：{ data: { records: [...], total: 100 } }
+    // 后端返回的数据格式：{ data: [...] }
     if (res.data) {
-      records.value = res.data.records || res.data.list || []
-      total.value = res.data.total || 0
+      if (Array.isArray(res.data)) {
+        // 如果直接是数组
+        records.value = res.data
+        total.value = res.data.length
+      } else if (res.data.records || res.data.list) {
+        // 如果是分页对象
+        records.value = res.data.records || res.data.list
+        total.value = res.data.total || 0
+      } else {
+        records.value = []
+        total.value = 0
+      }
     }
   } catch (error) {
     console.error('加载记录列表失败:', error)

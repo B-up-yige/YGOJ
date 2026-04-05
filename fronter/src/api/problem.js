@@ -72,3 +72,35 @@ export function delTestCase(data) {
     data
   })
 }
+
+// 获取题目标签
+export function getProblemTags(id) {
+  return request({
+    url: `/problem/probleminfo/${id}/tag`,
+    method: 'get'
+  })
+}
+
+// 添加题目标签
+export function addProblemTag(id, tagName) {
+  return request({
+    url: `/problem/probleminfo/${id}/addTag`,
+    method: 'post',
+    data: tagName,
+    headers: {
+      'Content-Type': 'text/plain'
+    }
+  })
+}
+
+// 删除题目标签
+export function delProblemTag(id, tagName) {
+  return request({
+    url: `/problem/probleminfo/${id}/delTag`,
+    method: 'delete',
+    data: tagName,
+    headers: {
+      'Content-Type': 'text/plain'
+    }
+  })
+}

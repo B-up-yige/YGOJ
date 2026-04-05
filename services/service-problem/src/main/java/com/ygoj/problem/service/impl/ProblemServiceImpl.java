@@ -4,10 +4,12 @@ import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ygoj.common.Result;
+import com.ygoj.problem.Tag;
 import com.ygoj.problem.Testcase;
 import com.ygoj.problem.feign.UserFeignClient;
 import com.ygoj.problem.mapper.ProbleminfoMapper;
 import com.ygoj.problem.Probleminfo;
+import com.ygoj.problem.mapper.TagMapper;
 import com.ygoj.problem.mapper.TestcaseMapper;
 import com.ygoj.problem.service.ProblemService;
 import com.ygoj.user.Userinfo;
@@ -15,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,11 +25,13 @@ import java.util.List;
 @Slf4j
 public class ProblemServiceImpl implements ProblemService {
     @Autowired
-    ProbleminfoMapper probleminfoMapper;
+    private ProbleminfoMapper probleminfoMapper;
     @Autowired
-    TestcaseMapper testcaseMapper;
+    private TestcaseMapper testcaseMapper;
     @Autowired
-    UserFeignClient userFeignClient;
+    private TagMapper tagMapper;
+    @Autowired
+    private UserFeignClient userFeignClient;
 
     /**
      * 根据题目id获取题目信息
@@ -116,5 +121,31 @@ public class ProblemServiceImpl implements ProblemService {
         queryWrapper.eq(Testcase::getProblemId, problemId);
 
         return testcaseMapper.selectList(queryWrapper);
+    }
+
+    @Override
+    public List<Tag> getTag(Long id) {
+        LambdaQueryWrapper<Tag> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Tag::getProblemId, id);
+
+        return tagMapper.selectList(queryWrapper);
+    }
+
+    @Override
+    @Transactional
+    public void addTag(Long id, String tagName) {
+        Tag tag = new Tag();
+        tag.setProblemId(id);
+        tag.setTag(tagName);
+        tagMapper.insert(tag);
+    }
+
+    @Override
+    @Transactional
+    public void delTag(Long id, String tagName) {
+        LambdaQueryWrapper<Tag> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Tag::getProblemId, id);
+        queryWrapper.eq(Tag::getTag, tagName);
+        tagMapper.delete(queryWrapper);
     }
 }

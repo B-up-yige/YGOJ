@@ -1,6 +1,7 @@
 package com.ygoj.problem.service;
 
 import com.ygoj.problem.Probleminfo;
+import com.ygoj.problem.Tag;
 import com.ygoj.problem.Testcase;
 
 import java.util.List;
@@ -21,4 +22,10 @@ public interface ProblemService {
     void delTestCase(Testcase testcase);
 
     List<Testcase> getTestCase(Long problemId);
+
+    List<Tag> getTag(Long id);
+
+    void addTag(Long id, String tagName);
+
+    void delTag(Long id, String tagName);
 }
