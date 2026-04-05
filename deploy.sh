@@ -105,9 +105,10 @@ configure_docker_mirror() {
     echo "2. 腾讯云镜像加速器"
     echo "3. 网易云镜像加速器"
     echo "4. 中科大镜像源"
-    echo "5. 恢复默认源"
+    echo "5. 多源聚合加速（推荐）"
+    echo "6. 恢复默认源"
     echo ""
-    read -p "请输入选项 (1-5): " mirror_choice
+    read -p "请输入选项 (1-6): " mirror_choice
     
     mkdir -p /etc/docker
     
@@ -151,6 +152,21 @@ EOF
             printf "${GREEN}[√] 中科大镜像源配置完成${NC}\n"
             ;;
         5)
+            cat > /etc/docker/daemon.json <<EOF
+{
+  "registry-mirrors": [
+    "https://do.nark.eu.org",
+    "https://dc.j8.work",
+    "https://docker.m.daocloud.io",
+    "https://dockerproxy.com",
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://docker.nju.edu.cn"
+  ]
+}
+EOF
+            printf "${GREEN}[√] 多源聚合加速配置完成（推荐）${NC}\n"
+            ;;
+        6)
             rm -f /etc/docker/daemon.json
             printf "${GREEN}[√] 已恢复默认源${NC}\n"
             ;;
