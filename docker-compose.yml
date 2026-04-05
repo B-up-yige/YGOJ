@@ -89,7 +89,7 @@ services:
 
   # Seata Server
   seata-server:
-    image: seataio/seata-server:2.1.0
+    image: apache/seata-server:2.1.0
     container_name: ygoj-seata-server
     restart: always
     environment:
