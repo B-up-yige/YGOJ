@@ -1,11 +1,19 @@
-#!/bin/bash
+#!/bin/sh
 
-# 设置颜色
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# 设置颜色（如果支持）
+if command -v tput >/dev/null 2>&1; then
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    BLUE='\033[0;34m'
+    NC='\033[0m'
+else
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    NC=''
+fi
 
 echo -e "${BLUE}=========================================${NC}"
 echo -e "${BLUE}  YGOJ Docker 部署脚本${NC}"
@@ -18,7 +26,7 @@ check_root() {
         echo -e "${YELLOW}[警告] 建议使用 root 权限运行此脚本${NC}"
         echo -e "${YELLOW}[提示] 可以使用 sudo bash $0 运行${NC}"
         read -p "是否继续? (y/n): " continue_choice
-        if [[ ! "$continue_choice" =~ ^[Yy]$ ]]; then
+        if ! echo "$continue_choice" | grep -qi '^y$'; then
             exit 1
         fi
     fi
@@ -164,7 +172,7 @@ check_docker() {
     if ! command -v docker &> /dev/null; then
         echo -e "${RED}[!] Docker 未安装${NC}"
         read -p "是否自动安装 Docker? (y/n): " install_docker_choice
-        if [[ "$install_docker_choice" =~ ^[Yy]$ ]]; then
+        if echo "$install_docker_choice" | grep -qi '^y$'; then
             install_docker
         else
             echo -e "${RED}[错误] 请先安装 Docker${NC}"
@@ -180,7 +188,7 @@ check_docker_compose() {
     if ! command -v docker-compose &> /dev/null; then
         echo -e "${RED}[!] Docker Compose 未安装${NC}"
         read -p "是否自动安装 Docker Compose? (y/n): " install_compose_choice
-        if [[ "$install_compose_choice" =~ ^[Yy]$ ]]; then
+        if echo "$install_compose_choice" | grep -qi '^y$'; then
             install_docker_compose
         else
             echo -e "${RED}[错误] 请先安装 Docker Compose${NC}"

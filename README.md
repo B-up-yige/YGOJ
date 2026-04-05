@@ -30,7 +30,11 @@ chmod +x deploy.sh
 
 2. **运行部署脚本**
 ```bash
+# 方式一：直接运行
 sudo ./deploy.sh
+
+# 方式二：使用 sh 运行
+sudo sh deploy.sh
 ```
 
 **Windows 系统：**
