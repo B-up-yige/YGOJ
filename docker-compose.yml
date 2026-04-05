@@ -105,7 +105,8 @@ services:
 
   # Sentinel Dashboard
   sentinel-dashboard:
-    image: bladex/sentinel-dashboard:1.8.6
+#    image: bladex/sentinel-dashboard:1.8.6
+    image: crpi-mj22d4gugnan1hnt.cn-shenzhen.personal.cr.aliyuncs.com/yige123/sentinel-dashboard:1.8.6
     container_name: ygoj-sentinel-dashboard
     restart: always
     environment:
