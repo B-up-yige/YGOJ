@@ -340,7 +340,8 @@ main() {
         esac
         
         echo ""
-        read -p "按回车键继续..."
+        printf "按回车键继续..."
+        read dummy
     done
 }
 
