@@ -169,7 +169,7 @@ EOF
 
 # 检查 Docker 是否安装
 check_docker() {
-    if ! command -v docker &> /dev/null; then
+    if ! command -v docker >/dev/null 2>&1; then
         printf "${RED}[!] Docker 未安装${NC}\n"
         read -p "是否自动安装 Docker? (y/n): " install_docker_choice
         if echo "$install_docker_choice" | grep -qi '^y$'; then
@@ -185,7 +185,7 @@ check_docker() {
 
 # 检查 Docker Compose 是否安装
 check_docker_compose() {
-    if ! command -v docker-compose &> /dev/null; then
+    if ! command -v docker-compose >/dev/null 2>&1; then
         printf "${RED}[!] Docker Compose 未安装${NC}\n"
         read -p "是否自动安装 Docker Compose? (y/n): " install_compose_choice
         if echo "$install_compose_choice" | grep -qi '^y$'; then
