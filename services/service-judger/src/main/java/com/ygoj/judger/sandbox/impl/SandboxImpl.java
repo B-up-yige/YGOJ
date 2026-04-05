@@ -111,8 +111,13 @@ public class SandboxImpl implements Sandbox {
 
 
         //创建默认dockerClient
+        String dockerHost = System.getenv("DOCKER_HOST");
+        if (dockerHost == null || dockerHost.isEmpty()) {
+            dockerHost = "unix:///var/run/docker.sock";
+        }
+        
         DockerHttpClient dockerHttpClient =  new ApacheDockerHttpClient.Builder()
-                .dockerHost(URI.create("tcp://192.168.61.135:2376"))
+                .dockerHost(URI.create(dockerHost))
                 .build();
         DockerClient dockerClient = DockerClientBuilder.getInstance()
                 .withDockerHttpClient(dockerHttpClient)
