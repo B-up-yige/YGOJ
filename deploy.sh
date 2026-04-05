@@ -15,16 +15,16 @@ else
     NC=''
 fi
 
-echo -e "${BLUE}=========================================${NC}"
-echo -e "${BLUE}  YGOJ Docker 部署脚本${NC}"
-echo -e "${BLUE}=========================================${NC}"
+printf "${BLUE}=========================================${NC}\n"
+printf "${BLUE}  YGOJ Docker 部署脚本${NC}\n"
+printf "${BLUE}=========================================${NC}\n"
 echo ""
 
 # 检查是否为 root 用户
 check_root() {
     if [ "$EUID" -ne 0 ]; then
-        echo -e "${YELLOW}[警告] 建议使用 root 权限运行此脚本${NC}"
-        echo -e "${YELLOW}[提示] 可以使用 sudo bash $0 运行${NC}"
+        printf "${YELLOW}[警告] 建议使用 root 权限运行此脚本${NC}\n"
+        printf "${YELLOW}[提示] 可以使用 sudo $0 运行${NC}\n"
         read -p "是否继续? (y/n): " continue_choice
         if ! echo "$continue_choice" | grep -qi '^y$'; then
             exit 1
@@ -45,12 +45,12 @@ detect_os() {
         OS=$(uname -s)
         VER=$(uname -r)
     fi
-    echo -e "${GREEN}[√] 检测到系统: $OS $VER${NC}"
+    printf "${GREEN}[√] 检测到系统: $OS $VER${NC}\n"
 }
 
 # 安装 Docker
 install_docker() {
-    echo -e "${YELLOW}[提示] 正在安装 Docker...${NC}"
+    printf "${YELLOW}[提示] 正在安装 Docker...${NC}\n"
     
     case "$OS" in
         *"Ubuntu"*|*"Debian"*)
@@ -69,8 +69,8 @@ install_docker() {
             systemctl start docker
             ;;
         *)
-            echo -e "${RED}[错误] 不支持的操作系统，请手动安装 Docker${NC}"
-            echo -e "${YELLOW}[提示] 访问: https://docs.docker.com/engine/install/${NC}"
+            printf "${RED}[错误] 不支持的操作系统，请手动安装 Docker${NC}\n"
+            printf "${YELLOW}[提示] 访问: https://docs.docker.com/engine/install/${NC}\n"
             exit 1
             ;;
     esac
@@ -82,23 +82,23 @@ install_docker() {
     # 添加当前用户到 docker 组
     usermod -aG docker $USER
     
-    echo -e "${GREEN}[√] Docker 安装成功${NC}"
+    printf "${GREEN}[√] Docker 安装成功${NC}\n"
 }
 
 # 安装 Docker Compose
 install_docker_compose() {
-    echo -e "${YELLOW}[提示] 正在安装 Docker Compose...${NC}"
+    printf "${YELLOW}[提示] 正在安装 Docker Compose...${NC}\n"
     
     COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
     curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
     
-    echo -e "${GREEN}[√] Docker Compose 安装成功${NC}"
+    printf "${GREEN}[√] Docker Compose 安装成功${NC}\n"
 }
 
 # 配置 Docker 镜像源
 configure_docker_mirror() {
-    echo -e "${YELLOW}[提示] Docker 换源配置${NC}"
+    printf "${YELLOW}[提示] Docker 换源配置${NC}\n"
     echo ""
     echo "请选择镜像源:"
     echo "1. 阿里云镜像加速器"
@@ -114,8 +114,8 @@ configure_docker_mirror() {
     case $mirror_choice in
         1)
             echo ""
-            echo -e "${YELLOW}[提示] 配置阿里云镜像加速器${NC}"
-            echo -e "${YELLOW}[提示] 请访问 https://cr.console.aliyun.com/cn-hangzhou/instances/mirrors 获取专属加速地址${NC}"
+            printf "${YELLOW}[提示] 配置阿里云镜像加速器${NC}\n"
+            printf "${YELLOW}[提示] 请访问 https://cr.console.aliyun.com/cn-hangzhou/instances/mirrors 获取专属加速地址${NC}\n"
             read -p "请输入阿里云加速地址: " aliyun_url
             if [ -n "$aliyun_url" ]; then
                 cat > /etc/docker/daemon.json <<EOF
@@ -123,7 +123,7 @@ configure_docker_mirror() {
   "registry-mirrors": ["$aliyun_url"]
 }
 EOF
-                echo -e "${GREEN}[√] 阿里云镜像源配置完成${NC}"
+                printf "${GREEN}[√] 阿里云镜像源配置完成${NC}\n"
             fi
             ;;
         2)
@@ -132,7 +132,7 @@ EOF
   "registry-mirrors": ["https://mirror.ccs.tencentyun.com"]
 }
 EOF
-            echo -e "${GREEN}[√] 腾讯云镜像源配置完成${NC}"
+            printf "${GREEN}[√] 腾讯云镜像源配置完成${NC}\n"
             ;;
         3)
             cat > /etc/docker/daemon.json <<EOF
@@ -140,7 +140,7 @@ EOF
   "registry-mirrors": ["https://hub-mirror.c.163.com"]
 }
 EOF
-            echo -e "${GREEN}[√] 网易云镜像源配置完成${NC}"
+            printf "${GREEN}[√] 网易云镜像源配置完成${NC}\n"
             ;;
         4)
             cat > /etc/docker/daemon.json <<EOF
@@ -148,61 +148,61 @@ EOF
   "registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"]
 }
 EOF
-            echo -e "${GREEN}[√] 中科大镜像源配置完成${NC}"
+            printf "${GREEN}[√] 中科大镜像源配置完成${NC}\n"
             ;;
         5)
             rm -f /etc/docker/daemon.json
-            echo -e "${GREEN}[√] 已恢复默认源${NC}"
+            printf "${GREEN}[√] 已恢复默认源${NC}\n"
             ;;
         *)
-            echo -e "${RED}[错误] 无效选项${NC}"
+            printf "${RED}[错误] 无效选项${NC}\n"
             return
             ;;
     esac
     
     # 重启 Docker 服务
-    echo -e "${YELLOW}[提示] 重启 Docker 服务...${NC}"
+    printf "${YELLOW}[提示] 重启 Docker 服务...${NC}\n"
     systemctl daemon-reload
     systemctl restart docker
-    echo -e "${GREEN}[√] Docker 服务已重启${NC}"
+    printf "${GREEN}[√] Docker 服务已重启${NC}\n"
 }
 
 # 检查 Docker 是否安装
 check_docker() {
     if ! command -v docker &> /dev/null; then
-        echo -e "${RED}[!] Docker 未安装${NC}"
+        printf "${RED}[!] Docker 未安装${NC}\n"
         read -p "是否自动安装 Docker? (y/n): " install_docker_choice
         if echo "$install_docker_choice" | grep -qi '^y$'; then
             install_docker
         else
-            echo -e "${RED}[错误] 请先安装 Docker${NC}"
+            printf "${RED}[错误] 请先安装 Docker${NC}\n"
             exit 1
         fi
     else
-        echo -e "${GREEN}[√] Docker 已安装: $(docker --version)${NC}"
+        printf "${GREEN}[√] Docker 已安装: $(docker --version)${NC}\n"
     fi
 }
 
 # 检查 Docker Compose 是否安装
 check_docker_compose() {
     if ! command -v docker-compose &> /dev/null; then
-        echo -e "${RED}[!] Docker Compose 未安装${NC}"
+        printf "${RED}[!] Docker Compose 未安装${NC}\n"
         read -p "是否自动安装 Docker Compose? (y/n): " install_compose_choice
         if echo "$install_compose_choice" | grep -qi '^y$'; then
             install_docker_compose
         else
-            echo -e "${RED}[错误] 请先安装 Docker Compose${NC}"
+            printf "${RED}[错误] 请先安装 Docker Compose${NC}\n"
             exit 1
         fi
     else
-        echo -e "${GREEN}[√] Docker Compose 已安装: $(docker-compose --version)${NC}"
+        printf "${GREEN}[√] Docker Compose 已安装: $(docker-compose --version)${NC}\n"
     fi
 }
 
 # 检查 Docker 服务状态
 check_docker_service() {
     if ! systemctl is-active --quiet docker; then
-        echo -e "${YELLOW}[警告] Docker 服务未运行，正在启动...${NC}"
+        printf "${YELLOW}[警告] Docker 服务未运行，正在启动...${NC}\n"
         systemctl start docker
         systemctl enable docker
     fi
@@ -227,10 +227,10 @@ show_menu() {
 
 # 完整部署
 deploy_all() {
-    echo -e "${YELLOW}[提示] 开始完整部署...${NC}"
+    printf "${YELLOW}[提示] 开始完整部署...${NC}\n"
     docker-compose up -d --build
     echo ""
-    echo -e "${GREEN}[√] 部署完成！${NC}"
+    printf "${GREEN}[√] 部署完成！${NC}\n"
     echo ""
     echo "服务访问地址:"
     echo "  - 前端: http://localhost:3000"
@@ -241,28 +241,28 @@ deploy_all() {
 
 # 启动基础设施
 deploy_infrastructure() {
-    echo -e "${YELLOW}[提示] 启动基础设施服务...${NC}"
+    printf "${YELLOW}[提示] 启动基础设施服务...${NC}\n"
     docker-compose up -d mysql redis rabbitmq nacos
-    echo -e "${GREEN}[√] 基础设施启动完成！${NC}"
+    printf "${GREEN}[√] 基础设施启动完成！${NC}\n"
 }
 
 # 启动应用服务
 deploy_services() {
-    echo -e "${YELLOW}[提示] 启动应用服务...${NC}"
+    printf "${YELLOW}[提示] 启动应用服务...${NC}\n"
     docker-compose up -d gateway service-user service-problem service-record service-judger file-system frontend
-    echo -e "${GREEN}[√] 应用服务启动完成！${NC}"
+    printf "${GREEN}[√] 应用服务启动完成！${NC}\n"
 }
 
 # 停止所有服务
 stop_services() {
-    echo -e "${YELLOW}[提示] 停止所有服务...${NC}"
+    printf "${YELLOW}[提示] 停止所有服务...${NC}\n"
     docker-compose down
-    echo -e "${GREEN}[√] 所有服务已停止${NC}"
+    printf "${GREEN}[√] 所有服务已停止${NC}\n"
 }
 
 # 查看服务状态
 show_status() {
-    echo -e "${YELLOW}[提示] 服务状态:${NC}"
+    printf "${YELLOW}[提示] 服务状态:${NC}\n"
     docker-compose ps
 }
 
@@ -278,15 +278,15 @@ show_logs() {
 
 # 清理无用资源
 cleanup() {
-    echo -e "${YELLOW}[提示] 清理无用镜像和容器...${NC}"
+    printf "${YELLOW}[提示] 清理无用镜像和容器...${NC}\n"
     docker system prune -a -f
     echo ""
-    echo -e "${GREEN}[√] 清理完成${NC}"
+    printf "${GREEN}[√] 清理完成${NC}\n"
 }
 
 # 查看磁盘使用
 show_disk_usage() {
-    echo -e "${YELLOW}[提示] Docker 磁盘使用情况:${NC}"
+    printf "${YELLOW}[提示] Docker 磁盘使用情况:${NC}\n"
     docker system df
 }
 
@@ -331,11 +331,11 @@ main() {
                 show_disk_usage
                 ;;
             0)
-                echo -e "${GREEN}再见！${NC}"
+                printf "${GREEN}再见！${NC}\n"
                 exit 0
                 ;;
             *)
-                echo -e "${RED}[错误] 无效选项${NC}"
+                printf "${RED}[错误] 无效选项${NC}\n"
                 ;;
         esac
         
