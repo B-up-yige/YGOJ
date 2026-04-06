@@ -269,7 +269,8 @@ EOF
 # 检查 Maven 是否安装
 check_maven() {
     MAVEN_REQUIRED_VERSION="3.9.6"
-    MAVEN_BIN="/opt/maven/bin/mvn"
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    MAVEN_BIN="${SCRIPT_DIR}/.maven/apache-maven-${MAVEN_REQUIRED_VERSION}/bin/mvn"
     
     if [ ! -x "${MAVEN_BIN}" ]; then
         printf "${RED}[!] Maven 未安装${NC}\n"
