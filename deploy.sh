@@ -136,9 +136,10 @@ install_maven() {
     
     # 保存当前目录
     ORIGINAL_DIR=$(pwd)
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
     
     MAVEN_VERSION="3.9.6"
-    MAVEN_HOME="/opt/maven"
+    MAVEN_HOME="${SCRIPT_DIR}/.maven/apache-maven-${MAVEN_VERSION}"
     MAVEN_URL="https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
     
     # 下载并安装 Maven
@@ -150,32 +151,21 @@ install_maven() {
         return 1
     fi
     
-    mkdir -p ${MAVEN_HOME}
-    tar xzf apache-maven.tar.gz -C ${MAVEN_HOME} --strip-components=1
+    mkdir -p "${SCRIPT_DIR}/.maven"
+    tar xzf apache-maven.tar.gz -C "${SCRIPT_DIR}/.maven"
     rm -f apache-maven.tar.gz
     
     # 返回原目录
     cd "$ORIGINAL_DIR"
     
-    # 配置环境变量
-    cat > /etc/profile.d/maven.sh <<EOF
-export M2_HOME=${MAVEN_HOME}
-export PATH=\${M2_HOME}/bin:\${PATH}
-EOF
-    
-    chmod +x /etc/profile.d/maven.sh
-    . /etc/profile.d/maven.sh
-    
-    # 验证安装
-    export M2_HOME=${MAVEN_HOME}
-    export PATH=${M2_HOME}/bin:${PATH}
-    
-    if ! command -v mvn >/dev/null 2>&1; then
+    # 直接使用绝对路径验证安装
+    MAVEN_BIN="${MAVEN_HOME}/bin/mvn"
+    if [ ! -x "${MAVEN_BIN}" ]; then
         printf "${RED}[错误] Maven 安装失败${NC}\n"
         return 1
     fi
     
-    printf "${GREEN}[√] Maven 安装成功: $(mvn --version | head -n 1)${NC}\n"
+    printf "${GREEN}[√] Maven 安装成功: $(${MAVEN_BIN} --version | head -n 1)${NC}\n"
     
     # 自动配置 Maven 阿里云镜像源
     configure_maven_mirror
@@ -279,8 +269,9 @@ EOF
 # 检查 Maven 是否安装
 check_maven() {
     MAVEN_REQUIRED_VERSION="3.9.6"
+    MAVEN_BIN="/opt/maven/bin/mvn"
     
-    if ! command -v mvn >/dev/null 2>&1; then
+    if [ ! -x "${MAVEN_BIN}" ]; then
         printf "${RED}[!] Maven 未安装${NC}\n"
         read -p "是否自动安装 Maven ${MAVEN_REQUIRED_VERSION}? (y/n): " install_maven_choice
         if echo "$install_maven_choice" | grep -qi '^y$'; then
@@ -290,9 +281,9 @@ check_maven() {
             exit 1
         fi
     else
-        CURRENT_VERSION=$(mvn --version | head -n 1 | grep -oP '\d+\.\d+\.\d+')
+        CURRENT_VERSION=$(${MAVEN_BIN} --version | head -n 1 | grep -oP '\d+\.\d+\.\d+')
         if [ "$CURRENT_VERSION" = "$MAVEN_REQUIRED_VERSION" ]; then
-            printf "${GREEN}[√] Maven 版本正确: $(mvn --version | head -n 1)${NC}\n"
+            printf "${GREEN}[√] Maven 版本正确: $(${MAVEN_BIN} --version | head -n 1)${NC}\n"
         else
             printf "${YELLOW}[警告] Maven 版本不匹配 (当前: $CURRENT_VERSION, 需要: $MAVEN_REQUIRED_VERSION)${NC}\n"
             read -p "是否安装正确的 Maven 版本? (y/n): " reinstall_choice
@@ -502,15 +493,12 @@ build_project() {
     printf "${YELLOW}[提示] 开始 Maven 构建...${NC}\n"
     echo ""
     
+    MAVEN_BIN="/opt/maven/bin/mvn"
+    
     # 确保 Maven 可用
-    if ! command -v mvn >/dev/null 2>&1; then
+    if [ ! -x "${MAVEN_BIN}" ]; then
         printf "${RED}[错误] Maven 未找到，请重新运行脚本安装 Maven${NC}\n"
         return 1
-    fi
-    
-    # 加载 Maven 环境变量
-    if [ -f /etc/profile.d/maven.sh ]; then
-        . /etc/profile.d/maven.sh
     fi
     
     # 设置 JAVA_HOME（如果未设置）
@@ -520,14 +508,14 @@ build_project() {
     fi
     
     printf "${GREEN}[√] JAVA_HOME: $JAVA_HOME${NC}\n"
-    printf "${GREEN}[√] Maven 版本: $(mvn --version | head -n 1)${NC}\n"
+    printf "${GREEN}[√] Maven 版本: $(${MAVEN_BIN} --version | head -n 1)${NC}\n"
     
     # 执行 Maven 构建
     cd "$(dirname "$0")"
-    printf "${YELLOW}[提示] 执行: mvn clean package -DskipTests -B${NC}\n"
+    printf "${YELLOW}[提示] 执行: ${MAVEN_BIN} clean package -DskipTests -B${NC}\n"
     echo ""
     
-    mvn clean package -DskipTests -B
+    ${MAVEN_BIN} clean package -DskipTests -B
     
     if [ $? -eq 0 ]; then
         echo ""
