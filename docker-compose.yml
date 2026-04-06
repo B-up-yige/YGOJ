@@ -73,6 +73,7 @@ services:
     environment:
       MODE: standalone
       SPRING_DATASOURCE_PLATFORM: embedded
+      NACOS_AUTH_ENABLE: false
       TZ: Asia/Shanghai
     ports:
       - "8848:8848"
