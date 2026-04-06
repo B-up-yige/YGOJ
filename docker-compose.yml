@@ -72,8 +72,10 @@ services:
     restart: always
     environment:
       MODE: standalone
-      SPRING_DATASOURCE_PLATFORM: embedded
       NACOS_AUTH_ENABLE: false
+      NACOS_AUTH_IDENTITY_KEY: root
+      NACOS_AUTH_IDENTITY_VALUE: root
+      NACOS_AUTH_TOKEN: HbNjoo07D6HglvkFilh+LgDHQqEtrk2mY/xT6d7SWzQ=
       TZ: Asia/Shanghai
     ports:
       - "8848:8848"
