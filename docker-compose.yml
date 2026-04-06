@@ -154,6 +154,8 @@ services:
         -Dspring.data.redis.port=6379
         -Dspring.data.redis.database=0
         -Dseata.registry.address=seata-server:8091
+        -Dseata.service.vgroup-mapping.default_tx_group=default
+        -Dseata.service.grouplist.default=seata-server:8091
         -Dspring.cloud.sentinel.transport.dashboard=sentinel-dashboard:8858
       TZ: Asia/Shanghai
     depends_on:
@@ -190,6 +192,8 @@ services:
         -Dspring.data.redis.port=6379
         -Dspring.data.redis.database=0
         -Dseata.registry.address=seata-server:8091
+        -Dseata.service.vgroup-mapping.default_tx_group=default
+        -Dseata.service.grouplist.default=seata-server:8091
         -Dspring.cloud.sentinel.transport.dashboard=sentinel-dashboard:8858
       TZ: Asia/Shanghai
     volumes:
@@ -230,6 +234,8 @@ services:
         -Dspring.rabbitmq.username=${RABBITMQ_USERNAME:-root}
         -Dspring.rabbitmq.password=${RABBITMQ_PASSWORD:-root}
         -Dseata.registry.address=seata-server:8091
+        -Dseata.service.vgroup-mapping.default_tx_group=default
+        -Dseata.service.grouplist.default=seata-server:8091
         -Dspring.cloud.sentinel.transport.dashboard=sentinel-dashboard:8858
       TZ: Asia/Shanghai
     depends_on:
@@ -271,6 +277,8 @@ services:
         -Dspring.data.redis.port=6379
         -Dspring.data.redis.database=0
         -Dseata.registry.address=seata-server:8091
+        -Dseata.service.vgroup-mapping.default_tx_group=default
+        -Dseata.service.grouplist.default=seata-server:8091
         -Dspring.cloud.sentinel.transport.dashboard=sentinel-dashboard:8858
       DOCKER_HOST: unix:///var/run/docker.sock
       TZ: Asia/Shanghai
