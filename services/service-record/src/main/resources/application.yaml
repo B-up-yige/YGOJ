@@ -3,7 +3,7 @@ spring:
         name: service-record
     cloud:
         nacos:
-            server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+            server-addr: 192.168.61.135:8848
     config:
         import: "nacos:service-record.yaml"
     profiles:
@@ -11,16 +11,16 @@ spring:
             - feign
             - language
     datasource:
-        url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/record?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-        username: ${MYSQL_USERNAME:root}
-        password: ${MYSQL_PASSWORD:123456}
+        url: jdbc:mysql://192.168.61.135:3306/record?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+        username: root
+        password: 123456
         driver-class-name: com.mysql.cj.jdbc.Driver
     rabbitmq:
-        host: ${RABBITMQ_HOST:localhost}
-        port: ${RABBITMQ_PORT:5672}
-        virtual-host: ${RABBITMQ_VIRTUAL_HOST:/judgeQueue}
-        username: ${RABBITMQ_USERNAME:root}
-        password: ${RABBITMQ_PASSWORD:root}
+        host: 192.168.61.135
+        port: 5672
+        virtual-host: /judgeQueue
+        username: root
+        password: root
 
 server:
     port: 8002

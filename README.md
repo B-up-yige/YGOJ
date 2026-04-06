@@ -163,26 +163,39 @@ docker-compose down
 docker-compose down -v
 ```
 
+### 配置方式
+
+本项目通过 **JVM 启动参数**（`-D` 参数）在 Docker 启动时动态注入配置，application.yaml 中保留默认配置。
+
+**优势：**
+- ✅ 配置与代码分离，无需修改 yaml 文件
+- ✅ 通过 docker-compose.yml 集中管理所有配置
+- ✅ 支持运行时覆盖，灵活性强
+- ✅ 符合 12-Factor App 原则
+
+**配置示例：**
+```yaml
+# docker-compose.yml 中的配置方式
+environment:
+  SPRING_OPTS: >-
+    -Dspring.cloud.nacos.server-addr=nacos:8848
+    -Dspring.datasource.url=jdbc:mysql://mysql:3306/user
+    -Dspring.datasource.username=root
+    -Dspring.datasource.password=${MYSQL_ROOT_PASSWORD:-123456}
+```
+
 ### 环境变量配置
 
-所有微服务通过环境变量自动注入配置，Spring Boot 会自动绑定以下变量：
+虽然配置通过 JVM 参数传递，但仍可通过 `.env` 文件管理敏感信息：
 
 | 环境变量 | 说明 | 默认值 |
 |---------|------|--------|
-| `NACOS_SERVER_ADDR` | Nacos 地址 | localhost:8848 |
-| `MYSQL_HOST` | MySQL 主机 | localhost |
-| `MYSQL_PORT` | MySQL 端口 | 3306 |
-| `MYSQL_USERNAME` | MySQL 用户名 | root |
-| `MYSQL_PASSWORD` | MySQL 密码 | 123456 |
-| `REDIS_HOST` | Redis 主机 | localhost |
-| `REDIS_PORT` | Redis 端口 | 6379 |
-| `REDIS_DATABASE` | Redis 数据库 | 0 |
-| `RABBITMQ_HOST` | RabbitMQ 主机 | localhost |
-| `RABBITMQ_PORT` | RabbitMQ 端口 | 5672 |
+| `MYSQL_ROOT_PASSWORD` | MySQL root 密码 | 123456 |
 | `RABBITMQ_USERNAME` | RabbitMQ 用户名 | root |
 | `RABBITMQ_PASSWORD` | RabbitMQ 密码 | root |
+| `GATEWAY_PORT` | Gateway 外部端口 | 80 |
 
-在 `docker-compose.yml` 中已为每个服务配置了正确的环境变量，无需手动修改。
+在 `docker-compose.yml` 中已为每个服务配置了正确的 JVM 参数，使用 Docker Bridge 网络的服务名（如 `mysql`、`redis`）作为连接地址。
 
 ### 注意事项
 
@@ -198,8 +211,8 @@ docker-compose down -v
 10. 脚本支持自动检测和引导安装 Docker/Docker Compose/Maven
 11. 内置 Docker 镜像源配置功能，加速镜像下载
 12. **Docker 镜像使用本地 JAR 包构建，提升构建速度**
-13. **所有服务配置通过环境变量注入**，不再硬编码 IP 地址
-14. **内部服务通过 Docker Bridge 网络通信**，提升安全性
+13. **所有配置通过 JVM 参数（-D）注入**，不使用环境变量占位符
+14. **内部服务通过 Docker Bridge 网络通信**，使用容器名作为主机名
 
 ### 故障排查
 

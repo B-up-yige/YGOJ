@@ -13,5 +13,6 @@ COPY ${SERVICE_NAME}/target/*.jar app.jar
 EXPOSE ${SERVICE_PORT}
 
 ENV JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC"
+ENV SPRING_OPTS=""
 
-ENTRYPOINT java ${JAVA_OPTS} -jar app.jar
+ENTRYPOINT java ${JAVA_OPTS} ${SPRING_OPTS} -jar app.jar

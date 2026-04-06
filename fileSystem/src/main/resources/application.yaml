@@ -3,7 +3,7 @@ spring:
         name: fileSystem
     cloud:
         nacos:
-            server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+            server-addr: 192.168.61.135:8848
             config:
                 import-check:
                     enabled: false

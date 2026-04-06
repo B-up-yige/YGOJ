@@ -120,10 +120,11 @@ services:
     ports:
       - "${GATEWAY_PORT:-80}:80"
     environment:
-      NACOS_SERVER_ADDR: nacos:8848
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_DATABASE: 0
+      SPRING_OPTS: >-
+        -Dspring.cloud.nacos.server-addr=nacos:8848
+        -Dspring.data.redis.host=redis
+        -Dspring.data.redis.port=6379
+        -Dspring.data.redis.database=0
       TZ: Asia/Shanghai
     depends_on:
       nacos:
@@ -144,16 +145,16 @@ services:
     container_name: ygoj-service-user
     restart: always
     environment:
-      NACOS_SERVER_ADDR: nacos:8848
-      MYSQL_HOST: mysql
-      MYSQL_PORT: 3306
-      MYSQL_USERNAME: root
-      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_DATABASE: 0
-      SEATA_REGISTRY_ADDRESS: seata-server:8091
-      SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel-dashboard:8858
+      SPRING_OPTS: >-
+        -Dspring.cloud.nacos.server-addr=nacos:8848
+        -Dspring.datasource.url=jdbc:mysql://mysql:3306/user?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+        -Dspring.datasource.username=root
+        -Dspring.datasource.password=${MYSQL_ROOT_PASSWORD:-123456}
+        -Dspring.data.redis.host=redis
+        -Dspring.data.redis.port=6379
+        -Dspring.data.redis.database=0
+        -Dseata.registry.address=seata-server:8091
+        -Dspring.cloud.sentinel.transport.dashboard=sentinel-dashboard:8858
       TZ: Asia/Shanghai
     depends_on:
       nacos:
@@ -180,16 +181,16 @@ services:
     container_name: ygoj-service-problem
     restart: always
     environment:
-      NACOS_SERVER_ADDR: nacos:8848
-      MYSQL_HOST: mysql
-      MYSQL_PORT: 3306
-      MYSQL_USERNAME: root
-      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_DATABASE: 0
-      SEATA_REGISTRY_ADDRESS: seata-server:8091
-      SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel-dashboard:8858
+      SPRING_OPTS: >-
+        -Dspring.cloud.nacos.server-addr=nacos:8848
+        -Dspring.datasource.url=jdbc:mysql://mysql:3306/problem?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+        -Dspring.datasource.username=root
+        -Dspring.datasource.password=${MYSQL_ROOT_PASSWORD:-123456}
+        -Dspring.data.redis.host=redis
+        -Dspring.data.redis.port=6379
+        -Dspring.data.redis.database=0
+        -Dseata.registry.address=seata-server:8091
+        -Dspring.cloud.sentinel.transport.dashboard=sentinel-dashboard:8858
       TZ: Asia/Shanghai
     volumes:
       - file-data:/app/file
@@ -218,18 +219,18 @@ services:
     container_name: ygoj-service-record
     restart: always
     environment:
-      NACOS_SERVER_ADDR: nacos:8848
-      MYSQL_HOST: mysql
-      MYSQL_PORT: 3306
-      MYSQL_USERNAME: root
-      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
-      RABBITMQ_HOST: rabbitmq
-      RABBITMQ_PORT: 5672
-      RABBITMQ_VIRTUAL_HOST: /judgeQueue
-      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-root}
-      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-root}
-      SEATA_REGISTRY_ADDRESS: seata-server:8091
-      SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel-dashboard:8858
+      SPRING_OPTS: >-
+        -Dspring.cloud.nacos.server-addr=nacos:8848
+        -Dspring.datasource.url=jdbc:mysql://mysql:3306/record?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+        -Dspring.datasource.username=root
+        -Dspring.datasource.password=${MYSQL_ROOT_PASSWORD:-123456}
+        -Dspring.rabbitmq.host=rabbitmq
+        -Dspring.rabbitmq.port=5672
+        -Dspring.rabbitmq.virtual-host=/judgeQueue
+        -Dspring.rabbitmq.username=${RABBITMQ_USERNAME:-root}
+        -Dspring.rabbitmq.password=${RABBITMQ_PASSWORD:-root}
+        -Dseata.registry.address=seata-server:8091
+        -Dspring.cloud.sentinel.transport.dashboard=sentinel-dashboard:8858
       TZ: Asia/Shanghai
     depends_on:
       nacos:
@@ -256,22 +257,22 @@ services:
     container_name: ygoj-service-judger
     restart: always
     environment:
-      NACOS_SERVER_ADDR: nacos:8848
-      MYSQL_HOST: mysql
-      MYSQL_PORT: 3306
-      MYSQL_USERNAME: root
-      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
-      RABBITMQ_HOST: rabbitmq
-      RABBITMQ_PORT: 5672
-      RABBITMQ_VIRTUAL_HOST: /judgeQueue
-      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-root}
-      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-root}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_DATABASE: 0
+      SPRING_OPTS: >-
+        -Dspring.cloud.nacos.server-addr=nacos:8848
+        -Dspring.datasource.url=jdbc:mysql://mysql:3306/problem?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+        -Dspring.datasource.username=root
+        -Dspring.datasource.password=${MYSQL_ROOT_PASSWORD:-123456}
+        -Dspring.rabbitmq.host=rabbitmq
+        -Dspring.rabbitmq.port=5672
+        -Dspring.rabbitmq.virtual-host=/judgeQueue
+        -Dspring.rabbitmq.username=${RABBITMQ_USERNAME:-root}
+        -Dspring.rabbitmq.password=${RABBITMQ_PASSWORD:-root}
+        -Dspring.data.redis.host=redis
+        -Dspring.data.redis.port=6379
+        -Dspring.data.redis.database=0
+        -Dseata.registry.address=seata-server:8091
+        -Dspring.cloud.sentinel.transport.dashboard=sentinel-dashboard:8858
       DOCKER_HOST: unix:///var/run/docker.sock
-      SEATA_REGISTRY_ADDRESS: seata-server:8091
-      SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel-dashboard:8858
       TZ: Asia/Shanghai
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -303,8 +304,9 @@ services:
     container_name: ygoj-file-system
     restart: always
     environment:
-      NACOS_SERVER_ADDR: nacos:8848
-      FILESYSTEM_ROOT_PATH: /app/file
+      SPRING_OPTS: >-
+        -Dspring.cloud.nacos.server-addr=nacos:8848
+        -Dfilesystem.root.path=/app/file
       TZ: Asia/Shanghai
     volumes:
       - file-data:/app/file
