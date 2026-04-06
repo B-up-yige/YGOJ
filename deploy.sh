@@ -134,6 +134,9 @@ check_java() {
 install_maven() {
     printf "${YELLOW}[提示] 正在安装 Maven 3.9.6...${NC}\n"
     
+    # 保存当前目录
+    ORIGINAL_DIR=$(pwd)
+    
     MAVEN_VERSION="3.9.6"
     MAVEN_HOME="/opt/maven"
     MAVEN_URL="https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
@@ -143,12 +146,16 @@ install_maven() {
     curl -L "${MAVEN_URL}" -o apache-maven.tar.gz
     if [ $? -ne 0 ]; then
         printf "${RED}[错误] Maven 下载失败${NC}\n"
+        cd "$ORIGINAL_DIR"
         return 1
     fi
     
     mkdir -p ${MAVEN_HOME}
     tar xzf apache-maven.tar.gz -C ${MAVEN_HOME} --strip-components=1
     rm -f apache-maven.tar.gz
+    
+    # 返回原目录
+    cd "$ORIGINAL_DIR"
     
     # 配置环境变量
     cat > /etc/profile.d/maven.sh <<EOF
