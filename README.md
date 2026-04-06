@@ -47,29 +47,6 @@
 
 ### 快速开始
 
-#### 1. 配置环境变量（可选）
-
-```bash
-# 复制环境变量模板
-cp .env.example .env
-
-# 编辑配置文件（修改密码、端口等）
-vim .env  # Linux
-notepad .env  # Windows
-```
-
-主要配置项：
-```env
-MYSQL_ROOT_PASSWORD=your_password      # MySQL 密码
-RABBITMQ_USERNAME=admin                # RabbitMQ 用户名
-RABBITMQ_PASSWORD=your_password        # RabbitMQ 密码
-GATEWAY_PORT=80                        # Gateway 端口
-```
-
-> **注意**：`.env` 文件包含敏感信息，已添加到 `.gitignore`，不会提交到版本控制。
-
-#### 2. 启动服务
-
 **Linux 系统：**
 
 1. **赋予执行权限**
@@ -112,6 +89,13 @@ docker-compose up -d --build
 
 # 后续启动
 docker-compose up -d
+```
+
+如需自定义配置（如修改密码），可创建 `.env` 文件：
+```env
+MYSQL_ROOT_PASSWORD=your_password
+RABBITMQ_PASSWORD=your_password
+GATEWAY_PORT=8080
 ```
 
 ### 服务端口
@@ -195,7 +179,7 @@ environment:
 | `RABBITMQ_PASSWORD` | RabbitMQ 密码 | root |
 | `GATEWAY_PORT` | Gateway 外部端口 | 80 |
 
-在 `docker-compose.yml` 中已为每个服务配置了正确的 JVM 参数，使用 Docker Bridge 网络的服务名（如 `mysql`、`redis`）作为连接地址。
+> **提示**：如需自定义配置，可在项目根目录创建 `.env` 文件（不会被提交到版本控制）。
 
 ### 注意事项
 
@@ -205,7 +189,7 @@ environment:
 4. **仅需确保 80 和 3000 端口未被占用**（其他服务不暴露到宿主机）
 5. Nacos 默认账号密码: nacos/nacos
 6. RabbitMQ 默认账号密码: root/root
-7. MySQL root 密码: 123456（建议在 `.env` 中修改）
+7. MySQL root 密码: 123456（可通过 `.env` 文件修改）
 8. **判题服务需要访问 Docker API**：已自动挂载宿主机的 `/var/run/docker.sock`
 9. Windows 用户需安装 Docker Desktop 并启用 WSL 2 后端
 10. 脚本支持自动检测和引导安装 Docker/Docker Compose/Maven
