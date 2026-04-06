@@ -38,9 +38,14 @@ public class SandboxImpl implements Sandbox {
     private FileSystemFeignClient fileSystemFeignClient;
 
     static {
+        String dockerHost = System.getenv("DOCKER_HOST");
+        if (dockerHost == null || dockerHost.isEmpty()) {
+            dockerHost = "unix:///var/run/docker.sock";
+        }
+
         //创建默认dockerClient
         DockerHttpClient dockerHttpClient =  new ApacheDockerHttpClient.Builder()
-                .dockerHost(URI.create("tcp://127.0.0.1:2376"))
+                .dockerHost(URI.create(dockerHost))
                 .build();
         DockerClient dockerClient = DockerClientBuilder.getInstance()
                 .withDockerHttpClient(dockerHttpClient)
