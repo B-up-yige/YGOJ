@@ -48,6 +48,88 @@ detect_os() {
     printf "${GREEN}[√] 检测到系统: $OS $VER${NC}\n"
 }
 
+# 安装固定版本 JDK 17
+install_jdk() {
+    printf "${YELLOW}[提示] 正在安装 JDK 17...${NC}\n"
+    
+    case "$OS" in
+        *"Ubuntu"*|*"Debian"*)
+            apt-get update
+            apt-get install -y openjdk-17-jdk
+            ;;
+        *"CentOS"*|*"Red Hat"*|*"Fedora"*)
+            yum install -y java-17-openjdk-devel
+            ;;
+        *)
+            printf "${RED}[错误] 不支持的操作系统，请手动安装 JDK 17${NC}\n"
+            printf "${YELLOW}[提示] 访问: https://adoptium.net/${NC}\n"
+            exit 1
+            ;;
+    esac
+    
+    # 检测 JAVA_HOME
+    if [ -d "/usr/lib/jvm/java-17-openjdk-amd64" ]; then
+        JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
+    elif [ -d "/usr/lib/jvm/java-17-openjdk" ]; then
+        JAVA_HOME="/usr/lib/jvm/java-17-openjdk"
+    elif [ -d "/usr/lib/jvm/default-java" ]; then
+        JAVA_HOME="/usr/lib/jvm/default-java"
+    else
+        JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+    fi
+    
+    export JAVA_HOME
+    
+    printf "${GREEN}[√] JDK 17 安装成功: $(java -version 2>&1 | head -n 1)${NC}\n"
+    printf "${GREEN}[√] JAVA_HOME: $JAVA_HOME${NC}\n"
+}
+
+# 检查 Java 是否安装
+check_java() {
+    JAVA_REQUIRED_VERSION="17"
+    
+    if ! command -v java >/dev/null 2>&1; then
+        printf "${RED}[!] Java 未安装${NC}\n"
+        read -p "是否自动安装 JDK ${JAVA_REQUIRED_VERSION}? (y/n): " install_java_choice
+        if echo "$install_java_choice" | grep -qi '^y$'; then
+            install_jdk
+        else
+            printf "${RED}[错误] 请先安装 JDK${NC}\n"
+            exit 1
+        fi
+    else
+        # 检测 Java 版本
+        JAVA_VERSION=$(java -version 2>&1 | head -n 1 | grep -oP '\d+' | head -n 1)
+        if [ "$JAVA_VERSION" = "$JAVA_REQUIRED_VERSION" ]; then
+            printf "${GREEN}[√] Java 版本正确: $(java -version 2>&1 | head -n 1)${NC}\n"
+            
+            # 设置 JAVA_HOME
+            if [ -z "$JAVA_HOME" ]; then
+                if [ -d "/usr/lib/jvm/java-17-openjdk-amd64" ]; then
+                    JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
+                elif [ -d "/usr/lib/jvm/java-17-openjdk" ]; then
+                    JAVA_HOME="/usr/lib/jvm/java-17-openjdk"
+                elif [ -d "/usr/lib/jvm/default-java" ]; then
+                    JAVA_HOME="/usr/lib/jvm/default-java"
+                else
+                    JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+                fi
+                export JAVA_HOME
+            fi
+            printf "${GREEN}[√] JAVA_HOME: $JAVA_HOME${NC}\n"
+        else
+            printf "${YELLOW}[警告] Java 版本不匹配 (当前: $JAVA_VERSION, 需要: $JAVA_REQUIRED_VERSION)${NC}\n"
+            read -p "是否安装正确的 JDK 版本? (y/n): " reinstall_choice
+            if echo "$reinstall_choice" | grep -qi '^y$'; then
+                install_jdk
+            else
+                printf "${RED}[错误] 请使用 JDK ${JAVA_REQUIRED_VERSION}${NC}\n"
+                exit 1
+            fi
+        fi
+    fi
+}
+
 # 安装固定版本 Maven (3.9.6)
 install_maven() {
     printf "${YELLOW}[提示] 正在安装 Maven 3.9.6...${NC}\n"
@@ -75,7 +157,7 @@ export PATH=\${M2_HOME}/bin:\${PATH}
 EOF
     
     chmod +x /etc/profile.d/maven.sh
-    source /etc/profile.d/maven.sh
+    . /etc/profile.d/maven.sh
     
     # 验证安装
     export M2_HOME=${MAVEN_HOME}
@@ -104,8 +186,26 @@ configure_maven_mirror() {
         cp "${SETTINGS_FILE}" "${SETTINGS_FILE}.bak"
     fi
     
+    # 检测 JAVA_HOME
+    JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+    if [ ! -d "$JAVA_HOME" ]; then
+        # 尝试常见路径
+        if [ -d "/usr/lib/jvm/default-java" ]; then
+            JAVA_HOME="/usr/lib/jvm/default-java"
+        elif [ -d "/usr/java/latest" ]; then
+            JAVA_HOME="/usr/java/latest"
+        elif ls /usr/lib/jvm/java-* >/dev/null 2>&1; then
+            JAVA_HOME=$(ls -d /usr/lib/jvm/java-* | head -n 1)
+        else
+            printf "${RED}[错误] 未找到 Java 安装路径，请先安装 JDK${NC}\n"
+            return 1
+        fi
+    fi
+    
+    printf "${GREEN}[√] 检测到 JAVA_HOME: $JAVA_HOME${NC}\n"
+    
     # 创建新的 settings.xml 配置阿里云镜像
-    cat > "${SETTINGS_FILE}" <<'EOF'
+    cat > "${SETTINGS_FILE}" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -403,9 +503,16 @@ build_project() {
     
     # 加载 Maven 环境变量
     if [ -f /etc/profile.d/maven.sh ]; then
-        source /etc/profile.d/maven.sh
+        . /etc/profile.d/maven.sh
     fi
     
+    # 设置 JAVA_HOME（如果未设置）
+    if [ -z "$JAVA_HOME" ]; then
+        JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+        export JAVA_HOME
+    fi
+    
+    printf "${GREEN}[√] JAVA_HOME: $JAVA_HOME${NC}\n"
     printf "${GREEN}[√] Maven 版本: $(mvn --version | head -n 1)${NC}\n"
     
     # 执行 Maven 构建
@@ -516,6 +623,7 @@ show_disk_usage() {
 main() {
     check_root
     detect_os
+    check_java
     check_maven
     check_docker
     check_docker_compose
