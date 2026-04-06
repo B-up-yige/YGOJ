@@ -1,0 +1,9 @@
+/file/
+/services/service-judger/temp/
+/services/service-judger/target/
+/services/service-problem/target/
+/services/service-record/target/
+/services/service-user/target/
+/model/target/
+/gateway/target/
+/fileSystem/target/

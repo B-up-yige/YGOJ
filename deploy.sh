@@ -48,6 +48,154 @@ detect_os() {
     printf "${GREEN}[√] 检测到系统: $OS $VER${NC}\n"
 }
 
+# 安装固定版本 Maven (3.9.6)
+install_maven() {
+    printf "${YELLOW}[提示] 正在安装 Maven 3.9.6...${NC}\n"
+    
+    MAVEN_VERSION="3.9.6"
+    MAVEN_HOME="/opt/maven"
+    MAVEN_URL="https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+    
+    # 下载并安装 Maven
+    cd /tmp
+    curl -L "${MAVEN_URL}" -o apache-maven.tar.gz
+    if [ $? -ne 0 ]; then
+        printf "${RED}[错误] Maven 下载失败${NC}\n"
+        return 1
+    fi
+    
+    mkdir -p ${MAVEN_HOME}
+    tar xzf apache-maven.tar.gz -C ${MAVEN_HOME} --strip-components=1
+    rm -f apache-maven.tar.gz
+    
+    # 配置环境变量
+    cat > /etc/profile.d/maven.sh <<EOF
+export M2_HOME=${MAVEN_HOME}
+export PATH=\${M2_HOME}/bin:\${PATH}
+EOF
+    
+    chmod +x /etc/profile.d/maven.sh
+    source /etc/profile.d/maven.sh
+    
+    # 验证安装
+    export M2_HOME=${MAVEN_HOME}
+    export PATH=${M2_HOME}/bin:${PATH}
+    
+    if ! command -v mvn >/dev/null 2>&1; then
+        printf "${RED}[错误] Maven 安装失败${NC}\n"
+        return 1
+    fi
+    
+    printf "${GREEN}[√] Maven 安装成功: $(mvn --version | head -n 1)${NC}\n"
+    
+    # 自动配置 Maven 阿里云镜像源
+    configure_maven_mirror
+}
+
+# 配置 Maven 阿里云镜像源
+configure_maven_mirror() {
+    printf "${YELLOW}[提示] 配置 Maven 阿里云镜像源...${NC}\n"
+    
+    MAVEN_CONF_DIR="${MAVEN_HOME}/conf"
+    SETTINGS_FILE="${MAVEN_CONF_DIR}/settings.xml"
+    
+    # 备份原始配置文件
+    if [ -f "${SETTINGS_FILE}" ]; then
+        cp "${SETTINGS_FILE}" "${SETTINGS_FILE}.bak"
+    fi
+    
+    # 创建新的 settings.xml 配置阿里云镜像
+    cat > "${SETTINGS_FILE}" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 https://maven.apache.org/xsd/settings-1.2.0.xsd">
+  
+  <mirrors>
+    <mirror>
+      <id>aliyunmaven</id>
+      <mirrorOf>*</mirrorOf>
+      <name>阿里云公共仓库</name>
+      <url>https://maven.aliyun.com/repository/public</url>
+    </mirror>
+  </mirrors>
+  
+  <profiles>
+    <profile>
+      <id>aliyun</id>
+      <repositories>
+        <repository>
+          <id>aliyun-central</id>
+          <url>https://maven.aliyun.com/repository/central</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+        <repository>
+          <id>aliyun-spring</id>
+          <url>https://maven.aliyun.com/repository/spring</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>aliyun-plugin</id>
+          <url>https://maven.aliyun.com/repository/public</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+  
+  <activeProfiles>
+    <activeProfile>aliyun</activeProfile>
+  </activeProfiles>
+</settings>
+EOF
+    
+    printf "${GREEN}[√] Maven 阿里云镜像源配置完成${NC}\n"
+}
+
+# 检查 Maven 是否安装
+check_maven() {
+    MAVEN_REQUIRED_VERSION="3.9.6"
+    
+    if ! command -v mvn >/dev/null 2>&1; then
+        printf "${RED}[!] Maven 未安装${NC}\n"
+        read -p "是否自动安装 Maven ${MAVEN_REQUIRED_VERSION}? (y/n): " install_maven_choice
+        if echo "$install_maven_choice" | grep -qi '^y$'; then
+            install_maven
+        else
+            printf "${RED}[错误] 请先安装 Maven${NC}\n"
+            exit 1
+        fi
+    else
+        CURRENT_VERSION=$(mvn --version | head -n 1 | grep -oP '\d+\.\d+\.\d+')
+        if [ "$CURRENT_VERSION" = "$MAVEN_REQUIRED_VERSION" ]; then
+            printf "${GREEN}[√] Maven 版本正确: $(mvn --version | head -n 1)${NC}\n"
+        else
+            printf "${YELLOW}[警告] Maven 版本不匹配 (当前: $CURRENT_VERSION, 需要: $MAVEN_REQUIRED_VERSION)${NC}\n"
+            read -p "是否安装正确的 Maven 版本? (y/n): " reinstall_choice
+            if echo "$reinstall_choice" | grep -qi '^y$'; then
+                install_maven
+            fi
+        fi
+    fi
+}
+
 # 安装 Docker
 install_docker() {
     printf "${YELLOW}[提示] 正在安装 Docker...${NC}\n"
@@ -231,19 +379,69 @@ show_menu() {
     echo "1. 完整部署（包含所有服务）"
     echo "2. 仅启动基础设施（MySQL, Redis, RabbitMQ, Nacos）"
     echo "3. 仅启动应用服务"
-    echo "4. 停止所有服务"
-    echo "5. 查看服务状态"
-    echo "6. 查看日志"
-    echo "7. Docker 换源配置"
-    echo "8. 清理无用镜像和容器"
-    echo "9. 查看磁盘使用情况"
+    echo "4. Maven 构建项目"
+    echo "5. 停止所有服务"
+    echo "6. 查看服务状态"
+    echo "7. 查看日志"
+    echo "8. Docker 换源配置"
+    echo "9. 清理无用镜像和容器"
+    echo "10. 查看磁盘使用情况"
     echo "0. 退出"
     echo ""
+}
+
+# 构建项目
+build_project() {
+    printf "${YELLOW}[提示] 开始 Maven 构建...${NC}\n"
+    echo ""
+    
+    # 确保 Maven 可用
+    if ! command -v mvn >/dev/null 2>&1; then
+        printf "${RED}[错误] Maven 未找到，请重新运行脚本安装 Maven${NC}\n"
+        return 1
+    fi
+    
+    # 加载 Maven 环境变量
+    if [ -f /etc/profile.d/maven.sh ]; then
+        source /etc/profile.d/maven.sh
+    fi
+    
+    printf "${GREEN}[√] Maven 版本: $(mvn --version | head -n 1)${NC}\n"
+    
+    # 执行 Maven 构建
+    cd "$(dirname "$0")"
+    printf "${YELLOW}[提示] 执行: mvn clean package -DskipTests -B${NC}\n"
+    echo ""
+    
+    mvn clean package -DskipTests -B
+    
+    if [ $? -eq 0 ]; then
+        echo ""
+        printf "${GREEN}[√] Maven 构建成功${NC}\n"
+        echo ""
+        printf "${GREEN}生成的 JAR 包:${NC}\n"
+        find . -name "*.jar" -path "*/target/*" ! -name "*-original.jar" | while read jar_file; do
+            printf "  - $jar_file\n"
+        done
+    else
+        echo ""
+        printf "${RED}[错误] Maven 构建失败${NC}\n"
+        return 1
+    fi
 }
 
 # 完整部署
 deploy_all() {
     printf "${YELLOW}[提示] 开始完整部署...${NC}\n"
+    
+    # 先构建项目
+    build_project
+    if [ $? -ne 0 ]; then
+        printf "${RED}[错误] 构建失败，终止部署${NC}\n"
+        return 1
+    fi
+    
+    # 启动 Docker 服务
     docker-compose up -d --build
     echo ""
     printf "${GREEN}[√] 部署完成！${NC}\n"
@@ -265,6 +463,14 @@ deploy_infrastructure() {
 # 启动应用服务
 deploy_services() {
     printf "${YELLOW}[提示] 启动应用服务...${NC}\n"
+    
+    # 先构建项目
+    build_project
+    if [ $? -ne 0 ]; then
+        printf "${RED}[错误] 构建失败，终止部署${NC}\n"
+        return 1
+    fi
+    
     docker-compose up -d gateway service-user service-problem service-record service-judger file-system frontend
     printf "${GREEN}[√] 应用服务启动完成！${NC}\n"
 }
@@ -310,6 +516,7 @@ show_disk_usage() {
 main() {
     check_root
     detect_os
+    check_maven
     check_docker
     check_docker_compose
     check_docker_service
@@ -329,21 +536,24 @@ main() {
                 deploy_services
                 ;;
             4)
-                stop_services
+                build_project
                 ;;
             5)
-                show_status
+                stop_services
                 ;;
             6)
-                show_logs
+                show_status
                 ;;
             7)
-                configure_docker_mirror
+                show_logs
                 ;;
             8)
-                cleanup
+                configure_docker_mirror
                 ;;
             9)
+                cleanup
+                ;;
+            10)
                 show_disk_usage
                 ;;
             0)
