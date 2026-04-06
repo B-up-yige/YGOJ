@@ -5,10 +5,8 @@ services:
     container_name: ygoj-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
       TZ: Asia/Shanghai
-    ports:
-      - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
       - ./init-db:/docker-entrypoint-initdb.d
@@ -29,8 +27,6 @@ services:
     image: redis:latest
     container_name: ygoj-redis
     restart: always
-    ports:
-      - "6379:6379"
     volumes:
       - redis-data:/data
     command: redis-server --appendonly yes
@@ -48,12 +44,9 @@ services:
     container_name: ygoj-rabbitmq
     restart: always
     environment:
-      RABBITMQ_DEFAULT_USER: root
-      RABBITMQ_DEFAULT_PASS: root
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-root}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-root}
       RABBITMQ_DEFAULT_VHOST: /judgeQueue
-    ports:
-      - "5672:5672"
-      - "15672:15672"
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
     networks:
@@ -73,13 +66,10 @@ services:
     environment:
       MODE: standalone
       NACOS_AUTH_ENABLE: false
-      NACOS_AUTH_IDENTITY_KEY: root
-      NACOS_AUTH_IDENTITY_VALUE: root
-      NACOS_AUTH_TOKEN: HbNjoo07D6HglvkFilh+LgDHQqEtrk2mY/xT6d7SWzQ=
+      NACOS_AUTH_IDENTITY_KEY: ${NACOS_AUTH_IDENTITY_KEY:-root}
+      NACOS_AUTH_IDENTITY_VALUE: ${NACOS_AUTH_IDENTITY_VALUE:-root}
+      NACOS_AUTH_TOKEN: ${NACOS_AUTH_TOKEN:-HbNjoo07D6HglvkFilh+LgDHQqEtrk2mY/xT6d7SWzQ=}
       TZ: Asia/Shanghai
-    ports:
-      - "8848:8848"
-      - "9848:9848"
     volumes:
       - nacos-data:/home/nacos/data
     networks:
@@ -99,8 +89,6 @@ services:
       SEATA_PORT: 8091
       STORE_MODE: file
       TZ: Asia/Shanghai
-    ports:
-      - "8091:8091"
     volumes:
       - seata-data:/root/seata-data
     networks:
@@ -114,8 +102,6 @@ services:
     restart: always
     environment:
       TZ: Asia/Shanghai
-    ports:
-      - "8858:8858"
     networks:
       - ygoj-network
 
@@ -130,11 +116,12 @@ services:
     container_name: ygoj-gateway
     restart: always
     ports:
-      - "80:80"
+      - "${GATEWAY_PORT:-80}:80"
     environment:
-      SPRING_CLOUD_NACOS_SERVER_ADDR: nacos:8848
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
+      NACOS_SERVER_ADDR: nacos:8848
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DATABASE: 0
       TZ: Asia/Shanghai
     depends_on:
       nacos:
@@ -155,12 +142,14 @@ services:
     container_name: ygoj-service-user
     restart: always
     environment:
-      SPRING_CLOUD_NACOS_SERVER_ADDR: nacos:8848
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/user?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 123456
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
+      NACOS_SERVER_ADDR: nacos:8848
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DATABASE: 0
       SEATA_REGISTRY_ADDRESS: seata-server:8091
       SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel-dashboard:8858
       TZ: Asia/Shanghai
@@ -189,12 +178,14 @@ services:
     container_name: ygoj-service-problem
     restart: always
     environment:
-      SPRING_CLOUD_NACOS_SERVER_ADDR: nacos:8848
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/problem?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 123456
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
+      NACOS_SERVER_ADDR: nacos:8848
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DATABASE: 0
       SEATA_REGISTRY_ADDRESS: seata-server:8091
       SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel-dashboard:8858
       TZ: Asia/Shanghai
@@ -225,14 +216,16 @@ services:
     container_name: ygoj-service-record
     restart: always
     environment:
-      SPRING_CLOUD_NACOS_SERVER_ADDR: nacos:8848
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/record?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 123456
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: root
-      SPRING_RABBITMQ_PASSWORD: root
+      NACOS_SERVER_ADDR: nacos:8848
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_VIRTUAL_HOST: /judgeQueue
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-root}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-root}
       SEATA_REGISTRY_ADDRESS: seata-server:8091
       SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel-dashboard:8858
       TZ: Asia/Shanghai
@@ -261,16 +254,19 @@ services:
     container_name: ygoj-service-judger
     restart: always
     environment:
-      SPRING_CLOUD_NACOS_SERVER_ADDR: nacos:8848
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/problem?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 123456
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: root
-      SPRING_RABBITMQ_PASSWORD: root
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
+      NACOS_SERVER_ADDR: nacos:8848
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_VIRTUAL_HOST: /judgeQueue
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-root}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-root}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DATABASE: 0
       DOCKER_HOST: unix:///var/run/docker.sock
       SEATA_REGISTRY_ADDRESS: seata-server:8091
       SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel-dashboard:8858
@@ -305,7 +301,7 @@ services:
     container_name: ygoj-file-system
     restart: always
     environment:
-      SPRING_CLOUD_NACOS_SERVER_ADDR: nacos:8848
+      NACOS_SERVER_ADDR: nacos:8848
       FILESYSTEM_ROOT_PATH: /app/file
       TZ: Asia/Shanghai
     volumes:

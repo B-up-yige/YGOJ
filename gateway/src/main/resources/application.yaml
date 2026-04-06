@@ -5,11 +5,11 @@ spring:
         include: route
     cloud:
         nacos:
-            server-addr: 192.168.61.135:8848
+            server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
     data:
         redis:
-            host: 192.168.61.135
-            port: 6379
-            database: 0
+            host: ${REDIS_HOST:localhost}
+            port: ${REDIS_PORT:6379}
+            database: ${REDIS_DATABASE:0}
 server:
     port: 80

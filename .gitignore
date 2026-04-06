@@ -7,3 +7,6 @@
 /model/target/
 /gateway/target/
 /fileSystem/target/
+
+# Docker environment file (contains sensitive information)
+.env

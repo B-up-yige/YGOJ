@@ -3,19 +3,19 @@ spring:
         name: service-user
     cloud:
         nacos:
-            server-addr: 192.168.61.135:8848
+            server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
             config:
                 import-check:
                     enabled: false
     datasource:
-        url: jdbc:mysql://192.168.61.135:3306/user?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-        username: root
-        password: 123456
+        url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/user?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+        username: ${MYSQL_USERNAME:root}
+        password: ${MYSQL_PASSWORD:123456}
         driver-class-name: com.mysql.cj.jdbc.Driver
     data:
         redis:
-            host: 192.168.61.135
-            port: 6379
-            database: 0
+            host: ${REDIS_HOST:localhost}
+            port: ${REDIS_PORT:6379}
+            database: ${REDIS_DATABASE:0}
 server:
     port: 8001
