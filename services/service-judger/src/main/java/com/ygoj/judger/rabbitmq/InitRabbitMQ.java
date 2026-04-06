@@ -3,16 +3,38 @@ package com.ygoj.judger.rabbitmq;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+
+@Component
 public class InitRabbitMQ {
-    public static void init() {
+    
+    @Value("${spring.rabbitmq.host}")
+    private String host;
+    
+    @Value("${spring.rabbitmq.port}")
+    private int port;
+    
+    @Value("${spring.rabbitmq.username}")
+    private String username;
+    
+    @Value("${spring.rabbitmq.password}")
+    private String password;
+    
+    @Value("${spring.rabbitmq.virtual-host}")
+    private String virtualHost;
+    
+    @PostConstruct
+    public void init() {
         try{
             ConnectionFactory factory = new ConnectionFactory();
-            factory.setHost("192.168.61.135");
-            factory.setPort(5672);
-            factory.setUsername("root");
-            factory.setPassword("root");
-            factory.setVirtualHost("/judgeQueue");
+            factory.setHost(host);
+            factory.setPort(port);
+            factory.setUsername(username);
+            factory.setPassword(password);
+            factory.setVirtualHost(virtualHost);
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
             String EXCHANGE_NAME = "judger_exchange";
@@ -27,11 +49,11 @@ public class InitRabbitMQ {
 
         try{
             ConnectionFactory factory = new ConnectionFactory();
-            factory.setHost("192.168.61.135");
-            factory.setPort(5672);
-            factory.setUsername("root");
-            factory.setPassword("root");
-            factory.setVirtualHost("/judgeQueue");
+            factory.setHost(host);
+            factory.setPort(port);
+            factory.setUsername(username);
+            factory.setPassword(password);
+            factory.setVirtualHost(virtualHost);
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
             String EXCHANGE_NAME = "judgeResult_exchange";
