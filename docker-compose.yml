@@ -148,8 +148,8 @@ services:
       SPRING_OPTS: >-
         -Dspring.cloud.nacos.server-addr=nacos:8848
         -Dspring.datasource.url=jdbc:mysql://mysql:3306/user?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-        -Dspring.datasource.username=root
-        -Dspring.datasource.password=${MYSQL_ROOT_PASSWORD:-123456}
+        -Dspring.datasource.username=ygoj
+        -Dspring.datasource.password=ygoj123456
         -Dspring.data.redis.host=redis
         -Dspring.data.redis.port=6379
         -Dspring.data.redis.database=0
@@ -186,8 +186,8 @@ services:
       SPRING_OPTS: >-
         -Dspring.cloud.nacos.server-addr=nacos:8848
         -Dspring.datasource.url=jdbc:mysql://mysql:3306/problem?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-        -Dspring.datasource.username=root
-        -Dspring.datasource.password=${MYSQL_ROOT_PASSWORD:-123456}
+        -Dspring.datasource.username=ygoj
+        -Dspring.datasource.password=ygoj123456
         -Dspring.data.redis.host=redis
         -Dspring.data.redis.port=6379
         -Dspring.data.redis.database=0
@@ -226,8 +226,8 @@ services:
       SPRING_OPTS: >-
         -Dspring.cloud.nacos.server-addr=nacos:8848
         -Dspring.datasource.url=jdbc:mysql://mysql:3306/record?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-        -Dspring.datasource.username=root
-        -Dspring.datasource.password=${MYSQL_ROOT_PASSWORD:-123456}
+        -Dspring.datasource.username=ygoj
+        -Dspring.datasource.password=ygoj123456
         -Dspring.rabbitmq.host=rabbitmq
         -Dspring.rabbitmq.port=5672
         -Dspring.rabbitmq.virtual-host=/judgeQueue
@@ -266,8 +266,8 @@ services:
       SPRING_OPTS: >-
         -Dspring.cloud.nacos.server-addr=nacos:8848
         -Dspring.datasource.url=jdbc:mysql://mysql:3306/problem?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-        -Dspring.datasource.username=root
-        -Dspring.datasource.password=${MYSQL_ROOT_PASSWORD:-123456}
+        -Dspring.datasource.username=ygoj
+        -Dspring.datasource.password=ygoj123456
         -Dspring.rabbitmq.host=rabbitmq
         -Dspring.rabbitmq.port=5672
         -Dspring.rabbitmq.virtual-host=/judgeQueue
