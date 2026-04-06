@@ -329,6 +329,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_TARGET: ${VITE_API_TARGET:-http://gateway:80}
     container_name: ygoj-frontend
     restart: always
     ports:

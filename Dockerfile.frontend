@@ -1,5 +1,8 @@
 FROM node:20-alpine AS builder
 
+ARG VITE_API_TARGET=http://gateway:80
+ENV VITE_API_TARGET=$VITE_API_TARGET
+
 WORKDIR /build
 
 COPY fronter/package*.json ./
