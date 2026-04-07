@@ -32,6 +32,38 @@ check_root() {
     fi
 }
 
+# 安装基础工具
+install_basic_tools() {
+    printf "${YELLOW}[提示] 检查并安装基础工具...${NC}\n"
+    
+    case "$OS" in
+        *"Ubuntu"*|*"Debian"*)
+            if ! apt-get update -qq > /dev/null 2>&1; then
+                printf "${RED}[错误] apt-get update 失败，请检查网络连接${NC}\n"
+                exit 1
+            fi
+            if ! apt-get install -y -qq curl wget tar gzip > /dev/null 2>&1; then
+                printf "${RED}[错误] 安装基础工具失败${NC}\n"
+                exit 1
+            fi
+            ;;
+        *"CentOS"*|*"Red Hat"*|*"Fedora"*)
+            if ! yum install -y -q curl wget tar gzip > /dev/null 2>&1; then
+                printf "${RED}[错误] 安装基础工具失败${NC}\n"
+                exit 1
+            fi
+            ;;
+    esac
+    
+    # 验证关键工具
+    if ! command -v curl >/dev/null 2>&1; then
+        printf "${RED}[错误] curl 安装失败，请手动安装${NC}\n"
+        exit 1
+    fi
+    
+    printf "${GREEN}[√] 基础工具检查完成${NC}\n"
+}
+
 # 检测操作系统
 detect_os() {
     if [ -f /etc/os-release ]; then
@@ -54,11 +86,20 @@ install_jdk() {
     
     case "$OS" in
         *"Ubuntu"*|*"Debian"*)
-            apt-get update
-            apt-get install -y openjdk-17-jdk
+            if ! apt-get update -qq > /dev/null 2>&1; then
+                printf "${RED}[错误] apt-get update 失败${NC}\n"
+                exit 1
+            fi
+            if ! apt-get install -y openjdk-17-jdk > /dev/null 2>&1; then
+                printf "${RED}[错误] JDK 17 安装失败${NC}\n"
+                exit 1
+            fi
             ;;
         *"CentOS"*|*"Red Hat"*|*"Fedora"*)
-            yum install -y java-17-openjdk-devel
+            if ! yum install -y java-17-openjdk-devel > /dev/null 2>&1; then
+                printf "${RED}[错误] JDK 17 安装失败${NC}\n"
+                exit 1
+            fi
             ;;
         *)
             printf "${RED}[错误] 不支持的操作系统，请手动安装 JDK 17${NC}\n"
@@ -141,19 +182,25 @@ install_maven() {
     MAVEN_VERSION="3.9.6"
     MAVEN_HOME="${SCRIPT_DIR}/.maven/apache-maven-${MAVEN_VERSION}"
     MAVEN_URL="https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+    DOWNLOAD_FILE="/tmp/apache-maven.tar.gz"
     
     # 下载并安装 Maven
     cd /tmp
-    curl -L "${MAVEN_URL}" -o apache-maven.tar.gz
-    if [ $? -ne 0 ]; then
-        printf "${RED}[错误] Maven 下载失败${NC}\n"
+    if ! curl -L "${MAVEN_URL}" -o "${DOWNLOAD_FILE}" > /dev/null 2>&1; then
+        printf "${RED}[错误] Maven 下载失败，请检查网络连接${NC}\n"
+        rm -f "${DOWNLOAD_FILE}"
         cd "$ORIGINAL_DIR"
-        return 1
+        exit 1
     fi
     
     mkdir -p "${SCRIPT_DIR}/.maven"
-    tar xzf apache-maven.tar.gz -C "${SCRIPT_DIR}/.maven"
-    rm -f apache-maven.tar.gz
+    if ! tar xzf "${DOWNLOAD_FILE}" -C "${SCRIPT_DIR}/.maven" > /dev/null 2>&1; then
+        printf "${RED}[错误] Maven 解压失败${NC}\n"
+        rm -f "${DOWNLOAD_FILE}"
+        cd "$ORIGINAL_DIR"
+        exit 1
+    fi
+    rm -f "${DOWNLOAD_FILE}"
     
     # 返回原目录
     cd "$ORIGINAL_DIR"
@@ -162,7 +209,7 @@ install_maven() {
     MAVEN_BIN="${MAVEN_HOME}/bin/mvn"
     if [ ! -x "${MAVEN_BIN}" ]; then
         printf "${RED}[错误] Maven 安装失败${NC}\n"
-        return 1
+        exit 1
     fi
     
     printf "${GREEN}[√] Maven 安装成功: $(${MAVEN_BIN} --version | head -n 1)${NC}\n"
@@ -301,17 +348,38 @@ install_docker() {
     
     case "$OS" in
         *"Ubuntu"*|*"Debian"*)
-            apt-get update
-            apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+            if ! apt-get update -qq > /dev/null 2>&1; then
+                printf "${RED}[错误] apt-get update 失败${NC}\n"
+                exit 1
+            fi
+            if ! apt-get install -y -qq apt-transport-https ca-certificates curl software-properties-common > /dev/null 2>&1; then
+                printf "${RED}[错误] 安装 Docker 依赖失败${NC}\n"
+                exit 1
+            fi
+            if ! curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - > /dev/null 2>&1; then
+                printf "${RED}[错误] 添加 Docker GPG 密钥失败${NC}\n"
+                exit 1
+            fi
             add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-            apt-get update
-            apt-get install -y docker-ce docker-ce-cli containerd.io
+            if ! apt-get update -qq > /dev/null 2>&1; then
+                printf "${RED}[错误] apt-get update 失败${NC}\n"
+                exit 1
+            fi
+            if ! apt-get install -y docker-ce docker-ce-cli containerd.io > /dev/null 2>&1; then
+                printf "${RED}[错误] Docker 安装失败${NC}\n"
+                exit 1
+            fi
             ;;
         *"CentOS"*|*"Red Hat"*|*"Fedora"*)
-            yum install -y yum-utils
+            if ! yum install -y -q yum-utils > /dev/null 2>&1; then
+                printf "${RED}[错误] 安装 yum-utils 失败${NC}\n"
+                exit 1
+            fi
             yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-            yum install -y docker-ce docker-ce-cli containerd.io
+            if ! yum install -y -q docker-ce docker-ce-cli containerd.io > /dev/null 2>&1; then
+                printf "${RED}[错误] Docker 安装失败${NC}\n"
+                exit 1
+            fi
             systemctl enable docker
             systemctl start docker
             ;;
@@ -323,8 +391,11 @@ install_docker() {
     esac
     
     # 启动 Docker 服务
-    systemctl start docker
-    systemctl enable docker
+    if ! systemctl start docker > /dev/null 2>&1; then
+        printf "${RED}[错误] Docker 服务启动失败${NC}\n"
+        exit 1
+    fi
+    systemctl enable docker > /dev/null 2>&1
     
     # 添加当前用户到 docker 组
     usermod -aG docker $USER
@@ -337,8 +408,25 @@ install_docker_compose() {
     printf "${YELLOW}[提示] 正在安装 Docker Compose...${NC}\n"
     
     COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
-    curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
+    if [ -z "$COMPOSE_VERSION" ]; then
+        printf "${RED}[错误] 获取 Docker Compose 版本失败${NC}\n"
+        exit 1
+    fi
+    
+    DOWNLOAD_FILE="/usr/local/bin/docker-compose"
+    if ! curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o "${DOWNLOAD_FILE}" > /dev/null 2>&1; then
+        printf "${RED}[错误] Docker Compose 下载失败${NC}\n"
+        rm -f "${DOWNLOAD_FILE}"
+        exit 1
+    fi
+    
+    chmod +x "${DOWNLOAD_FILE}"
+    
+    if ! command -v docker-compose >/dev/null 2>&1; then
+        printf "${RED}[错误] Docker Compose 安装失败${NC}\n"
+        rm -f "${DOWNLOAD_FILE}"
+        exit 1
+    fi
     
     printf "${GREEN}[√] Docker Compose 安装成功${NC}\n"
 }
@@ -518,21 +606,19 @@ build_project() {
     printf "${YELLOW}[提示] 执行: ${MAVEN_BIN} clean package -DskipTests -B${NC}\n"
     echo ""
     
-    ${MAVEN_BIN} clean package -DskipTests -B
-    
-    if [ $? -eq 0 ]; then
+    if ! ${MAVEN_BIN} clean package -DskipTests -B; then
         echo ""
-        printf "${GREEN}[√] Maven 构建成功${NC}\n"
-        echo ""
-        printf "${GREEN}生成的 JAR 包:${NC}\n"
-        find . -name "*.jar" -path "*/target/*" ! -name "*-original.jar" | while read jar_file; do
-            printf "  - $jar_file\n"
-        done
-    else
-        echo ""
-        printf "${RED}[错误] Maven 构建失败${NC}\n"
+        printf "${RED}[错误] Maven 构建失败，请检查错误信息${NC}\n"
         return 1
     fi
+    
+    echo ""
+    printf "${GREEN}[√] Maven 构建成功${NC}\n"
+    echo ""
+    printf "${GREEN}生成的 JAR 包:${NC}\n"
+    find . -name "*.jar" -path "*/target/*" ! -name "*-original.jar" | while read jar_file; do
+        printf "  - $jar_file\n"
+    done
 }
 
 # 完整部署
@@ -547,7 +633,11 @@ deploy_all() {
     fi
     
     # 启动 Docker 服务
-    docker-compose up -d --build
+    if ! docker-compose up -d --build; then
+        printf "${RED}[错误] Docker 服务启动失败${NC}\n"
+        return 1
+    fi
+    
     echo ""
     printf "${GREEN}[√] 部署完成！${NC}\n"
     echo ""
@@ -561,7 +651,10 @@ deploy_all() {
 # 启动基础设施
 deploy_infrastructure() {
     printf "${YELLOW}[提示] 启动基础设施服务...${NC}\n"
-    docker-compose up -d mysql redis rabbitmq nacos
+    if ! docker-compose up -d mysql redis rabbitmq nacos; then
+        printf "${RED}[错误] 基础设施启动失败${NC}\n"
+        return 1
+    fi
     printf "${GREEN}[√] 基础设施启动完成！${NC}\n"
 }
 
@@ -576,14 +669,20 @@ deploy_services() {
         return 1
     fi
     
-    docker-compose up -d gateway service-user service-problem service-record service-judger file-system frontend
+    if ! docker-compose up -d gateway service-user service-problem service-record service-judger file-system frontend; then
+        printf "${RED}[错误] 应用服务启动失败${NC}\n"
+        return 1
+    fi
     printf "${GREEN}[√] 应用服务启动完成！${NC}\n"
 }
 
 # 停止所有服务
 stop_services() {
     printf "${YELLOW}[提示] 停止所有服务...${NC}\n"
-    docker-compose down
+    if ! docker-compose down; then
+        printf "${RED}[错误] 服务停止失败${NC}\n"
+        return 1
+    fi
     printf "${GREEN}[√] 所有服务已停止${NC}\n"
 }
 
@@ -606,7 +705,10 @@ show_logs() {
 # 清理无用资源
 cleanup() {
     printf "${YELLOW}[提示] 清理无用镜像和容器...${NC}\n"
-    docker system prune -a -f
+    if ! docker system prune -a -f; then
+        printf "${RED}[错误] 清理失败${NC}\n"
+        return 1
+    fi
     echo ""
     printf "${GREEN}[√] 清理完成${NC}\n"
 }
@@ -621,6 +723,7 @@ show_disk_usage() {
 main() {
     check_root
     detect_os
+    install_basic_tools
     check_java
     check_maven
     check_docker
