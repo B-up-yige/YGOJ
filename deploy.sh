@@ -494,7 +494,9 @@ build_project() {
     printf "${YELLOW}[提示] 开始 Maven 构建...${NC}\n"
     echo ""
     
-    MAVEN_BIN="/opt/maven/bin/mvn"
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    MAVEN_REQUIRED_VERSION="3.9.6"
+    MAVEN_BIN="${SCRIPT_DIR}/.maven/apache-maven-${MAVEN_REQUIRED_VERSION}/bin/mvn"
     
     # 确保 Maven 可用
     if [ ! -x "${MAVEN_BIN}" ]; then
