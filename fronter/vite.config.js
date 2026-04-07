@@ -19,7 +19,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://gateway:80',
+        target: process.env.VITE_API_TARGET || 'http://gateway:80',
         changeOrigin: true,
       }
     }
