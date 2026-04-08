@@ -415,7 +415,8 @@ install_docker_compose() {
     
     DOWNLOAD_FILE="/usr/local/bin/docker-compose"
     printf "${YELLOW}[提示] 正在下载 Docker Compose ${COMPOSE_VERSION}...${NC}\n"
-    if ! curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o "${DOWNLOAD_FILE}"; then
+#    if ! curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o "${DOWNLOAD_FILE}"; then
+    if ! curl -L "https://gitee.com/yige123_gitee/qxjg/releases/download/preview0.1/docker-compose-linux-x86_64" -o "${DOWNLOAD_FILE}"; then
         printf "${RED}[错误] Docker Compose 下载失败${NC}\n"
         rm -f "${DOWNLOAD_FILE}"
         exit 1
