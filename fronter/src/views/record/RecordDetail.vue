@@ -18,7 +18,7 @@
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="编程语言" v-if="record.language">{{ record.language }}</el-descriptions-item>
-        <el-descriptions-item label="提交时间" v-if="record.submitTime">{{ record.submitTime }}</el-descriptions-item>
+        <el-descriptions-item label="提交时间" v-if="record.submitTime">{{ formatTime(record.submitTime) }}</el-descriptions-item>
       </el-descriptions>
 
       <!-- 编译错误信息 -->
@@ -96,6 +96,13 @@ const getStatusType = (status) => {
     'Compilation Error': 'info'
   }
   return statusMap[status] || 'info'
+}
+
+const formatTime = (time) => {
+  if (!time) return '-'
+  // 处理 LocalDateTime 格式: 2024-01-01T12:00:00
+  const dateStr = time.replace('T', ' ')
+  return dateStr.substring(0, 19)
 }
 
 const getStatusText = (status) => {

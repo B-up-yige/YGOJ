@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class Record {
     @TableId(type = IdType.AUTO)
@@ -17,4 +19,5 @@ public class Record {
     Long compileMemory;
     String compileStdout;
     String compileStderr;
+    LocalDateTime submitTime;
 }

@@ -13,6 +13,11 @@
           </el-tag>
         </template>
       </el-table-column>
+      <el-table-column prop="submitTime" label="提交时间" width="180">
+        <template #default="scope">
+          {{ formatTime(scope.row.submitTime) }}
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="150" fixed="right">
         <template #default="scope">
           <el-button link type="primary" @click="handleView(scope.row.id)">详情</el-button>
@@ -127,6 +132,13 @@ const getStatusType = (status) => {
     'Compilation Error': 'info'
   }
   return statusMap[status] || 'info'
+}
+
+const formatTime = (time) => {
+  if (!time) return '-'
+  // 处理 LocalDateTime 格式: 2024-01-01T12:00:00
+  const dateStr = time.replace('T', ' ')
+  return dateStr.substring(0, 19)
 }
 
 const getStatusText = (status) => {

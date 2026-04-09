@@ -130,6 +130,7 @@ CREATE TABLE `record`  (
   `compile_memory` bigint(20) NULL DEFAULT NULL,
   `compile_stdout` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   `compile_stderr` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `submit_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '提交时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
 

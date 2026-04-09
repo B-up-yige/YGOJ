@@ -1,5 +1,6 @@
 package com.ygoj.record.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ygoj.common.Result;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -129,6 +131,8 @@ public class RecordServiceImpl implements RecordService {
     @Override
     public List<Record> list(Long page, Long pageSize) {
         Page<Record> recordPage = new Page<>(page, pageSize);
-        return recordMapper.selectPage(recordPage, null).getRecords();
+        LambdaQueryWrapper<Record> wrapper = new LambdaQueryWrapper<>();
+        wrapper.orderByDesc(Record::getSubmitTime);
+        return recordMapper.selectPage(recordPage, wrapper).getRecords();
     }
 }
