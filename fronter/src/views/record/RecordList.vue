@@ -124,6 +124,13 @@ const handleCurrentChange = (page) => {
 
 const getStatusType = (status) => {
   const statusMap = {
+    'AC': 'success',
+    'WA': 'danger',
+    'TLE': 'warning',
+    'MLE': 'warning',
+    'RE': 'danger',
+    'CE': 'info',
+    'waiting': '',
     'Accepted': 'success',
     'Wrong Answer': 'danger',
     'Time Limit Exceeded': 'warning',
@@ -143,6 +150,13 @@ const formatTime = (time) => {
 
 const getStatusText = (status) => {
   const textMap = {
+    'AC': '通过',
+    'WA': '答案错误',
+    'TLE': '超时',
+    'MLE': '超内存',
+    'RE': '运行错误',
+    'CE': '编译错误',
+    'waiting': '等待中',
     'Accepted': '通过',
     'Wrong Answer': '答案错误',
     'Time Limit Exceeded': '超时',
