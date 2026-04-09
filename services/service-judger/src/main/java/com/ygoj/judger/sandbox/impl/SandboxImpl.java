@@ -102,8 +102,8 @@ public class SandboxImpl implements Sandbox {
 
 
         //拼接临时目录
-        String userDir = System.getProperty("user.dir");
-        String globalTempDir = userDir + File.separator + GLOBAL_TEMP_DIR_NAME;
+        // 使用固定的宿主机路径 /tmp/judgerTemp，确保判题子容器可以挂载
+        String globalTempDir = "/tmp/judgerTemp";
         String tempName = UUID.randomUUID().toString()+ DateUtil.currentSeconds();
         String userTempDir = globalTempDir + File.separator + tempName;
         String codeFilePath = userTempDir + File.separator + fileName;
@@ -148,6 +148,7 @@ public class SandboxImpl implements Sandbox {
         //创建容器
         CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd(image);
         HostConfig hostConfig = new HostConfig();
+        // 使用宿主机路径进行挂载，判题子容器可以访问到文件
         hostConfig.setBinds(new Bind(userTempDir, new Volume("/workspace")));
         hostConfig.withMemory((memoryLimit + Math.max(memoryLimit/2, 100)) * 1024 * 1024);
         hostConfig.withCpuCount(1L);

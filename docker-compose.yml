@@ -285,7 +285,7 @@ services:
       TZ: Asia/Shanghai
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - judger-temp:/app/temp
+      - /tmp/judgerTemp:/tmp/judgerTemp
     depends_on:
       nacos:
         condition: service_healthy

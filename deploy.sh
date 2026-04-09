@@ -634,6 +634,11 @@ deploy_all() {
         return 1
     fi
     
+    # 创建 judger 临时目录
+    mkdir -p /tmp/judgerTemp
+    chmod 777 /tmp/judgerTemp
+    printf "${GREEN}[√] 创建 judger 临时目录: /tmp/judgerTemp${NC}\n"
+    
     # 启动 Docker 服务
     if ! docker-compose up -d --build; then
         printf "${RED}[错误] Docker 服务启动失败${NC}\n"
@@ -670,6 +675,11 @@ deploy_services() {
         printf "${RED}[错误] 构建失败，终止部署${NC}\n"
         return 1
     fi
+    
+    # 创建 judger 临时目录
+    mkdir -p /tmp/judgerTemp
+    chmod 777 /tmp/judgerTemp
+    printf "${GREEN}[√] 创建 judger 临时目录: /tmp/judgerTemp${NC}\n"
     
     if ! docker-compose up -d gateway service-user service-problem service-record service-judger file-system frontend; then
         printf "${RED}[错误] 应用服务启动失败${NC}\n"
