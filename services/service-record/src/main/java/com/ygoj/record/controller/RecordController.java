@@ -48,4 +48,15 @@ public class RecordController {
     public Result list(Long page, Long pageSize) {
         return Result.success(recordService.list(page, pageSize));
     }
+    
+    /**
+     * 获取提交记录的测试点详情
+     *
+     * @param id 提交记录id
+     * @return {@link Result}
+     */
+    @GetMapping("/recordinfo/{id}/details")
+    public Result getRecordDetails(@PathVariable Long id) {
+        return Result.success(recordService.getRecordDetails(id));
+    }
 }

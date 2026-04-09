@@ -25,3 +25,11 @@ export function submitCode(data) {
     data
   })
 }
+
+// 获取提交记录的测试点详情
+export function getRecordDetails(id) {
+  return request({
+    url: `/record/recordinfo/${id}/details`,
+    method: 'get'
+  })
+}

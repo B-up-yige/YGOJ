@@ -47,6 +47,24 @@
         <pre><code>{{ record.code }}</code></pre>
       </div>
 
+      <!-- 测试点详情 -->
+      <div class="testcase-section" v-if="details.length > 0">
+        <el-divider />
+        <h3>测试点详情</h3>
+        <el-table :data="details" style="width: 100%" border>
+          <el-table-column prop="recordId" label="记录ID" width="100" />
+          <el-table-column label="状态" width="150">
+            <template #default="scope">
+              <el-tag :type="getStatusType(scope.row.status)">
+                {{ getStatusText(scope.row.status) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="time" label="耗时(ms)" width="120" />
+          <el-table-column prop="memory" label="内存(KB)" width="120" />
+        </el-table>
+      </div>
+
       <div class="actions" style="margin-top: 30px; text-align: center;">
         <el-button type="primary" @click="viewProblem">查看题目</el-button>
         <el-button @click="goBack">返回</el-button>
@@ -58,7 +76,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getRecordInfo } from '@/api/record'
+import { getRecordInfo, getRecordDetails } from '@/api/record'
 import { CircleClose, Warning } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -73,12 +91,17 @@ const record = ref({
   code: '',
   submitTime: ''
 })
+const details = ref([])
 
 const loadRecord = async () => {
   loading.value = true
   try {
     const res = await getRecordInfo(route.params.id)
     record.value = res.data
+    
+    // 加载测试点详情
+    const detailRes = await getRecordDetails(route.params.id)
+    details.value = detailRes.data || []
   } catch (error) {
     console.error('加载记录详情失败:', error)
   } finally {
@@ -222,5 +245,14 @@ onMounted(() => {
 
 .compile-warning code {
   color: #e6a23c;
+}
+
+.testcase-section {
+  margin-top: 20px;
+}
+
+.testcase-section h3 {
+  margin-bottom: 10px;
+  color: #333;
 }
 </style>

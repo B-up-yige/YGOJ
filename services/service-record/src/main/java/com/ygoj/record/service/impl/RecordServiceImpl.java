@@ -7,9 +7,11 @@ import com.ygoj.common.Result;
 import com.ygoj.judger.sandbox.SandboxExecuteRequest;
 import com.ygoj.problem.Probleminfo;
 import com.ygoj.problem.Testcase;
+import com.ygoj.record.RecordDetail;
 import com.ygoj.record.feign.JudgerFeignClient;
 import com.ygoj.record.feign.ProblemFeignClient;
 import com.ygoj.record.feign.UserFeignClient;
+import com.ygoj.record.mapper.RecordDetailMapper;
 import com.ygoj.record.mapper.RecordMapper;
 import com.ygoj.record.Record;
 import com.ygoj.record.service.RecordService;
@@ -28,6 +30,8 @@ import java.util.Map;
 public class RecordServiceImpl implements RecordService {
     @Autowired
     private RecordMapper recordMapper;
+    @Autowired
+    private RecordDetailMapper recordDetailMapper;
     @Autowired
     private UserFeignClient userFeignClient;
     @Autowired
@@ -134,5 +138,12 @@ public class RecordServiceImpl implements RecordService {
         LambdaQueryWrapper<Record> wrapper = new LambdaQueryWrapper<>();
         wrapper.orderByDesc(Record::getSubmitTime);
         return recordMapper.selectPage(recordPage, wrapper).getRecords();
+    }
+    
+    @Override
+    public List<RecordDetail> getRecordDetails(Long recordId) {
+        LambdaQueryWrapper<RecordDetail> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(RecordDetail::getRecordId, recordId);
+        return recordDetailMapper.selectList(wrapper);
     }
 }
