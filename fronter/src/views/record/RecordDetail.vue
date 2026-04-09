@@ -21,6 +21,26 @@
         <el-descriptions-item label="提交时间" v-if="record.submitTime">{{ record.submitTime }}</el-descriptions-item>
       </el-descriptions>
 
+      <!-- 编译错误信息 -->
+      <div class="compile-section" v-if="record.compileStderr">
+        <el-divider />
+        <h3>
+          <el-icon color="#f56c6c"><CircleClose /></el-icon>
+          编译错误
+        </h3>
+        <pre class="compile-error"><code>{{ record.compileStderr }}</code></pre>
+      </div>
+
+      <!-- 编译警告信息 -->
+      <div class="compile-section" v-else-if="record.compileStdout">
+        <el-divider />
+        <h3>
+          <el-icon color="#e6a23c"><Warning /></el-icon>
+          编译警告
+        </h3>
+        <pre class="compile-warning"><code>{{ record.compileStdout }}</code></pre>
+      </div>
+
       <div class="code-section" v-if="record.code">
         <el-divider />
         <h3>提交的代码</h3>
@@ -39,6 +59,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getRecordInfo } from '@/api/record'
+import { CircleClose, Warning } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -140,5 +161,45 @@ onMounted(() => {
 
 .code-section code {
   color: #24292e;
+}
+
+.compile-section {
+  margin-top: 20px;
+}
+
+.compile-section h3 {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+}
+
+.compile-error,
+.compile-warning {
+  padding: 15px;
+  border-radius: 5px;
+  overflow-x: auto;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.compile-error {
+  background-color: #fef0f0;
+  border-left: 4px solid #f56c6c;
+}
+
+.compile-error code {
+  color: #f56c6c;
+}
+
+.compile-warning {
+  background-color: #fdf6ec;
+  border-left: 4px solid #e6a23c;
+}
+
+.compile-warning code {
+  color: #e6a23c;
 }
 </style>

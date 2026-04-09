@@ -13,4 +13,8 @@ public class Record {
     String code;
     String status;
     String language;
+    Long compileTime;
+    Long compileMemory;
+    String compileStdout;
+    String compileStderr;
 }

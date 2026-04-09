@@ -3,6 +3,7 @@ package com.ygoj.record.rabbitmq;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.rabbitmq.client.Channel;
+import com.ygoj.judger.CompileInfo;
 import com.ygoj.judger.ExecuteDetail;
 import com.ygoj.judger.sandbox.SandboxExecuteResponse;
 import com.ygoj.record.RecordDetail;
@@ -51,6 +52,16 @@ public class MessageListener {
         queryWrapper.eq(Record::getId, sandboxExecuteResponse.getRecordId());
         Record record = recordMapper.selectOne(queryWrapper);
         record.setStatus(sandboxExecuteResponse.getStatus());
+        
+        //保存编译信息
+        CompileInfo compileInfo = sandboxExecuteResponse.getCompileInfo();
+        if (compileInfo != null) {
+            record.setCompileTime(compileInfo.getTime());
+            record.setCompileMemory(compileInfo.getMemory());
+            record.setCompileStdout(compileInfo.getStdout());
+            record.setCompileStderr(compileInfo.getStderr());
+        }
+        
         recordMapper.update(record, queryWrapper);
 
         //确认消息
