@@ -5,7 +5,7 @@ language:
         fileName: "Main.java"
         image: "amazoncorretto:18"
     Python 3:
-        compile: ""
+        compile: "python3 -m py_compile file.py"
         run: "python3 Main.py"
         fileName: "Main.py"
         image: "python:3.10"
