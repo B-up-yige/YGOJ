@@ -162,7 +162,9 @@ const handleSubmitCode = async () => {
     // 跳转到记录页面查看结果
     router.push('/records')
   } catch (error) {
+    // request.js 已经处理了错误提示，这里只需要记录日志
     console.error('提交失败:', error)
+    // 如果需要额外的错误处理，可以在这里添加
   } finally {
     submitting.value = false
   }

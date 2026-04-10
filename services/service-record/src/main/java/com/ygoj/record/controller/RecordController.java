@@ -6,10 +6,12 @@ import com.ygoj.record.feign.JudgerFeignClient;
 import com.ygoj.record.feign.ProblemFeignClient;
 import com.ygoj.record.feign.UserFeignClient;
 import com.ygoj.record.service.RecordService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Slf4j
 public class RecordController {
     @Autowired
     private RecordService recordService;
@@ -22,8 +24,25 @@ public class RecordController {
      */
     @GetMapping("/recordinfo/{id}")
     public Result getRecordInfo(@PathVariable Long id) {
-        Record record = recordService.getRecordinfoById(id);
-        return Result.success(record);
+        try {
+            log.info("获取提交记录请求, recordId: {}", id);
+            
+            if (id == null) {
+                return Result.error(400, "记录ID不能为空");
+            }
+            
+            Record record = recordService.getRecordinfoById(id);
+            if (record == null) {
+                log.warn("提交记录不存在, recordId: {}", id);
+                return Result.error(404, "提交记录不存在");
+            }
+            
+            log.info("获取提交记录成功, recordId: {}", id);
+            return Result.success(record);
+        } catch (Exception e) {
+            log.error("获取提交记录失败, recordId: {}", id, e);
+            return Result.error(500, "获取提交记录失败: " + e.getMessage());
+        }
     }
 
     /**
@@ -34,7 +53,32 @@ public class RecordController {
      */
     @PostMapping("/submit")
     public Result addRecord(@RequestBody Record record) {
-        return recordService.addRecord(record);
+        try {
+            log.info("提交代码请求, userId: {}, problemId: {}, language: {}", 
+                    record.getUserId(), record.getProblemId(), record.getLanguage());
+            
+            // 参数校验
+            if (record == null) {
+                return Result.error(400, "提交信息不能为空");
+            }
+            if (record.getUserId() == null) {
+                return Result.error(400, "用户ID不能为空");
+            }
+            if (record.getProblemId() == null) {
+                return Result.error(400, "题目ID不能为空");
+            }
+            if (record.getCode() == null || record.getCode().trim().isEmpty()) {
+                return Result.error(400, "代码不能为空");
+            }
+            if (record.getLanguage() == null || record.getLanguage().trim().isEmpty()) {
+                return Result.error(400, "编程语言不能为空");
+            }
+            
+            return recordService.addRecord(record);
+        } catch (Exception e) {
+            log.error("提交代码失败", e);
+            return Result.error(500, "提交代码失败: " + e.getMessage());
+        }
     }
 
     /**
@@ -46,7 +90,22 @@ public class RecordController {
      */
     @GetMapping("/list")
     public Result list(Long page, Long pageSize) {
-        return Result.success(recordService.list(page, pageSize));
+        try {
+            log.debug("获取提交列表请求, page: {}, pageSize: {}", page, pageSize);
+            
+            // 参数校验和默认值设置
+            if (page == null || page < 1) {
+                page = 1L;
+            }
+            if (pageSize == null || pageSize < 1 || pageSize > 100) {
+                pageSize = 10L;
+            }
+            
+            return Result.success(recordService.list(page, pageSize));
+        } catch (Exception e) {
+            log.error("获取提交列表失败", e);
+            return Result.error(500, "获取提交列表失败: " + e.getMessage());
+        }
     }
     
     /**
@@ -57,6 +116,17 @@ public class RecordController {
      */
     @GetMapping("/recordinfo/{id}/details")
     public Result getRecordDetails(@PathVariable Long id) {
-        return Result.success(recordService.getRecordDetails(id));
+        try {
+            log.info("获取提交记录测试点详情, recordId: {}", id);
+            
+            if (id == null) {
+                return Result.error(400, "记录ID不能为空");
+            }
+            
+            return Result.success(recordService.getRecordDetails(id));
+        } catch (Exception e) {
+            log.error("获取测试点详情失败, recordId: {}", id, e);
+            return Result.error(500, "获取测试点详情失败: " + e.getMessage());
+        }
     }
 }

@@ -41,15 +41,31 @@ public class ProblemServiceImpl implements ProblemService {
      */
     @Override
     public Probleminfo getProbleminfoById(Long id) {
-        Probleminfo probleminfo = probleminfoMapper.selectById(id);
+        try {
+            log.debug("获取题目信息, problemId: {}", id);
+            
+            if (id == null) {
+                throw new IllegalArgumentException("题目ID不能为空");
+            }
+            
+            Probleminfo probleminfo = probleminfoMapper.selectById(id);
 
-        if(probleminfo != null){
-            Result result = userFeignClient.userinfo(probleminfo.getAuthorId());
-            Userinfo author = JSON.parseObject(JSON.toJSONString(result.getData()), Userinfo.class);
-            probleminfo.setAuthor(author);
+            if(probleminfo != null){
+                Result result = userFeignClient.userinfo(probleminfo.getAuthorId());
+                if (result != null && result.getData() != null) {
+                    Userinfo author = JSON.parseObject(JSON.toJSONString(result.getData()), Userinfo.class);
+                    probleminfo.setAuthor(author);
+                    log.debug("获取题目信息成功, problemId: {}, author: {}", id, author.getUsername());
+                }
+            }
+
+            return probleminfo;
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("获取题目信息异常, problemId: {}", id, e);
+            throw new RuntimeException("获取题目信息失败: " + e.getMessage(), e);
         }
-
-        return probleminfo;
     }
 
     /**
@@ -60,7 +76,21 @@ public class ProblemServiceImpl implements ProblemService {
     @Override
     @GlobalTransactional
     public void delProbleminfo(Long id) {
-        probleminfoMapper.deleteById(id);
+        try {
+            log.info("删除题目, problemId: {}", id);
+            
+            if (id == null) {
+                throw new IllegalArgumentException("题目ID不能为空");
+            }
+            
+            probleminfoMapper.deleteById(id);
+            log.info("删除题目成功, problemId: {}", id);
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("删除题目异常, problemId: {}", id, e);
+            throw new RuntimeException("删除题目失败: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -71,7 +101,21 @@ public class ProblemServiceImpl implements ProblemService {
     @Override
     @GlobalTransactional
     public void addProbleminfo(Probleminfo probleminfo) {
-        probleminfoMapper.insert(probleminfo);
+        try {
+            log.info("添加题目, title: {}", probleminfo.getTitle());
+            
+            if (probleminfo == null) {
+                throw new IllegalArgumentException("题目信息不能为空");
+            }
+            
+            probleminfoMapper.insert(probleminfo);
+            log.info("添加题目成功, problemId: {}", probleminfo.getId());
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("添加题目异常, title: {}", probleminfo.getTitle(), e);
+            throw new RuntimeException("添加题目失败: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -82,7 +126,21 @@ public class ProblemServiceImpl implements ProblemService {
     @Override
     @GlobalTransactional
     public void editProbleminfo(Probleminfo probleminfo) {
-        probleminfoMapper.updateById(probleminfo);
+        try {
+            log.info("编辑题目, problemId: {}", probleminfo.getId());
+            
+            if (probleminfo == null || probleminfo.getId() == null) {
+                throw new IllegalArgumentException("题目信息或ID不能为空");
+            }
+            
+            probleminfoMapper.updateById(probleminfo);
+            log.info("编辑题目成功, problemId: {}", probleminfo.getId());
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("编辑题目异常, problemId: {}", probleminfo.getId(), e);
+            throw new RuntimeException("编辑题目失败: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -94,8 +152,22 @@ public class ProblemServiceImpl implements ProblemService {
      */
     @Override
     public List<Probleminfo> list(Long page, Long pageSize) {
-        Page<Probleminfo> probleminfoPage = new Page<>(page, pageSize);
-        return probleminfoMapper.selectPage(probleminfoPage, null).getRecords();
+        try {
+            log.debug("分页查询题目, page: {}, pageSize: {}", page, pageSize);
+            
+            if (page == null || page < 1) {
+                page = 1L;
+            }
+            if (pageSize == null || pageSize < 1) {
+                pageSize = 10L;
+            }
+            
+            Page<Probleminfo> probleminfoPage = new Page<>(page, pageSize);
+            return probleminfoMapper.selectPage(probleminfoPage, null).getRecords();
+        } catch (Exception e) {
+            log.error("分页查询题目异常", e);
+            throw new RuntimeException("分页查询题目失败: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -106,46 +178,137 @@ public class ProblemServiceImpl implements ProblemService {
     @Override
     @GlobalTransactional
     public void addTestCase(Testcase testcase) {
-        testcaseMapper.insert(testcase);
+        try {
+            log.info("添加测试用例, problemId: {}", testcase.getProblemId());
+            
+            if (testcase == null) {
+                throw new IllegalArgumentException("测试用例不能为空");
+            }
+            if (testcase.getProblemId() == null) {
+                throw new IllegalArgumentException("题目ID不能为空");
+            }
+            
+            testcaseMapper.insert(testcase);
+            log.info("添加测试用例成功, testcaseId: {}", testcase.getId());
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("添加测试用例异常, problemId: {}", testcase.getProblemId(), e);
+            throw new RuntimeException("添加测试用例失败: " + e.getMessage(), e);
+        }
     }
 
     @Override
     @GlobalTransactional
     public void delTestCase(Testcase testcase) {
-        testcaseMapper.deleteById(testcase);
+        try {
+            log.info("删除测试用例, testcaseId: {}", testcase.getId());
+            
+            if (testcase == null || testcase.getId() == null) {
+                throw new IllegalArgumentException("测试用例或ID不能为空");
+            }
+            
+            testcaseMapper.deleteById(testcase);
+            log.info("删除测试用例成功, testcaseId: {}", testcase.getId());
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("删除测试用例异常, testcaseId: {}", testcase.getId(), e);
+            throw new RuntimeException("删除测试用例失败: " + e.getMessage(), e);
+        }
     }
 
     @Override
     public List<Testcase> getTestCase(Long problemId) {
-        LambdaQueryWrapper<Testcase> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Testcase::getProblemId, problemId);
+        try {
+            log.debug("获取测试用例列表, problemId: {}", problemId);
+            
+            if (problemId == null) {
+                throw new IllegalArgumentException("题目ID不能为空");
+            }
+            
+            LambdaQueryWrapper<Testcase> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(Testcase::getProblemId, problemId);
 
-        return testcaseMapper.selectList(queryWrapper);
+            return testcaseMapper.selectList(queryWrapper);
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("获取测试用例列表异常, problemId: {}", problemId, e);
+            throw new RuntimeException("获取测试用例列表失败: " + e.getMessage(), e);
+        }
     }
 
     @Override
     public List<Tag> getTag(Long id) {
-        LambdaQueryWrapper<Tag> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Tag::getProblemId, id);
+        try {
+            log.debug("获取题目标签, problemId: {}", id);
+            
+            if (id == null) {
+                throw new IllegalArgumentException("题目ID不能为空");
+            }
+            
+            LambdaQueryWrapper<Tag> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(Tag::getProblemId, id);
 
-        return tagMapper.selectList(queryWrapper);
+            return tagMapper.selectList(queryWrapper);
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("获取题目标签异常, problemId: {}", id, e);
+            throw new RuntimeException("获取题目标签失败: " + e.getMessage(), e);
+        }
     }
 
     @Override
     @Transactional
     public void addTag(Long id, String tagName) {
-        Tag tag = new Tag();
-        tag.setProblemId(id);
-        tag.setTag(tagName);
-        tagMapper.insert(tag);
+        try {
+            log.info("添加标签, problemId: {}, tag: {}", id, tagName);
+            
+            if (id == null) {
+                throw new IllegalArgumentException("题目ID不能为空");
+            }
+            if (tagName == null || tagName.trim().isEmpty()) {
+                throw new IllegalArgumentException("标签名称不能为空");
+            }
+            
+            Tag tag = new Tag();
+            tag.setProblemId(id);
+            tag.setTag(tagName);
+            tagMapper.insert(tag);
+            log.info("添加标签成功, problemId: {}, tag: {}", id, tagName);
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("添加标签异常, problemId: {}, tag: {}", id, tagName, e);
+            throw new RuntimeException("添加标签失败: " + e.getMessage(), e);
+        }
     }
 
     @Override
     @Transactional
     public void delTag(Long id, String tagName) {
-        LambdaQueryWrapper<Tag> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Tag::getProblemId, id);
-        queryWrapper.eq(Tag::getTag, tagName);
-        tagMapper.delete(queryWrapper);
+        try {
+            log.info("删除标签, problemId: {}, tag: {}", id, tagName);
+            
+            if (id == null) {
+                throw new IllegalArgumentException("题目ID不能为空");
+            }
+            if (tagName == null || tagName.trim().isEmpty()) {
+                throw new IllegalArgumentException("标签名称不能为空");
+            }
+            
+            LambdaQueryWrapper<Tag> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(Tag::getProblemId, id);
+            queryWrapper.eq(Tag::getTag, tagName);
+            tagMapper.delete(queryWrapper);
+            log.info("删除标签成功, problemId: {}, tag: {}", id, tagName);
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("删除标签异常, problemId: {}, tag: {}", id, tagName, e);
+            throw new RuntimeException("删除标签失败: " + e.getMessage(), e);
+        }
     }
 }

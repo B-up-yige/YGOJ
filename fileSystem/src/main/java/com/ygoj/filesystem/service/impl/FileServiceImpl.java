@@ -57,29 +57,50 @@ public class FileServiceImpl implements FileService {
      */
     @Override
     public String uploadFile(MultipartFile file) throws IOException {
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("文件不能为空");
+        try {
+            if (file == null) {
+                log.warn("上传文件为空对象");
+                throw new IllegalArgumentException("文件不能为空");
+            }
+            
+            if (file.isEmpty()) {
+                log.warn("上传文件内容为空");
+                throw new IllegalArgumentException("文件内容不能为空");
+            }
+            
+            // 生成唯一文件 ID
+            String fileId = UUID.randomUUID().toString();
+            log.debug("生成文件ID: {}", fileId);
+            
+            // 以 fileId 作为目录名
+            Path fileDir = Paths.get(actualRootPath, fileId);
+            
+            // 确保目录存在
+            if (!Files.exists(fileDir)) {
+                Files.createDirectories(fileDir);
+                log.debug("创建文件目录: {}", fileDir.toAbsolutePath());
+            }
+            
+            // 保存文件：{fileId}/{原始文件名}
+            String fileName = file.getOriginalFilename();
+            if (fileName == null || fileName.trim().isEmpty()) {
+                fileName = "unnamed_file";
+            }
+            Path filePath = fileDir.resolve(fileName);
+            file.transferTo(filePath.toFile());
+            
+            log.info("文件上传成功：fileId={}, fileName={}, filePath={}", fileId, fileName, filePath.toAbsolutePath());
+            
+            return fileId;
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (IOException e) {
+            log.error("文件上传IO异常", e);
+            throw e;
+        } catch (Exception e) {
+            log.error("文件上传异常", e);
+            throw new IOException("文件上传失败: " + e.getMessage(), e);
         }
-        
-        // 生成唯一文件 ID
-        String fileId = UUID.randomUUID().toString();
-        
-        // 以 fileId 作为目录名
-        Path fileDir = Paths.get(actualRootPath, fileId);
-        
-        // 确保目录存在
-        if (!Files.exists(fileDir)) {
-            Files.createDirectories(fileDir);
-        }
-        
-        // 保存文件：{fileId}/{原始文件名}
-        String fileName = file.getOriginalFilename();
-        Path filePath = fileDir.resolve(fileName);
-        file.transferTo(filePath.toFile());
-        
-        log.info("文件上传成功：fileId={}, fileName={}, filePath={}", fileId, fileName, filePath.toAbsolutePath());
-        
-        return fileId;
     }
     
     /**
@@ -91,15 +112,39 @@ public class FileServiceImpl implements FileService {
      */
     @Override
     public byte[] downloadFile(String fileId) throws IOException {
-        // 通过 fileId 直接构建文件路径
-        String filePath = buildFilePath(fileId);
-        
-        Path path = Paths.get(filePath);
-        if (!Files.exists(path)) {
-            throw new IOException("文件不存在：" + fileId);
+        try {
+            log.debug("下载文件, fileId: {}", fileId);
+            
+            if (fileId == null || fileId.trim().isEmpty()) {
+                throw new IllegalArgumentException("文件ID不能为空");
+            }
+            
+            // 通过 fileId 直接构建文件路径
+            String filePath = buildFilePath(fileId);
+            
+            if (filePath == null) {
+                log.warn("文件不存在, fileId: {}", fileId);
+                throw new IOException("文件不存在：" + fileId);
+            }
+            
+            Path path = Paths.get(filePath);
+            if (!Files.exists(path)) {
+                log.warn("文件不存在, fileId: {}", fileId);
+                throw new IOException("文件不存在：" + fileId);
+            }
+            
+            byte[] content = Files.readAllBytes(path);
+            log.debug("文件读取成功, size: {} bytes", content.length);
+            return content;
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (IOException e) {
+            log.error("文件下载IO异常, fileId: {}", fileId, e);
+            throw e;
+        } catch (Exception e) {
+            log.error("文件下载异常, fileId: {}", fileId, e);
+            throw new IOException("文件下载失败: " + e.getMessage(), e);
         }
-        
-        return Files.readAllBytes(path);
     }
     
     /**
@@ -110,22 +155,43 @@ public class FileServiceImpl implements FileService {
      */
     @Override
     public void deleteFile(String fileId) throws IOException {
-        // 通过 fileId 直接构建文件路径
-        String filePath = buildFilePath(fileId);
-        
         try {
-            Files.deleteIfExists(Paths.get(filePath));
+            log.debug("删除文件, fileId: {}", fileId);
             
-            // 删除空目录
-            Path dir = Paths.get(filePath).getParent();
-            if (Files.exists(dir) && Files.isDirectory(dir)) {
-                Files.deleteIfExists(dir);
+            if (fileId == null || fileId.trim().isEmpty()) {
+                throw new IllegalArgumentException("文件ID不能为空");
             }
             
-            log.info("文件删除成功：fileId={}", fileId);
-        } catch (IOException e) {
-            log.warn("删除物理文件失败", e);
+            // 通过 fileId 直接构建文件路径
+            String filePath = buildFilePath(fileId);
+            
+            if (filePath == null) {
+                log.warn("文件不存在，无需删除, fileId: {}", fileId);
+                return;
+            }
+            
+            try {
+                Files.deleteIfExists(Paths.get(filePath));
+                
+                // 删除空目录
+                Path dir = Paths.get(filePath).getParent();
+                if (Files.exists(dir) && Files.isDirectory(dir)) {
+                    Files.deleteIfExists(dir);
+                }
+                
+                log.info("文件删除成功：fileId={}", fileId);
+            } catch (IOException e) {
+                log.error("删除物理文件失败, fileId: {}", fileId, e);
+                throw e;
+            }
+        } catch (IllegalArgumentException e) {
             throw e;
+        } catch (IOException e) {
+            log.error("文件删除IO异常, fileId: {}", fileId, e);
+            throw e;
+        } catch (Exception e) {
+            log.error("文件删除异常, fileId: {}", fileId, e);
+            throw new IOException("文件删除失败: " + e.getMessage(), e);
         }
     }
     
@@ -157,11 +223,30 @@ public class FileServiceImpl implements FileService {
      */
     @Override
     public String getOriginalFileName(String fileId) throws IOException {
-        String filePath = buildFilePath(fileId);
-        if (filePath == null) {
-            throw new IOException("文件不存在：" + fileId);
+        try {
+            log.debug("获取原始文件名, fileId: {}", fileId);
+            
+            if (fileId == null || fileId.trim().isEmpty()) {
+                throw new IllegalArgumentException("文件ID不能为空");
+            }
+            
+            String filePath = buildFilePath(fileId);
+            if (filePath == null) {
+                log.warn("文件不存在, fileId: {}", fileId);
+                throw new IOException("文件不存在：" + fileId);
+            }
+            
+            String fileName = Paths.get(filePath).getFileName().toString();
+            log.debug("获取文件名成功: {}", fileName);
+            return fileName;
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (IOException e) {
+            log.error("获取文件名IO异常, fileId: {}", fileId, e);
+            throw e;
+        } catch (Exception e) {
+            log.error("获取文件名异常, fileId: {}", fileId, e);
+            throw new IOException("获取文件名失败: " + e.getMessage(), e);
         }
-        
-        return Paths.get(filePath).getFileName().toString();
     }
 }

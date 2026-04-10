@@ -22,35 +22,24 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-//        ServerHttpRequest request = exchange.getRequest();
-//        ServerHttpResponse response = exchange.getResponse();
-//        String uri = request.getURI().toString();
-//        Long startTime = System.currentTimeMillis();
-//        log.info("请求【{}】开始，时间：{}", uri, startTime);
-
-//        Mono<Void> filter =  chain.filter(exchange)
-//                .doFinally((result)->{
-//                    Long endTime = System.currentTimeMillis();
-//                    log.info("请求【{}】结束，时间：{}，耗时：{}ms", uri, endTime, endTime - startTime);
-//                });
-
-//        return filter;
-
-//        redisTemplate.opsForValue().set("1",
-//                "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJwZXJtaXNzaW9uIjoxfQ.1R-hKI4U1KNavoey_Ug-1yGKwelhlflDlvyYF9PnBlbVmou2u0LV7mTTKYqYSM_DtsEGDeDkgxSQaMn589C-aA");
-
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
-
+        String uri = request.getURI().toString();
+        
         //获取token
         String token = request.getHeaders().getFirst("Authorization");
         String jwt = "NULL";
+
+        log.debug("网关鉴权请求, uri: {}, token: {}", uri, token != null ? "exists" : "null");
 
         //在redis获取token储存的jwt信息
         //同时token续期
         if(token != null) {
             if (redisTemplate.hasKey(token)) {
                 jwt = (String) redisTemplate.opsForValue().getAndExpire(token, 7, TimeUnit.DAYS);
+                log.debug("Token验证成功并续期, token: {}", token);
+            } else {
+                log.warn("Token不存在或已过期, token: {}", token);
             }
         }
 
@@ -62,7 +51,8 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
                 .request(mutatedRequest)
                 .build();
 
-        Mono<Void> filter =  chain.filter(mutatedExchange);
+        log.debug("转发请求到下游服务, uri: {}", uri);
+        Mono<Void> filter = chain.filter(mutatedExchange);
 
         return filter;
     }
