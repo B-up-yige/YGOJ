@@ -4,7 +4,7 @@ language:
         run: "java -Dfile.encoding=utf-8 -Xmx2g Main"
         fileName: "Main.java"
         image: "amazoncorretto:18"
-    Python:
+    Python 3:
         compile: ""
         run: "python3 Main.py"
         fileName: "Main.py"
