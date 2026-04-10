@@ -24,11 +24,13 @@ import com.ygoj.judger.feign.FileSystemFeignClient;
 import com.ygoj.judger.sandbox.Sandbox;
 import com.ygoj.judger.sandbox.SandboxExecuteRequest;
 import com.ygoj.judger.sandbox.SandboxExecuteResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
+@Slf4j
 @Component
 public class SandboxImpl implements Sandbox {
     private static final String GLOBAL_TEMP_DIR_NAME = "temp";
@@ -80,10 +82,24 @@ public class SandboxImpl implements Sandbox {
         return "AC";
     }
 
-    //TODO 加日志
-    //TODO 错误处理
     @Override
     public SandboxExecuteResponse sandboxExecute(SandboxExecuteRequest sandboxExecuteRequest) {
+        try {
+            return doJudge(sandboxExecuteRequest);
+        } catch (Exception e) {
+            log.error("判题过程发生异常: {}", e.getMessage(), e);
+            // 返回系统错误响应
+            SandboxExecuteResponse errorResponse = new SandboxExecuteResponse();
+            errorResponse.setStatus("SE");
+            errorResponse.setRecordId(sandboxExecuteRequest.getRecordId());
+            CompileInfo compileInfo = new CompileInfo();
+            compileInfo.setStderr("System Error: " + e.getMessage());
+            errorResponse.setCompileInfo(compileInfo);
+            return errorResponse;
+        }
+    }
+    
+    private SandboxExecuteResponse doJudge(SandboxExecuteRequest sandboxExecuteRequest) {
         List<String> inputList = sandboxExecuteRequest.getInputList();
         List<String> outputList = sandboxExecuteRequest.getOutputList();
         String code = sandboxExecuteRequest.getCode();
@@ -100,20 +116,16 @@ public class SandboxImpl implements Sandbox {
         result.setRecordId(sandboxExecuteRequest.getRecordId());
         result.setStatus("waiting");
 
-
         //拼接临时目录
-        // 使用固定的宿主机路径 /tmp/judgerTemp，确保判题子容器可以挂载
         String globalTempDir = "/tmp/judgerTemp";
         String tempName = UUID.randomUUID().toString()+ DateUtil.currentSeconds();
         String userTempDir = globalTempDir + File.separator + tempName;
         String codeFilePath = userTempDir + File.separator + fileName;
 
-
         //创建判题临时目录
         FileUtil.mkdir(userTempDir);
         //存入代码
         FileUtil.writeString(code, codeFilePath, StandardCharsets.UTF_8);
-
 
         //创建默认dockerClient
         String dockerHost = System.getenv("DOCKER_HOST");
@@ -128,62 +140,68 @@ public class SandboxImpl implements Sandbox {
                 .withDockerHttpClient(dockerHttpClient)
                 .build();
 
-
+        String containerId = null;
         //拉取镜像
-        //TODO 镜像本地化
         if(!IMAGE.getOrDefault(image, false)) {
-            PullImageCmd pullImageCmd = dockerClient.pullImageCmd(image);
-            PullImageResultCallback pullImageResultCallback = new PullImageResultCallback();
             try {
-                pullImageCmd.exec(pullImageResultCallback)
-                        .awaitCompletion();
+                log.info("开始拉取镜像: {}", image);
+                PullImageCmd pullImageCmd = dockerClient.pullImageCmd(image);
+                PullImageResultCallback pullImageResultCallback = new PullImageResultCallback();
+                pullImageCmd.exec(pullImageResultCallback).awaitCompletion();
+                log.info("镜像下载完成: {}", image);
+                IMAGE.put(image, true);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                Thread.currentThread().interrupt();
+                cleanupResources(null, userTempDir, dockerClient);
+                throw new RuntimeException("镜像拉取被中断: " + image, e);
+            } catch (Exception e) {
+                cleanupResources(null, userTempDir, dockerClient);
+                throw new RuntimeException("镜像拉取失败: " + image + ", 错误: " + e.getMessage(), e);
             }
-
-            System.out.println("镜像下载完成");
-            IMAGE.put(image, true);
         }
 
         //创建容器
-        CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd(image);
-        HostConfig hostConfig = new HostConfig();
-        // 使用宿主机路径进行挂载，判题子容器可以访问到文件
-        hostConfig.setBinds(new Bind(userTempDir, new Volume("/workspace")));
-        hostConfig.withMemory((memoryLimit + Math.max(memoryLimit/2, 100)) * 1024 * 1024);
-        hostConfig.withCpuCount(1L);
-        CreateContainerResponse containerResponse = createContainerCmd
-                .withHostConfig(hostConfig)
-                .withAttachStderr(true)
-                .withAttachStdout(true)
-                .withAttachStdin(true)
-                .withTty(true)
-                .exec();
+        try {
+            CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd(image);
+            HostConfig hostConfig = new HostConfig();
+            hostConfig.setBinds(new Bind(userTempDir, new Volume("/workspace")));
+            hostConfig.withMemory((memoryLimit + Math.max(memoryLimit/2, 100)) * 1024 * 1024);
+            hostConfig.withCpuCount(1L);
+            CreateContainerResponse containerResponse = createContainerCmd
+                    .withHostConfig(hostConfig)
+                    .withAttachStderr(true)
+                    .withAttachStdout(true)
+                    .withAttachStdin(true)
+                    .withTty(true)
+                    .exec();
 
-        //获取容器ID
-        String containerId = containerResponse.getId();
-        //启动容器
-        dockerClient.startContainerCmd(containerId).exec();
-
+            containerId = containerResponse.getId();
+            log.info("容器创建成功: {}", containerId);
+            
+            dockerClient.startContainerCmd(containerId).exec();
+            log.info("容器启动成功: {}", containerId);
+        } catch (Exception e) {
+            cleanupResources(containerId, userTempDir, dockerClient);
+            throw new RuntimeException("容器创建或启动失败: " + e.getMessage(), e);
+        }
 
         //编译代码
-        ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
-                .withCmd("sh", "-c", compileCommand)
-                .withAttachStderr(true)
-                .withAttachStdout(true)
-                .withTty(true)
-                .withWorkingDir("/workspace")
-                .exec();
-        String execId = execCreateCmdResponse.getId();
         try {
+            ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
+                    .withCmd("sh", "-c", compileCommand)
+                    .withAttachStderr(true)
+                    .withAttachStdout(true)
+                    .withTty(true)
+                    .withWorkingDir("/workspace")
+                    .exec();
+            String execId = execCreateCmdResponse.getId();
+            
             CompileInfo compileInfo = new CompileInfo();
             final String[] stdout = {""};
             final String[] stderr = {""};
             final Long[] maxMemory = {0L};
 
             StopWatch stopWatch = new StopWatch();
-
-            //统计内存
             StatsCmd statsCmd = dockerClient.statsCmd(containerId);
             statsCmd.exec(new ResultCallback<Statistics>() {
                 @Override
@@ -191,21 +209,18 @@ public class SandboxImpl implements Sandbox {
                     maxMemory[0] = Math.max(statistics.getMemoryStats().getUsage(), maxMemory[0]);
                 }
                 @Override
-                public void onStart(Closeable closeable) {
-                }
+                public void onStart(Closeable closeable) {}
                 @Override
                 public void onError(Throwable throwable) {
+                    log.error("统计内存时发生错误: {}", throwable.getMessage());
                 }
                 @Override
-                public void onComplete() {
-                }
+                public void onComplete() {}
                 @Override
-                public void close() throws IOException {
-                }
+                public void close() throws IOException {}
             });
 
             stopWatch.start();
-            //开始执行命令
             dockerClient.execStartCmd(execId)
                     .exec(new ExecStartResultCallback(){
                         @Override
@@ -222,7 +237,6 @@ public class SandboxImpl implements Sandbox {
             stopWatch.stop();
             statsCmd.close();
 
-            //整合结果
             compileInfo.setTime(stopWatch.getLastTaskTimeMillis());
             compileInfo.setMemory(maxMemory[0]);
             compileInfo.setCode(dockerClient.inspectExecCmd(execId).exec().getExitCodeLong());
@@ -233,10 +247,15 @@ public class SandboxImpl implements Sandbox {
             }
 
             result.setCompileInfo(compileInfo);
+            log.info("编译完成，退出码: {}", compileInfo.getCode());
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            Thread.currentThread().interrupt();
+            cleanupResources(containerId, userTempDir, dockerClient);
+            throw new RuntimeException("编译过程被中断", e);
+        } catch (Exception e) {
+            cleanupResources(containerId, userTempDir, dockerClient);
+            throw new RuntimeException("编译过程失败: " + e.getMessage(), e);
         }
-
 
         //编译错误直接返回结果
         if(result.getCompileInfo().getCode() == 0) {
@@ -248,50 +267,41 @@ public class SandboxImpl implements Sandbox {
             FileUtil.writeString("", userOutputFilepath, StandardCharsets.UTF_8);
 
             for (int i = 0; i < inputList.size(); i++) {
-                //下载输入输出
-                ResponseEntity<byte[]> inputFile = fileSystemFeignClient.downloadFile(inputList.get(i));
-                ResponseEntity<byte[]> outputFile = fileSystemFeignClient.downloadFile(outputList.get(i));
-                FileUtil.writeBytes(inputFile.getBody(), inputFilePath);
-                FileUtil.writeBytes(outputFile.getBody(), outputFilePath);
-
-                //执行代码
-                execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
-                        .withCmd("sh", "-c", runCommand)
-                        .withAttachStderr(true)
-                        .withAttachStdout(true)
-                        .withTty(true)
-                        .withWorkingDir("/workspace")
-                        .exec();
-                execId = execCreateCmdResponse.getId();
-
                 try {
+                    ResponseEntity<byte[]> inputFile = fileSystemFeignClient.downloadFile(inputList.get(i));
+                    ResponseEntity<byte[]> outputFile = fileSystemFeignClient.downloadFile(outputList.get(i));
+                    FileUtil.writeBytes(inputFile.getBody(), inputFilePath);
+                    FileUtil.writeBytes(outputFile.getBody(), outputFilePath);
+
+                    ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
+                            .withCmd("sh", "-c", runCommand)
+                            .withAttachStderr(true)
+                            .withAttachStdout(true)
+                            .withTty(true)
+                            .withWorkingDir("/workspace")
+                            .exec();
+                    String execId = execCreateCmdResponse.getId();
+
                     final String[] stderr = {""};
                     final Long[] maxMemory = {0L};
 
                     StopWatch stopWatch = new StopWatch();
-
                     StatsCmd statsCmd = dockerClient.statsCmd(containerId);
                     statsCmd.exec(new ResultCallback<Statistics>() {
                         @Override
                         public void onNext(Statistics statistics) {
                             maxMemory[0] = Math.max(statistics.getMemoryStats().getUsage(), maxMemory[0]);
                         }
-
                         @Override
-                        public void onStart(Closeable closeable) {
-                        }
-
+                        public void onStart(Closeable closeable) {}
                         @Override
                         public void onError(Throwable throwable) {
+                            log.error("统计运行内存时发生错误: {}", throwable.getMessage());
                         }
-
                         @Override
-                        public void onComplete() {
-                        }
-
+                        public void onComplete() {}
                         @Override
-                        public void close() throws IOException {
-                        }
+                        public void close() throws IOException {}
                     });
 
                     stopWatch.start();
@@ -310,7 +320,6 @@ public class SandboxImpl implements Sandbox {
                     Thread.sleep(1000L);
                     statsCmd.close();
 
-                    //记录运行数据
                     ExecuteDetail detail = new ExecuteDetail();
                     if (!stderr[0].isEmpty()) {
                         detail.setStderr(stderr[0]);
@@ -319,7 +328,6 @@ public class SandboxImpl implements Sandbox {
                     detail.setMemory(maxMemory[0]);
                     detail.setCode(dockerClient.inspectExecCmd(execId).exec().getExitCodeLong());
 
-                    //是否超出限制
                     if (detail.getTime() > timeLimit) {
                         detail.setStatus("TLE");
                     } else if (maxMemory[0] > memoryLimit * 1024 * 1024) {
@@ -327,30 +335,28 @@ public class SandboxImpl implements Sandbox {
                     }else if(detail.getCode() != 0){
                         detail.setStatus("RE");
                     } else {
-                        //对比答案
                         detail.setStatus(checkAnswer(outputFilePath, userOutputFilepath));
                     }
                     result.setStatus(updateStatus(result.getStatus(), detail.getStatus()));
-
                     result.getDetail().add(detail);
+                    log.info("测试用例 {}/{} 执行完成，结果: {}", i+1, inputList.size(), detail.getStatus());
                 } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                    Thread.currentThread().interrupt();
+                    cleanupResources(containerId, userTempDir, dockerClient);
+                    throw new RuntimeException("测试用例执行被中断", e);
+                } catch (Exception e) {
+                    cleanupResources(containerId, userTempDir, dockerClient);
+                    throw new RuntimeException("测试用例 " + (i+1) + " 执行失败: " + e.getMessage(), e);
                 }
-
             }
         }else{
             result.setStatus("CE");
+            log.info("编译错误，返回CE状态");
         }
-
-        //停止容器
-        dockerClient.stopContainerCmd(containerId).exec();
-
-        //删除容器
-        dockerClient.removeContainerCmd(containerId).exec();
-
-        //删除tempDir
-        FileUtil.del(userTempDir);
-
+        
+        // 清理资源
+        cleanupResources(containerId, userTempDir, dockerClient);
+        
         return result;
     }
 
@@ -363,4 +369,47 @@ public class SandboxImpl implements Sandbox {
         }
         return "AC";
     }
+    
+    /**
+     * 清理资源：停止并删除容器，删除临时文件
+     */
+    private void cleanupResources(String containerId, String userTempDir, DockerClient dockerClient) {
+        if (containerId != null && dockerClient != null) {
+            try {
+                log.info("开始清理容器: {}", containerId);
+                dockerClient.stopContainerCmd(containerId).withTimeout(5).exec();
+                log.info("容器已停止: {}", containerId);
+            } catch (Exception e) {
+                log.warn("停止容器失败: {}, 错误: {}", containerId, e.getMessage());
+            }
+            
+            try {
+                dockerClient.removeContainerCmd(containerId).withForce(true).exec();
+                log.info("容器已删除: {}", containerId);
+            } catch (Exception e) {
+                log.warn("删除容器失败: {}, 错误: {}", containerId, e.getMessage());
+            }
+        }
+        
+        if (userTempDir != null) {
+            try {
+                log.info("开始清理临时目录: {}", userTempDir);
+                FileUtil.del(userTempDir);
+                log.info("临时目录已删除: {}", userTempDir);
+            } catch (Exception e) {
+                log.warn("删除临时目录失败: {}, 错误: {}", userTempDir, e.getMessage());
+            }
+        }
+        
+        if (dockerClient != null) {
+            try {
+                dockerClient.close();
+            } catch (Exception e) {
+                log.warn("关闭DockerClient失败: {}", e.getMessage());
+            }
+        }
+    }
 }
+
+
+
