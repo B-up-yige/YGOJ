@@ -20,6 +20,7 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.ygoj.judger.CompileInfo;
 import com.ygoj.judger.ExecuteDetail;
+import com.ygoj.judger.config.LanguageConfig;
 import com.ygoj.judger.feign.FileSystemFeignClient;
 import com.ygoj.judger.sandbox.Sandbox;
 import com.ygoj.judger.sandbox.SandboxExecuteRequest;
@@ -30,6 +31,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
+import javax.annotation.PostConstruct;
+
 @Slf4j
 @Component
 public class SandboxImpl implements Sandbox {
@@ -39,26 +42,73 @@ public class SandboxImpl implements Sandbox {
     @Autowired
     private FileSystemFeignClient fileSystemFeignClient;
 
-    static {
+    @Autowired
+    private LanguageConfig languageConfig;
+
+    @PostConstruct
+    public void init() {
+        log.info("开始初始化Sandbox...");
+        
+        // 获取Docker客户端
+        DockerClient dockerClient = getDockerClient();
+        
+        // 记录已存在的镜像
+        for (Image image : dockerClient.listImagesCmd().exec()) {
+            if (image.getRepoTags() != null) {
+                for (String tag : image.getRepoTags()) {
+                    IMAGE.put(tag, true);
+                }
+            }
+        }
+        log.info("已存在镜像数量: {}", IMAGE.size());
+        
+        // 从配置文件读取所有需要的镜像并下载
+        if (languageConfig != null && languageConfig.getLanguage() != null) {
+            for (Map.Entry<String, LanguageConfig.LanguageItem> entry : languageConfig.getLanguage().entrySet()) {
+                String languageName = entry.getKey();
+                String imageName = entry.getValue().getImage();
+                
+                if (imageName != null && !IMAGE.getOrDefault(imageName, false)) {
+                    try {
+                        log.info("开始拉取{}语言所需镜像: {}", languageName, imageName);
+                        PullImageCmd pullImageCmd = dockerClient.pullImageCmd(imageName);
+                        PullImageResultCallback pullImageResultCallback = new PullImageResultCallback();
+                        pullImageCmd.exec(pullImageResultCallback).awaitCompletion();
+                        log.info("{}语言镜像下载完成: {}", languageName, imageName);
+                        IMAGE.put(imageName, true);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        log.error("镜像拉取被中断: {}", imageName, e);
+                    } catch (Exception e) {
+                        log.error("镜像拉取失败: {}, 错误: {}", imageName, e.getMessage(), e);
+                    }
+                } else if (imageName != null) {
+                    log.info("{}语言镜像已存在: {}", languageName, imageName);
+                }
+            }
+        }
+        
+        try {
+            dockerClient.close();
+        } catch (Exception e) {
+            log.warn("关闭DockerClient失败: {}", e.getMessage());
+        }
+        
+        log.info("Sandbox初始化完成");
+    }
+
+    private DockerClient getDockerClient() {
         String dockerHost = System.getenv("DOCKER_HOST");
         if (dockerHost == null || dockerHost.isEmpty()) {
             dockerHost = "unix:///var/run/docker.sock";
         }
 
-        //创建默认dockerClient
-        DockerHttpClient dockerHttpClient =  new ApacheDockerHttpClient.Builder()
+        DockerHttpClient dockerHttpClient = new ApacheDockerHttpClient.Builder()
                 .dockerHost(URI.create(dockerHost))
                 .build();
-        DockerClient dockerClient = DockerClientBuilder.getInstance()
+        return DockerClientBuilder.getInstance()
                 .withDockerHttpClient(dockerHttpClient)
                 .build();
-
-        for (Image image : dockerClient.listImagesCmd().exec()) {
-            for(String tag : image.getRepoTags()){
-                IMAGE.put(tag, true);
-            }
-        }
-
     }
 
     public String checkAnswer(String userOutputPath, String answerPath) {

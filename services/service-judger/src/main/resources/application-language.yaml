@@ -1,0 +1,21 @@
+language:
+    Java:
+        compile: "javac -encoding utf-8 -Xlint ./Main.java"
+        run: "java -Dfile.encoding=utf-8 -Xmx2g Main"
+        fileName: "Main.java"
+        image: "amazoncorretto:18"
+    Python 3:
+        compile: "python3 -m py_compile Main.py"
+        run: "python3 Main.py"
+        fileName: "Main.py"
+        image: "python:3.10"
+    C:
+        compile: "gcc -o Main Main.c -O2 -Wall -std=c11"
+        run: "./Main"
+        fileName: "Main.c"
+        image: "gcc:latest"
+    C++:
+        compile: "g++ -o Main Main.cpp -O2 -Wall -std=c++17"
+        run: "./Main"
+        fileName: "Main.cpp"
+        image: "gcc:latest"
