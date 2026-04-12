@@ -242,6 +242,18 @@ public class RecordServiceImpl implements RecordService {
             // 从 record 表实时计算统计数据
             Map<String, Object> stats = userStatisticsMapper.getUserStatsFromRecords(userId);
             
+            // 处理stats为null的情况（用户无任何提交记录）
+            if (stats == null) {
+                stats = new HashMap<>();
+                stats.put("total_submissions", 0L);
+                stats.put("accepted_count", 0L);
+                stats.put("wrong_answer_count", 0L);
+                stats.put("time_limit_exceeded_count", 0L);
+                stats.put("memory_limit_exceeded_count", 0L);
+                stats.put("runtime_error_count", 0L);
+                stats.put("compilation_error_count", 0L);
+            }
+            
             // 处理null值（用户无提交记录时）
             Long totalSubmissions = stats.get("total_submissions") != null ? 
                 ((Number) stats.get("total_submissions")).longValue() : 0L;
