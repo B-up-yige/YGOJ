@@ -129,4 +129,71 @@ public class RecordController {
             return Result.error(500, "获取测试点详情失败: " + e.getMessage());
         }
     }
+    
+    /**
+     * 获取用户统计数据
+     *
+     * @param userId 用户ID
+     * @return {@link Result}
+     */
+    @GetMapping("/statistics/{userId}")
+    public Result getUserStatistics(@PathVariable Long userId) {
+        try {
+            log.info("获取用户统计数据, userId: {}", userId);
+            
+            if (userId == null) {
+                return Result.error(400, "用户ID不能为空");
+            }
+            
+            return Result.success(recordService.getUserStatistics(userId));
+        } catch (Exception e) {
+            log.error("获取用户统计数据失败, userId: {}", userId, e);
+            return Result.error(500, "获取用户统计数据失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取用户学习曲线数据
+     *
+     * @param userId 用户ID
+     * @param days   天数（默认30天）
+     * @return {@link Result}
+     */
+    @GetMapping("/learning-curve/{userId}")
+    public Result getUserLearningCurve(@PathVariable Long userId, @RequestParam(required = false, defaultValue = "30") Integer days) {
+        try {
+            log.info("获取用户学习曲线数据, userId: {}, days: {}", userId, days);
+            
+            if (userId == null) {
+                return Result.error(400, "用户ID不能为空");
+            }
+            
+            return Result.success(recordService.getUserLearningCurve(userId, days));
+        } catch (Exception e) {
+            log.error("获取用户学习曲线数据失败, userId: {}", userId, e);
+            return Result.error(500, "获取用户学习曲线数据失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取用户按标签统计的数据
+     *
+     * @param userId 用户ID
+     * @return {@link Result}
+     */
+    @GetMapping("/statistics/{userId}/by-tag")
+    public Result getUserStatsByTag(@PathVariable Long userId) {
+        try {
+            log.info("获取用户按标签统计数据, userId: {}", userId);
+            
+            if (userId == null) {
+                return Result.error(400, "用户ID不能为空");
+            }
+            
+            return Result.success(recordService.getUserStatsByTag(userId));
+        } catch (Exception e) {
+            log.error("获取用户按标签统计数据失败, userId: {}", userId, e);
+            return Result.error(500, "获取用户按标签统计数据失败: " + e.getMessage());
+        }
+    }
 }

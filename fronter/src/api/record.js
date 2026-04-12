@@ -33,3 +33,28 @@ export function getRecordDetails(id) {
     method: 'get'
   })
 }
+
+// 获取用户统计数据
+export function getUserStatistics(userId) {
+  return request({
+    url: `/record/statistics/${userId}`,
+    method: 'get'
+  })
+}
+
+// 获取用户学习曲线数据
+export function getUserLearningCurve(userId, days = 30) {
+  return request({
+    url: `/record/learning-curve/${userId}`,
+    method: 'get',
+    params: { days }
+  })
+}
+
+// 获取用户按标签统计的数据
+export function getUserStatsByTag(userId) {
+  return request({
+    url: `/record/statistics/${userId}/by-tag`,
+    method: 'get'
+  })
+}

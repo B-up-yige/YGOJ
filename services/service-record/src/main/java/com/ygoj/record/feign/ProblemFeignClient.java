@@ -15,4 +15,7 @@ public interface ProblemFeignClient {
 
     @GetMapping("/getTestCase")
     public Result getTestCase(@RequestParam Long problemId);
+    
+    @GetMapping("/probleminfo/{id}/tag")
+    public Result getProblemTags(@PathVariable("id") Long id);
 }

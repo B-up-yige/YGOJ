@@ -13,6 +13,7 @@ import com.ygoj.record.feign.ProblemFeignClient;
 import com.ygoj.record.feign.UserFeignClient;
 import com.ygoj.record.mapper.RecordDetailMapper;
 import com.ygoj.record.mapper.RecordMapper;
+import com.ygoj.record.mapper.UserStatisticsMapper;
 import com.ygoj.record.Record;
 import com.ygoj.record.service.RecordService;
 import lombok.extern.slf4j.Slf4j;
@@ -21,9 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -32,6 +34,8 @@ public class RecordServiceImpl implements RecordService {
     private RecordMapper recordMapper;
     @Autowired
     private RecordDetailMapper recordDetailMapper;
+    @Autowired
+    private UserStatisticsMapper userStatisticsMapper;
     @Autowired
     private UserFeignClient userFeignClient;
     @Autowired
@@ -221,5 +225,174 @@ public class RecordServiceImpl implements RecordService {
             log.error("获取测试点详情异常, recordId: {}", recordId, e);
             throw new RuntimeException("获取测试点详情失败: " + e.getMessage(), e);
         }
+    }
+    
+    @Override
+    public Map<String, Object> getUserStatistics(Long userId) {
+        try {
+            log.debug("获取用户统计数据, userId: {}", userId);
+            
+            if (userId == null) {
+                throw new IllegalArgumentException("用户ID不能为空");
+            }
+            
+            // 从 record 表实时计算统计数据
+            Map<String, Object> stats = userStatisticsMapper.getUserStatsFromRecords(userId);
+            
+            // 计算通过率
+            Long totalSubmissions = ((Number) stats.get("total_submissions")).longValue();
+            Long acceptedCount = ((Number) stats.get("accepted_count")).longValue();
+            double acceptanceRate = totalSubmissions > 0 ? (acceptedCount * 100.0 / totalSubmissions) : 0.0;
+            
+            // 获取排名
+            Integer rank = userStatisticsMapper.getUserRank(userId);
+            if (rank == null) {
+                rank = 0;
+            }
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("totalSubmissions", totalSubmissions);
+            result.put("acceptedCount", acceptedCount);
+            result.put("wrongAnswerCount", ((Number) stats.get("wrong_answer_count")).longValue());
+            result.put("timeLimitExceededCount", ((Number) stats.get("time_limit_exceeded_count")).longValue());
+            result.put("memoryLimitExceededCount", ((Number) stats.get("memory_limit_exceeded_count")).longValue());
+            result.put("runtimeErrorCount", ((Number) stats.get("runtime_error_count")).longValue());
+            result.put("compilationErrorCount", ((Number) stats.get("compilation_error_count")).longValue());
+            result.put("acceptanceRate", Math.round(acceptanceRate * 100.0) / 100.0);
+            result.put("rank", rank);
+            
+            return result;
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("获取用户统计数据异常, userId: {}", userId, e);
+            throw new RuntimeException("获取用户统计数据失败: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    public List<Map<String, Object>> getUserLearningCurve(Long userId, Integer days) {
+        try {
+            log.debug("获取用户学习曲线数据, userId: {}, days: {}", userId, days);
+            
+            if (userId == null) {
+                throw new IllegalArgumentException("用户ID不能为空");
+            }
+            
+            if (days == null || days < 1) {
+                days = 30; // 默认30天
+            }
+            
+            // 计算起始日期
+            String startDate = LocalDate.now().minusDays(days).toString();
+            
+            // 获取每日统计数据
+            List<Map<String, Object>> dailyStats = userStatisticsMapper.getDailyStats(userId, startDate);
+            
+            return dailyStats;
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("获取用户学习曲线数据异常, userId: {}", userId, e);
+            throw new RuntimeException("获取用户学习曲线数据失败: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    public List<Map<String, Object>> getUserStatsByTag(Long userId) {
+        try {
+            log.debug("获取用户按标签统计数据, userId: {}", userId);
+            
+            if (userId == null) {
+                throw new IllegalArgumentException("用户ID不能为空");
+            }
+            
+            // 1. 获取用户按题目统计的数据
+            List<Map<String, Object>> problemStats = userStatisticsMapper.getStatsByProblem(userId);
+            
+            if (problemStats == null || problemStats.isEmpty()) {
+                return new ArrayList<>();
+            }
+            
+            // 2. 按标签聚合统计数据
+            Map<String, Map<String, Object>> tagStatsMap = new LinkedHashMap<>();
+            
+            for (Map<String, Object> problemStat : problemStats) {
+                Long problemId = ((Number) problemStat.get("problem_id")).longValue();
+                Long totalSubmissions = ((Number) problemStat.get("total_submissions")).longValue();
+                Long acceptedCount = ((Number) problemStat.get("accepted_count")).longValue();
+                
+                // 通过 Feign 获取题目标签
+                try {
+                    Result tagsResult = problemFeignClient.getProblemTags(problemId);
+                    if (tagsResult != null && tagsResult.getData() != null) {
+                        List<Map<String, Object>> tagsList = (List<Map<String, Object>>) tagsResult.getData();
+                        
+                        // 如果题目没有标签，使用 "未分类"
+                        if (tagsList.isEmpty()) {
+                            aggregateTagStats(tagStatsMap, "未分类", totalSubmissions, acceptedCount);
+                        } else {
+                            // 将统计数据分配到每个标签
+                            for (Map<String, Object> tagObj : tagsList) {
+                                String tag = (String) tagObj.get("tag");
+                                if (tag != null && !tag.trim().isEmpty()) {
+                                    aggregateTagStats(tagStatsMap, tag, totalSubmissions, acceptedCount);
+                                }
+                            }
+                        }
+                    } else {
+                        aggregateTagStats(tagStatsMap, "未分类", totalSubmissions, acceptedCount);
+                    }
+                } catch (Exception e) {
+                    log.warn("获取题目 {} 的标签失败，归类为未分类", problemId, e);
+                    aggregateTagStats(tagStatsMap, "未分类", totalSubmissions, acceptedCount);
+                }
+            }
+            
+            // 3. 转换为列表并计算通过率
+            List<Map<String, Object>> result = new ArrayList<>(tagStatsMap.values());
+            
+            // 按提交次数排序
+            result.sort((a, b) -> {
+                Long submissionsA = ((Number) a.get("total_submissions")).longValue();
+                Long submissionsB = ((Number) b.get("total_submissions")).longValue();
+                return submissionsB.compareTo(submissionsA);
+            });
+            
+            return result;
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("获取用户按标签统计数据异常, userId: {}", userId, e);
+            throw new RuntimeException("获取用户按标签统计数据失败: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * 聚合计标签统计数据
+     */
+    private void aggregateTagStats(Map<String, Map<String, Object>> tagStatsMap, String tag, 
+                                   Long totalSubmissions, Long acceptedCount) {
+        if (!tagStatsMap.containsKey(tag)) {
+            Map<String, Object> stat = new HashMap<>();
+            stat.put("tag", tag);
+            stat.put("total_submissions", 0L);
+            stat.put("accepted_count", 0L);
+            stat.put("acceptance_rate", 0.0);
+            tagStatsMap.put(tag, stat);
+        }
+        
+        Map<String, Object> stat = tagStatsMap.get(tag);
+        Long currentSubmissions = ((Number) stat.get("total_submissions")).longValue();
+        Long currentAccepted = ((Number) stat.get("accepted_count")).longValue();
+        
+        stat.put("total_submissions", currentSubmissions + totalSubmissions);
+        stat.put("accepted_count", currentAccepted + acceptedCount);
+        
+        // 计算通过率
+        Long newTotal = currentSubmissions + totalSubmissions;
+        Long newAccepted = currentAccepted + acceptedCount;
+        double rate = newTotal > 0 ? (newAccepted * 100.0 / newTotal) : 0.0;
+        stat.put("acceptance_rate", Math.round(rate * 100.0) / 100.0);
     }
 }

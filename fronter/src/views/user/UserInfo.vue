@@ -37,16 +37,59 @@
       <div class="statistics" style="margin-top: 30px;">
         <h3>个人统计</h3>
         <el-row :gutter="20">
-          <el-col :span="8">
-            <el-statistic title="提交次数" :value="stats.submissions" />
+          <el-col :span="6">
+            <el-statistic title="提交次数" :value="stats.totalSubmissions" />
           </el-col>
-          <el-col :span="8">
-            <el-statistic title="通过题目" :value="stats.accepted" />
+          <el-col :span="6">
+            <el-statistic title="通过题目" :value="stats.acceptedCount" />
           </el-col>
-          <el-col :span="8">
+          <el-col :span="6">
+            <el-statistic title="通过率" :value="stats.acceptanceRate" suffix="%" :precision="2" />
+          </el-col>
+          <el-col :span="6">
             <el-statistic title="排名" :value="stats.rank" />
           </el-col>
         </el-row>
+        
+        <!-- 详细统计 -->
+        <el-row :gutter="20" style="margin-top: 20px;">
+          <el-col :span="8">
+            <el-tag type="danger" size="large">答案错误: {{ stats.wrongAnswerCount }}</el-tag>
+          </el-col>
+          <el-col :span="8">
+            <el-tag type="warning" size="large">超时: {{ stats.timeLimitExceededCount }}</el-tag>
+          </el-col>
+          <el-col :span="8">
+            <el-tag type="warning" size="large">超内存: {{ stats.memoryLimitExceededCount }}</el-tag>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" style="margin-top: 10px;">
+          <el-col :span="12">
+            <el-tag type="info" size="large">运行错误: {{ stats.runtimeErrorCount }}</el-tag>
+          </el-col>
+          <el-col :span="12">
+            <el-tag type="info" size="large">编译错误: {{ stats.compilationErrorCount }}</el-tag>
+          </el-col>
+        </el-row>
+      </div>
+      
+      <!-- 学习曲线图表 -->
+      <div class="learning-curve" style="margin-top: 30px;">
+        <h3>学习曲线（近{{ learningCurveDays }}天）</h3>
+        <div ref="chartRef" style="width: 100%; height: 400px;"></div>
+        <div style="text-align: center; margin-top: 15px;">
+          <el-radio-group v-model="learningCurveDays" @change="loadLearningCurve">
+            <el-radio-button :label="7">近7天</el-radio-button>
+            <el-radio-button :label="30">近30天</el-radio-button>
+            <el-radio-button :label="90">近90天</el-radio-button>
+          </el-radio-group>
+        </div>
+      </div>
+      
+      <!-- 标签统计图表 -->
+      <div class="tag-statistics" style="margin-top: 30px;">
+        <h3>题目标签分析</h3>
+        <div ref="tagChartRef" style="width: 100%; height: 500px;"></div>
       </div>
     </el-card>
 
@@ -69,12 +112,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { UserFilled, Edit } from '@element-plus/icons-vue'
 import { getUserinfo } from '@/api/user'
+import { getUserStatistics, getUserLearningCurve, getUserStatsByTag } from '@/api/record'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
+import * as echarts from 'echarts'
 
 const route = useRoute()
 const router = useRouter()
@@ -83,6 +128,11 @@ const loading = ref(false)
 const editDialogVisible = ref(false)
 const editFormRef = ref(null)
 const updating = ref(false)
+const chartRef = ref(null)
+const tagChartRef = ref(null)
+const learningCurveDays = ref(30)
+let chartInstance = null
+let tagChartInstance = null
 
 const isCurrentUser = computed(() => {
   return userStore.userInfo && userStore.userInfo.id.toString() === route.params.id
@@ -133,8 +183,14 @@ const editRules = {
 
 // 统计数据
 const stats = ref({
-  submissions: 0,
-  accepted: 0,
+  totalSubmissions: 0,
+  acceptedCount: 0,
+  wrongAnswerCount: 0,
+  timeLimitExceededCount: 0,
+  memoryLimitExceededCount: 0,
+  runtimeErrorCount: 0,
+  compilationErrorCount: 0,
+  acceptanceRate: 0,
   rank: 0
 })
 
@@ -143,19 +199,264 @@ const loadUser = async () => {
   try {
     const res = await getUserinfo(route.params.id)
     user.value = res.data
-    
-    // TODO: 加载用户统计数据
-    // 这里可以调用后端接口获取用户的提交统计
-    stats.value = {
-      submissions: 0,
-      accepted: 0,
-      rank: 0
-    }
   } catch (error) {
     console.error('加载用户信息失败:', error)
   } finally {
     loading.value = false
   }
+}
+
+const loadStatistics = async () => {
+  try {
+    const res = await getUserStatistics(route.params.id)
+    if (res.data) {
+      stats.value = res.data
+    }
+  } catch (error) {
+    console.error('加载统计数据失败:', error)
+  }
+}
+
+const loadLearningCurve = async () => {
+  try {
+    const res = await getUserLearningCurve(route.params.id, learningCurveDays.value)
+    if (res.data && res.data.length > 0) {
+      renderChart(res.data)
+    } else {
+      // 没有数据时显示空图表
+      renderEmptyChart()
+    }
+  } catch (error) {
+    console.error('加载学习曲线数据失败:', error)
+  }
+}
+
+const renderChart = (data) => {
+  if (!chartRef.value) return
+  
+  if (!chartInstance) {
+    chartInstance = echarts.init(chartRef.value)
+  }
+  
+  // 处理数据
+  const dates = data.map(item => item.stat_date)
+  const submissions = data.map(item => item.submissions)
+  const accepted = data.map(item => item.accepted)
+  
+  const option = {
+    title: {
+      text: '提交趋势',
+      left: 'center'
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross'
+      }
+    },
+    legend: {
+      data: ['提交次数', '通过次数'],
+      top: 30
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: dates,
+      axisLabel: {
+        rotate: 45
+      }
+    },
+    yAxis: {
+      type: 'value',
+      name: '次数'
+    },
+    series: [
+      {
+        name: '提交次数',
+        type: 'line',
+        smooth: true,
+        data: submissions,
+        itemStyle: {
+          color: '#409EFF'
+        },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(64, 158, 255, 0.5)' },
+            { offset: 1, color: 'rgba(64, 158, 255, 0.1)' }
+          ])
+        }
+      },
+      {
+        name: '通过次数',
+        type: 'line',
+        smooth: true,
+        data: accepted,
+        itemStyle: {
+          color: '#67C23A'
+        },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(103, 194, 58, 0.5)' },
+            { offset: 1, color: 'rgba(103, 194, 58, 0.1)' }
+          ])
+        }
+      }
+    ]
+  }
+  
+  chartInstance.setOption(option)
+}
+
+const renderEmptyChart = () => {
+  if (!chartRef.value) return
+  
+  if (!chartInstance) {
+    chartInstance = echarts.init(chartRef.value)
+  }
+  
+  const option = {
+    title: {
+      text: '暂无数据',
+      left: 'center',
+      top: 'middle',
+      textStyle: {
+        color: '#999',
+        fontSize: 16
+      }
+    }
+  }
+  
+  chartInstance.setOption(option)
+}
+
+const loadTagStatistics = async () => {
+  try {
+    const res = await getUserStatsByTag(route.params.id)
+    if (res.data && res.data.length > 0) {
+      renderTagChart(res.data)
+    } else {
+      renderEmptyTagChart()
+    }
+  } catch (error) {
+    console.error('加载标签统计数据失败:', error)
+  }
+}
+
+const renderTagChart = (data) => {
+  if (!tagChartRef.value) return
+  
+  if (!tagChartInstance) {
+    tagChartInstance = echarts.init(tagChartRef.value)
+  }
+  
+  // 处理数据
+  const tags = data.map(item => item.tag)
+  const submissions = data.map(item => item.total_submissions)
+  const accepted = data.map(item => item.accepted_count)
+  const rates = data.map(item => item.acceptance_rate)
+  
+  const option = {
+    title: {
+      text: '各标签提交情况',
+      left: 'center'
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow'
+      },
+      formatter: function(params) {
+        let result = params[0].name + '<br/>'
+        params.forEach(param => {
+          result += param.marker + param.seriesName + ': ' + param.value + '<br/>'
+        })
+        // 添加通过率
+        const index = params[0].dataIndex
+        result += '通过率: ' + rates[index] + '%'
+        return result
+      }
+    },
+    legend: {
+      data: ['提交次数', '通过次数'],
+      top: 30
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'value',
+      name: '次数'
+    },
+    yAxis: {
+      type: 'category',
+      data: tags,
+      axisLabel: {
+        interval: 0,
+        formatter: function(value) {
+          return value.length > 8 ? value.substring(0, 8) + '...' : value
+        }
+      }
+    },
+    series: [
+      {
+        name: '提交次数',
+        type: 'bar',
+        data: submissions,
+        itemStyle: {
+          color: '#409EFF'
+        },
+        label: {
+          show: true,
+          position: 'right'
+        }
+      },
+      {
+        name: '通过次数',
+        type: 'bar',
+        data: accepted,
+        itemStyle: {
+          color: '#67C23A'
+        },
+        label: {
+          show: true,
+          position: 'right'
+        }
+      }
+    ]
+  }
+  
+  tagChartInstance.setOption(option)
+}
+
+const renderEmptyTagChart = () => {
+  if (!tagChartRef.value) return
+  
+  if (!tagChartInstance) {
+    tagChartInstance = echarts.init(tagChartRef.value)
+  }
+  
+  const option = {
+    title: {
+      text: '暂无标签数据',
+      left: 'center',
+      top: 'middle',
+      textStyle: {
+        color: '#999',
+        fontSize: 16
+      }
+    }
+  }
+  
+  tagChartInstance.setOption(option)
 }
 
 // 显示编辑对话框
@@ -167,8 +468,21 @@ const goBack = () => {
   router.back()
 }
 
-onMounted(() => {
-  loadUser()
+onMounted(async () => {
+  await loadUser()
+  await loadStatistics()
+  await loadLearningCurve()
+  await loadTagStatistics()
+  
+  // 监听窗口大小变化
+  window.addEventListener('resize', () => {
+    if (chartInstance) {
+      chartInstance.resize()
+    }
+    if (tagChartInstance) {
+      tagChartInstance.resize()
+    }
+  })
 })
 </script>
 

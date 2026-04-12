@@ -160,4 +160,39 @@ CREATE TABLE `undo_log`  (
   UNIQUE INDEX `ux_undo_log`(`xid`, `branch_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'AT transaction mode undo table' ROW_FORMAT = DYNAMIC;
 
+-- ----------------------------
+-- Table structure for user_statistics (用户统计表 - 缓存常用统计数据)
+-- ----------------------------
+DROP TABLE IF EXISTS `user_statistics`;
+CREATE TABLE `user_statistics`  (
+  `user_id` int(11) NOT NULL COMMENT '用户ID',
+  `total_submissions` int(11) NOT NULL DEFAULT 0 COMMENT '总提交次数',
+  `accepted_count` int(11) NOT NULL DEFAULT 0 COMMENT '通过题目数',
+  `wrong_answer_count` int(11) NOT NULL DEFAULT 0 COMMENT '答案错误数',
+  `time_limit_exceeded_count` int(11) NOT NULL DEFAULT 0 COMMENT '超时数',
+  `memory_limit_exceeded_count` int(11) NOT NULL DEFAULT 0 COMMENT '超内存数',
+  `runtime_error_count` int(11) NOT NULL DEFAULT 0 COMMENT '运行错误数',
+  `compilation_error_count` int(11) NOT NULL DEFAULT 0 COMMENT '编译错误数',
+  `acceptance_rate` decimal(5,2) NOT NULL DEFAULT 0.00 COMMENT '通过率（百分比）',
+  `last_update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  PRIMARY KEY (`user_id`) USING BTREE,
+  INDEX `idx_acceptance_rate`(`acceptance_rate`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户统计表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for user_daily_stats (用户每日统计表 - 学习曲线数据)
+-- ----------------------------
+DROP TABLE IF EXISTS `user_daily_stats`;
+CREATE TABLE `user_daily_stats`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL COMMENT '用户ID',
+  `stat_date` date NOT NULL COMMENT '统计日期',
+  `submissions` int(11) NOT NULL DEFAULT 0 COMMENT '当日提交次数',
+  `accepted` int(11) NOT NULL DEFAULT 0 COMMENT '当日通过数',
+  `problems_solved` int(11) NOT NULL DEFAULT 0 COMMENT '当日解决的新题目数',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_user_date`(`user_id`, `stat_date`) USING BTREE,
+  INDEX `idx_stat_date`(`stat_date`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户每日统计表' ROW_FORMAT = DYNAMIC;
+
 SET FOREIGN_KEY_CHECKS = 1;
