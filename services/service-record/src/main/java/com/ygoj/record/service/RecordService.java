@@ -34,4 +34,9 @@ public interface RecordService {
      * 获取用户按标签统计的数据
      */
     List<Map<String, Object>> getUserStatsByTag(Long userId);
+    
+    /**
+     * 更新用户统计数据（判题完成后调用）
+     */
+    void updateUserStatistics(Long userId);
 }

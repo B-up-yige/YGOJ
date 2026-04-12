@@ -9,6 +9,7 @@ import com.ygoj.judger.sandbox.SandboxExecuteResponse;
 import com.ygoj.record.RecordDetail;
 import com.ygoj.record.mapper.RecordDetailMapper;
 import com.ygoj.record.mapper.RecordMapper;
+import com.ygoj.record.service.RecordService;
 import lombok.SneakyThrows;
 import org.apache.seata.spring.annotation.GlobalTransactional;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -30,6 +31,8 @@ public class MessageListener {
     private RecordDetailMapper recordDetailMapper;
     @Autowired
     private RecordMapper recordMapper;
+    @Autowired
+    private RecordService recordService;
 
     @Transactional
     @SneakyThrows
@@ -72,6 +75,15 @@ public class MessageListener {
         recordMapper.update(record, queryWrapper);
         log.info("提交记录状态已更新, recordId: {}, status: {}", 
                 sandboxExecuteResponse.getRecordId(), sandboxExecuteResponse.getStatus());
+
+        // 异步更新用户统计数据（不阻塞主流程）
+        try {
+            recordService.updateUserStatistics(record.getUserId());
+            log.debug("用户统计数据更新成功, userId: {}", record.getUserId());
+        } catch (Exception e) {
+            log.error("用户统计数据更新失败, userId: {}", record.getUserId(), e);
+            // 统计更新失败不影响判题结果，只记录日志
+        }
 
         //确认消息
         channel.basicAck(deliveryTag, false);

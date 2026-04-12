@@ -8,6 +8,7 @@ import com.ygoj.judger.sandbox.SandboxExecuteRequest;
 import com.ygoj.problem.Probleminfo;
 import com.ygoj.problem.Testcase;
 import com.ygoj.record.RecordDetail;
+import com.ygoj.record.UserDailyStats;
 import com.ygoj.record.feign.JudgerFeignClient;
 import com.ygoj.record.feign.ProblemFeignClient;
 import com.ygoj.record.feign.UserFeignClient;
@@ -36,6 +37,8 @@ public class RecordServiceImpl implements RecordService {
     private RecordDetailMapper recordDetailMapper;
     @Autowired
     private UserStatisticsMapper userStatisticsMapper;
+    @Autowired
+    private com.ygoj.record.mapper.UserDailyStatsMapper userDailyStatsMapper;
     @Autowired
     private UserFeignClient userFeignClient;
     @Autowired
@@ -239,9 +242,23 @@ public class RecordServiceImpl implements RecordService {
             // 从 record 表实时计算统计数据
             Map<String, Object> stats = userStatisticsMapper.getUserStatsFromRecords(userId);
             
+            // 处理null值（用户无提交记录时）
+            Long totalSubmissions = stats.get("total_submissions") != null ? 
+                ((Number) stats.get("total_submissions")).longValue() : 0L;
+            Long acceptedCount = stats.get("accepted_count") != null ? 
+                ((Number) stats.get("accepted_count")).longValue() : 0L;
+            Long wrongAnswerCount = stats.get("wrong_answer_count") != null ? 
+                ((Number) stats.get("wrong_answer_count")).longValue() : 0L;
+            Long timeLimitExceededCount = stats.get("time_limit_exceeded_count") != null ? 
+                ((Number) stats.get("time_limit_exceeded_count")).longValue() : 0L;
+            Long memoryLimitExceededCount = stats.get("memory_limit_exceeded_count") != null ? 
+                ((Number) stats.get("memory_limit_exceeded_count")).longValue() : 0L;
+            Long runtimeErrorCount = stats.get("runtime_error_count") != null ? 
+                ((Number) stats.get("runtime_error_count")).longValue() : 0L;
+            Long compilationErrorCount = stats.get("compilation_error_count") != null ? 
+                ((Number) stats.get("compilation_error_count")).longValue() : 0L;
+            
             // 计算通过率
-            Long totalSubmissions = ((Number) stats.get("total_submissions")).longValue();
-            Long acceptedCount = ((Number) stats.get("accepted_count")).longValue();
             double acceptanceRate = totalSubmissions > 0 ? (acceptedCount * 100.0 / totalSubmissions) : 0.0;
             
             // 获取排名
@@ -253,11 +270,11 @@ public class RecordServiceImpl implements RecordService {
             Map<String, Object> result = new HashMap<>();
             result.put("totalSubmissions", totalSubmissions);
             result.put("acceptedCount", acceptedCount);
-            result.put("wrongAnswerCount", ((Number) stats.get("wrong_answer_count")).longValue());
-            result.put("timeLimitExceededCount", ((Number) stats.get("time_limit_exceeded_count")).longValue());
-            result.put("memoryLimitExceededCount", ((Number) stats.get("memory_limit_exceeded_count")).longValue());
-            result.put("runtimeErrorCount", ((Number) stats.get("runtime_error_count")).longValue());
-            result.put("compilationErrorCount", ((Number) stats.get("compilation_error_count")).longValue());
+            result.put("wrongAnswerCount", wrongAnswerCount);
+            result.put("timeLimitExceededCount", timeLimitExceededCount);
+            result.put("memoryLimitExceededCount", memoryLimitExceededCount);
+            result.put("runtimeErrorCount", runtimeErrorCount);
+            result.put("compilationErrorCount", compilationErrorCount);
             result.put("acceptanceRate", Math.round(acceptanceRate * 100.0) / 100.0);
             result.put("rank", rank);
             
@@ -319,8 +336,10 @@ public class RecordServiceImpl implements RecordService {
             
             for (Map<String, Object> problemStat : problemStats) {
                 Long problemId = ((Number) problemStat.get("problem_id")).longValue();
-                Long totalSubmissions = ((Number) problemStat.get("total_submissions")).longValue();
-                Long acceptedCount = ((Number) problemStat.get("accepted_count")).longValue();
+                Long totalSubmissions = problemStat.get("total_submissions") != null ? 
+                    ((Number) problemStat.get("total_submissions")).longValue() : 0L;
+                Long acceptedCount = problemStat.get("accepted_count") != null ? 
+                    ((Number) problemStat.get("accepted_count")).longValue() : 0L;
                 
                 // 通过 Feign 获取题目标签
                 try {
@@ -394,5 +413,69 @@ public class RecordServiceImpl implements RecordService {
         Long newAccepted = currentAccepted + acceptedCount;
         double rate = newTotal > 0 ? (newAccepted * 100.0 / newTotal) : 0.0;
         stat.put("acceptance_rate", Math.round(rate * 100.0) / 100.0);
+    }
+    
+    @Override
+    public void updateUserStatistics(Long userId) {
+        try {
+            log.debug("更新用户统计数据, userId: {}", userId);
+            
+            if (userId == null) {
+                return;
+            }
+            
+            // 1. 获取该用户最新的提交记录（刚判题完成的）
+            LambdaQueryWrapper<Record> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(Record::getUserId, userId)
+                   .orderByDesc(Record::getSubmitTime)
+                   .last("LIMIT 1");
+            Record latestRecord = recordMapper.selectOne(wrapper);
+            
+            if (latestRecord == null) {
+                return;
+            }
+            
+            // 2. 更新 user_daily_stats 表
+            updateDailyStats(userId, latestRecord);
+            
+            log.debug("用户统计数据更新完成, userId: {}", userId);
+        } catch (Exception e) {
+            log.error("更新用户统计数据异常, userId: {}", userId, e);
+            // 不抛出异常，避免影响主流程
+        }
+    }
+    
+    /**
+     * 更新每日统计数据
+     */
+    private void updateDailyStats(Long userId, Record record) {
+        try {
+            // 查询今日是否已有统计记录
+            Long statsId = userDailyStatsMapper.findTodayStatsId(userId);
+            
+            UserDailyStats dailyStats;
+            if (statsId != null) {
+                // 更新现有记录
+                dailyStats = userDailyStatsMapper.selectById(statsId);
+                dailyStats.setSubmissions(dailyStats.getSubmissions() + 1);
+                if ("Accepted".equals(record.getStatus())) {
+                    dailyStats.setAccepted(dailyStats.getAccepted() + 1);
+                }
+                userDailyStatsMapper.updateById(dailyStats);
+            } else {
+                // 创建新记录
+                dailyStats = new UserDailyStats();
+                dailyStats.setUserId(userId);
+                dailyStats.setStatDate(LocalDate.now());
+                dailyStats.setSubmissions(1);
+                dailyStats.setAccepted("Accepted".equals(record.getStatus()) ? 1 : 0);
+                dailyStats.setProblemsSolved("Accepted".equals(record.getStatus()) ? 1 : 0);
+                userDailyStatsMapper.insert(dailyStats);
+            }
+            
+            log.debug("每日统计数据更新成功, userId: {}, date: {}", userId, LocalDate.now());
+        } catch (Exception e) {
+            log.error("更新每日统计数据失败, userId: {}", userId, e);
+        }
     }
 }
