@@ -1,6 +1,6 @@
 <template>
   <div class="record-list">
-    <h2>提交记录</h2>
+    <h2>{{ contestId ? '比赛提交记录' : '提交记录' }}</h2>
 
     <el-table :data="records" style="width: 100%" v-loading="loading">
       <el-table-column prop="id" label="记录 ID" width="100" />
@@ -63,14 +63,19 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getRecordList } from '@/api/record'
+import { getRecordList, getContestRecordList } from '@/api/record'
 
 const router = useRouter()
+const route = useRoute()
 const loading = ref(false)
 const dialogVisible = ref(false)
 const currentRecord = ref(null)
+
+// 接收路由参数
+const contestId = ref(route.params.contestId || null)
+const problemId = ref(route.query.problemId || null)
 
 const records = ref([])
 const currentPage = ref(1)
@@ -85,7 +90,15 @@ const statusForm = ref({
 const loadRecords = async () => {
   loading.value = true
   try {
-    const res = await getRecordList(currentPage.value, pageSize.value)
+    let res
+    if (contestId.value) {
+      // 比赛提交记录
+      res = await getContestRecordList(contestId.value, currentPage.value, pageSize.value)
+    } else {
+      // 普通提交记录
+      res = await getRecordList(currentPage.value, pageSize.value)
+    }
+    
     // 后端返回的数据格式：{ data: [...] }
     if (res.data) {
       if (Array.isArray(res.data)) {
@@ -99,6 +112,12 @@ const loadRecords = async () => {
       } else {
         records.value = []
         total.value = 0
+      }
+      
+      // 如果有problemId过滤，前端过滤
+      if (problemId.value) {
+        records.value = records.value.filter(r => r.problemId == problemId.value)
+        total.value = records.value.length
       }
     }
   } catch (error) {

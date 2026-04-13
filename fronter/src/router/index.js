@@ -76,6 +76,17 @@ const router = createRouter({
           component: () => import('@/views/contest/ContestDetail.vue')
         },
         {
+          path: '/contest/:contestId/problem/:problemLabel',
+          name: 'ContestProblemDetail',
+          component: () => import('@/views/contest/ContestProblemDetail.vue')
+        },
+        {
+          path: '/contest/:contestId/records',
+          name: 'ContestRecordList',
+          component: () => import('@/views/record/RecordList.vue'),
+          props: (route) => ({ contestId: route.params.contestId })
+        },
+        {
           path: '/contest/edit/:id',
           name: 'ContestEdit',
           component: () => import('@/views/contest/ContestEdit.vue')

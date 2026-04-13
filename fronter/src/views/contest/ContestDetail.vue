@@ -36,8 +36,8 @@
           <el-table-column prop="problemId" label="题目ID" width="120" />
           <el-table-column label="操作" width="200">
             <template #default="scope">
-              <el-button link type="primary" @click="viewProblem(scope.row.problemId)">
-                查看题目
+              <el-button link type="primary" @click="viewProblem(scope.row.problemId, scope.row.problemLabel)">
+                做题
               </el-button>
               <el-button link type="danger" @click="handleDeleteProblem(scope.row.problemId)">
                 删除
@@ -134,8 +134,9 @@ const getStatusText = (status) => {
   return texts[status] || status
 }
 
-const viewProblem = (problemId) => {
-  router.push(`/problem/${problemId}`)
+const viewProblem = (problemId, problemLabel) => {
+  // 跳转到比赛中的题目页面，携带比赛ID和题号
+  router.push(`/contest/${route.params.id}/problem/${problemLabel}`)
 }
 
 const showAddProblemDialog = () => {
