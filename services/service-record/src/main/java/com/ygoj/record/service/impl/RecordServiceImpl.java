@@ -137,8 +137,13 @@ public class RecordServiceImpl implements RecordService {
                 String startTimeStr = contestData.get("startTime").asText();
                 String endTimeStr = contestData.get("endTime").asText();
                 
-                LocalDateTime startTime = LocalDateTime.parse(startTimeStr.replace("T", " "));
-                LocalDateTime endTime = LocalDateTime.parse(endTimeStr.replace("T", " "));
+                // 兼容两种时间格式："2026-04-13T19:53:03" 和 "2026-04-13 19:53:03"
+                LocalDateTime startTime = startTimeStr.contains("T") 
+                    ? LocalDateTime.parse(startTimeStr)
+                    : LocalDateTime.parse(startTimeStr, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                LocalDateTime endTime = endTimeStr.contains("T")
+                    ? LocalDateTime.parse(endTimeStr)
+                    : LocalDateTime.parse(endTimeStr, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                 LocalDateTime now = LocalDateTime.now();
                 
                 if (now.isBefore(startTime)) {
@@ -566,26 +571,33 @@ public class RecordServiceImpl implements RecordService {
                 return new HashMap<>();
             }
             
-            // 查询用户在比赛中所有题目的最新提交状态
-            // 使用子查询获取每个题目的最新记录
-            String sql = "SELECT r.problem_id, r.status FROM record r " +
-                        "INNER JOIN (" +
-                        "  SELECT problem_id, MAX(id) as max_id " +
-                        "  FROM record " +
-                        "  WHERE user_id = ? AND contest_id = ? " +
-                        "  GROUP BY problem_id" +
-                        ") latest ON r.id = latest.max_id";
+            // 查询用户在比赛中所有题目的提交记录
+            LambdaQueryWrapper<Record> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(Record::getUserId, userId)
+                   .eq(Record::getContestId, contestId)
+                   .orderByAsc(Record::getSubmitTime);
+            List<Record> records = recordMapper.selectList(wrapper);
             
-            List<Map<String, Object>> results = recordMapper.selectMaps(
-                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Record>()
-                    .apply(sql, userId, contestId)
-            );
-            
+            // 对每个题目，如果有AC则返回AC，否则返回最新状态
             Map<Long, String> progress = new HashMap<>();
-            for (Map<String, Object> row : results) {
-                Long problemId = ((Number) row.get("problem_id")).longValue();
-                String status = (String) row.get("status");
-                progress.put(problemId, status);
+            Map<Long, Record> latestRecords = new HashMap<>();
+            
+            for (Record record : records) {
+                Long problemId = record.getProblemId();
+                String status = record.getStatus();
+                
+                // 如果已经有AC记录，保持AC
+                if ("AC".equals(progress.get(problemId))) {
+                    continue;
+                }
+                
+                // 如果当前是AC，直接设置为AC
+                if ("AC".equals(status)) {
+                    progress.put(problemId, "AC");
+                } else {
+                    // 否则更新为最新状态
+                    progress.put(problemId, status);
+                }
             }
             
             return progress;
