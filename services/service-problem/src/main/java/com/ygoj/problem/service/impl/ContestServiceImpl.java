@@ -109,8 +109,22 @@ public class ContestServiceImpl implements ContestService {
         try {
             log.info("添加比赛题目, contestId: {}, problemId: {}", 
                     contestProblem.getContestId(), contestProblem.getProblemId());
+            
+            // 自动设置 problemOrder 为当前最大值 + 1
+            LambdaQueryWrapper<ContestProblem> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(ContestProblem::getContestId, contestProblem.getContestId())
+                   .orderByDesc(ContestProblem::getProblemOrder)
+                   .last("LIMIT 1");
+            ContestProblem lastProblem = contestProblemMapper.selectOne(wrapper);
+            
+            int nextOrder = 1;
+            if (lastProblem != null && lastProblem.getProblemOrder() != null) {
+                nextOrder = lastProblem.getProblemOrder() + 1;
+            }
+            contestProblem.setProblemOrder(nextOrder);
+            
             contestProblemMapper.insert(contestProblem);
-            log.info("添加比赛题目成功");
+            log.info("添加比赛题目成功, problemOrder: {}", nextOrder);
         } catch (Exception e) {
             log.error("添加比赛题目异常", e);
             throw new RuntimeException("添加比赛题目失败: " + e.getMessage(), e);
