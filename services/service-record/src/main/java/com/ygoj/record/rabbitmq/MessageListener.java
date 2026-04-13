@@ -78,10 +78,10 @@ public class MessageListener {
 
         // 异步更新用户统计数据（不阻塞主流程）
         try {
-            recordService.updateUserStatistics(record.getUserId());
-            log.debug("用户统计数据更新成功, userId: {}", record.getUserId());
+            recordService.updateUserStatistics(sandboxExecuteResponse.getRecordId(), sandboxExecuteResponse.getStatus());
+            log.debug("用户统计数据更新成功, recordId: {}", sandboxExecuteResponse.getRecordId());
         } catch (Exception e) {
-            log.error("用户统计数据更新失败, userId: {}", record.getUserId(), e);
+            log.error("用户统计数据更新失败, recordId: {}", sandboxExecuteResponse.getRecordId(), e);
             // 统计更新失败不影响判题结果，只记录日志
         }
 

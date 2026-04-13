@@ -38,5 +38,5 @@ public interface RecordService {
     /**
      * 更新用户统计数据（判题完成后调用）
      */
-    void updateUserStatistics(Long userId);
+    void updateUserStatistics(Long recordId, String status);
 }

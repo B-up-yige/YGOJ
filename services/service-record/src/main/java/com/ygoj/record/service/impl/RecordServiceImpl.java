@@ -14,6 +14,7 @@ import com.ygoj.record.feign.ProblemFeignClient;
 import com.ygoj.record.feign.UserFeignClient;
 import com.ygoj.record.mapper.RecordDetailMapper;
 import com.ygoj.record.mapper.RecordMapper;
+import com.ygoj.record.mapper.UserDailyStatsMapper;
 import com.ygoj.record.mapper.UserStatisticsMapper;
 import com.ygoj.record.Record;
 import com.ygoj.record.service.RecordService;
@@ -38,7 +39,7 @@ public class RecordServiceImpl implements RecordService {
     @Autowired
     private UserStatisticsMapper userStatisticsMapper;
     @Autowired
-    private com.ygoj.record.mapper.UserDailyStatsMapper userDailyStatsMapper;
+    private UserDailyStatsMapper userDailyStatsMapper;
     @Autowired
     private UserFeignClient userFeignClient;
     @Autowired
@@ -428,31 +429,27 @@ public class RecordServiceImpl implements RecordService {
     }
     
     @Override
-    public void updateUserStatistics(Long userId) {
+    public void updateUserStatistics(Long recordId, String status) {
         try {
-            log.debug("更新用户统计数据, userId: {}", userId);
+            log.debug("更新用户统计数据, recordId: {}, status: {}", recordId, status);
             
-            if (userId == null) {
+            if (recordId == null || status == null) {
                 return;
             }
             
-            // 1. 获取该用户最新的提交记录（刚判题完成的）
-            LambdaQueryWrapper<Record> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(Record::getUserId, userId)
-                   .orderByDesc(Record::getSubmitTime)
-                   .last("LIMIT 1");
-            Record latestRecord = recordMapper.selectOne(wrapper);
-            
-            if (latestRecord == null) {
+            // 1. 获取记录的用户ID和题目ID
+            Record record = recordMapper.selectById(recordId);
+            if (record == null) {
+                log.warn("记录不存在, recordId: {}", recordId);
                 return;
             }
             
-            // 2. 更新 user_daily_stats 表
-            updateDailyStats(userId, latestRecord);
+            // 2. 更新 user_daily_stats 表（直接使用传入的status，避免事务未提交导致的数据不一致）
+            updateDailyStats(record.getUserId(), record.getProblemId(), status);
             
-            log.debug("用户统计数据更新完成, userId: {}", userId);
+            log.debug("用户统计数据更新完成, recordId: {}, userId: {}", recordId, record.getUserId());
         } catch (Exception e) {
-            log.error("更新用户统计数据异常, userId: {}", userId, e);
+            log.error("更新用户统计数据异常, recordId: {}", recordId, e);
             // 不抛出异常，避免影响主流程
         }
     }
@@ -460,18 +457,34 @@ public class RecordServiceImpl implements RecordService {
     /**
      * 更新每日统计数据
      */
-    private void updateDailyStats(Long userId, Record record) {
+    /**
+     * 更新每日统计数据
+     */
+    private void updateDailyStats(Long userId, Long problemId, String status) {
         try {
             // 查询今日是否已有统计记录
             Long statsId = userDailyStatsMapper.findTodayStatsId(userId);
             
             UserDailyStats dailyStats;
+            boolean isAccepted = "AC".equals(status);
+            
             if (statsId != null) {
                 // 更新现有记录
                 dailyStats = userDailyStatsMapper.selectById(statsId);
                 dailyStats.setSubmissions(dailyStats.getSubmissions() + 1);
-                if ("Accepted".equals(record.getStatus())) {
+                if (isAccepted) {
                     dailyStats.setAccepted(dailyStats.getAccepted() + 1);
+                    // 检查该题目是否首次通过（需要查询历史记录）
+                    LambdaQueryWrapper<Record> wrapper = new LambdaQueryWrapper<>();
+                    wrapper.eq(Record::getUserId, userId)
+                           .eq(Record::getProblemId, problemId)
+                           .eq(Record::getStatus, "AC")
+                           .lt(Record::getId, getCurrentRecordId()); // 排除当前记录
+                    Long acceptedCount = recordMapper.selectCount(wrapper);
+                    if (acceptedCount == 0) {
+                        // 首次通过该题
+                        dailyStats.setProblemsSolved(dailyStats.getProblemsSolved() + 1);
+                    }
                 }
                 userDailyStatsMapper.updateById(dailyStats);
             } else {
@@ -480,14 +493,24 @@ public class RecordServiceImpl implements RecordService {
                 dailyStats.setUserId(userId);
                 dailyStats.setStatDate(LocalDate.now());
                 dailyStats.setSubmissions(1);
-                dailyStats.setAccepted("Accepted".equals(record.getStatus()) ? 1 : 0);
-                dailyStats.setProblemsSolved("Accepted".equals(record.getStatus()) ? 1 : 0);
+                dailyStats.setAccepted(isAccepted ? 1 : 0);
+                dailyStats.setProblemsSolved(isAccepted ? 1 : 0);
                 userDailyStatsMapper.insert(dailyStats);
             }
             
-            log.debug("每日统计数据更新成功, userId: {}, date: {}", userId, LocalDate.now());
+            log.debug("每日统计数据更新成功, userId: {}, date: {}, status: {}", userId, LocalDate.now(), status);
         } catch (Exception e) {
             log.error("更新每日统计数据失败, userId: {}", userId, e);
         }
+    }
+    
+    /**
+     * 获取当前最大的record ID（用于判断是否首次通过）
+     */
+    private Long getCurrentRecordId() {
+        LambdaQueryWrapper<Record> wrapper = new LambdaQueryWrapper<>();
+        wrapper.orderByDesc(Record::getId).last("LIMIT 1");
+        Record record = recordMapper.selectOne(wrapper);
+        return record != null ? record.getId() : 0L;
     }
 }
