@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Slf4j
+@RequestMapping("/record")
 public class RecordController {
     @Autowired
     private RecordService recordService;

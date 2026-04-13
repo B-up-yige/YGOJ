@@ -15,6 +15,7 @@ import java.util.List;
 
 @RestController
 @Slf4j
+@RequestMapping("/problem")
 public class ProblemController {
     @Autowired
     private ProblemService problemService;

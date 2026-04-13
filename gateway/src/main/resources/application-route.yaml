@@ -20,5 +20,13 @@ spring:
                   uri: lb://service-problem
                   predicates:
                       - Path=/api/problem/**
+                - id: contest-route
+                  uri: lb://service-problem
+                  predicates:
+                      - Path=/api/contest/**
+                - id: problemset-route
+                  uri: lb://service-problem
+                  predicates:
+                      - Path=/api/problemset/**
             default-filters:
-                - StripPrefix=2
+                - StripPrefix=1

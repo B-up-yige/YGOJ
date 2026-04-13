@@ -14,6 +14,7 @@ import java.util.Map;
 
 @RestController
 @Slf4j
+@RequestMapping("/user")
 public class UserController {
     @Autowired
     private UserService userService;
