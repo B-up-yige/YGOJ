@@ -27,6 +27,14 @@
         </div>
         <el-table :data="problems" style="width: 100%">
           <el-table-column prop="problemId" label="题目ID" width="120" />
+          <el-table-column label="我的状态" width="150">
+            <template #default="scope">
+              <el-tag v-if="userProgress[scope.row.problemId]" :type="getStatusTagType(userProgress[scope.row.problemId])">
+                {{ getStatusText(userProgress[scope.row.problemId]) }}
+              </el-tag>
+              <span v-else style="color: #909399;">未提交</span>
+            </template>
+          </el-table-column>
           <el-table-column label="添加时间">
             <template #default="scope">
               {{ formatDateTime(scope.row.addedAt) }}
@@ -65,13 +73,16 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getProblemsetInfo, getProblemsetProblems, addProblemsetProblem, delProblemsetProblem } from '@/api/problemset'
+import { getProblemsetInfo, getProblemsetProblems, addProblemsetProblem, delProblemsetProblem, getUserProblemsetProgress } from '@/api/problemset'
+import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
 const router = useRouter()
+const userStore = useUserStore()
 const loading = ref(false)
 const problemset = ref({})
 const problems = ref([])
+const userProgress = ref({}) // 用户过题情况
 const addProblemDialogVisible = ref(false)
 const addProblemForm = ref({
   problemsetId: null,
@@ -89,6 +100,9 @@ const loadProblemset = async () => {
     if (problemsRes.data) {
       problems.value = problemsRes.data
     }
+    
+    // 加载用户过题情况
+    await loadUserProgress()
   } catch (error) {
     console.error('加载题集详情失败:', error)
     ElMessage.error('加载题集详情失败')
@@ -97,10 +111,51 @@ const loadProblemset = async () => {
   }
 }
 
+// 加载用户过题情况
+const loadUserProgress = async () => {
+  const userId = userStore.userInfo?.id || localStorage.getItem('userId')
+  if (!userId) return
+  
+  try {
+    const res = await getUserProblemsetProgress(userId, route.params.id)
+    if (res.data) {
+      userProgress.value = res.data
+    }
+  } catch (error) {
+    console.error('加载用户过题情况失败:', error)
+  }
+}
+
 const formatDateTime = (dateTime) => {
   if (!dateTime) return ''
   const date = new Date(dateTime)
   return date.toLocaleString('zh-CN')
+}
+
+const getStatusText = (status) => {
+  const texts = {
+    AC: '通过',
+    WA: '答案错误',
+    TLE: '超时',
+    MLE: '超内存',
+    RE: '运行错误',
+    CE: '编译错误',
+    waiting: '判题中'
+  }
+  return texts[status] || status
+}
+
+const getStatusTagType = (status) => {
+  const types = {
+    AC: 'success',
+    WA: 'danger',
+    TLE: 'warning',
+    MLE: 'warning',
+    RE: 'danger',
+    CE: 'info',
+    waiting: ''
+  }
+  return types[status] || 'info'
 }
 
 const viewProblem = (problemId) => {
