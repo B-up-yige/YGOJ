@@ -21,4 +21,7 @@ public interface ProblemFeignClient {
     
     @GetMapping("/contest/{id}")
     Result getContestById(@PathVariable("id") Long id);
+    
+    @GetMapping("/problemset/{id}/problems")
+    Result getProblemsetProblems(@PathVariable("id") Long id);
 }

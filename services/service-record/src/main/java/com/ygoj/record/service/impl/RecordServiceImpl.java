@@ -616,28 +616,52 @@ public class RecordServiceImpl implements RecordService {
                 return new HashMap<>();
             }
             
-            // 题集过题情况：查询用户在这些题目上的所有提交记录（不限比赛）
-            // 使用子查询获取每个题目的最新记录状态
-            String sql = "SELECT r.problem_id, r.status FROM record r " +
-                        "INNER JOIN (" +
-                        "  SELECT problem_id, MAX(id) as max_id " +
-                        "  FROM record " +
-                        "  WHERE user_id = ? AND problem_id IN (" +
-                        "    SELECT problem_id FROM problemset_problem WHERE problemset_id = ?" +
-                        "  ) " +
-                        "  GROUP BY problem_id" +
-                        ") latest ON r.id = latest.max_id";
+            // 通过 Feign 调用获取题集中的题目列表
+            Result problemsetProblemsResult = problemFeignClient.getProblemsetProblems(problemsetId);
+            if (problemsetProblemsResult.getData() == null) {
+                return new HashMap<>();
+            }
             
-            List<Map<String, Object>> results = recordMapper.selectMaps(
-                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Record>()
-                    .apply(sql, userId, problemsetId)
+            // 解析题目列表
+            List<Map<String, Object>> problemsetProblems = objectMapper.convertValue(
+                problemsetProblemsResult.getData(),
+                objectMapper.getTypeFactory().constructParametricType(List.class, Map.class)
             );
             
+            if (problemsetProblems.isEmpty()) {
+                return new HashMap<>();
+            }
+            
+            List<Long> problemIds = problemsetProblems.stream()
+                .map(p -> ((Number) p.get("problemId")).longValue())
+                .collect(java.util.stream.Collectors.toList());
+            
+            // 查询用户在这些题目上的所有提交记录
+            LambdaQueryWrapper<Record> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(Record::getUserId, userId)
+                   .in(Record::getProblemId, problemIds)
+                   .orderByAsc(Record::getSubmitTime);
+            List<Record> records = recordMapper.selectList(wrapper);
+            
+            // 对每个题目，如果有AC则返回AC，否则返回最新状态
             Map<Long, String> progress = new HashMap<>();
-            for (Map<String, Object> row : results) {
-                Long problemId = ((Number) row.get("problem_id")).longValue();
-                String status = (String) row.get("status");
-                progress.put(problemId, status);
+            
+            for (Record record : records) {
+                Long problemId = record.getProblemId();
+                String status = record.getStatus();
+                
+                // 如果已经有AC记录，保持AC
+                if ("AC".equals(progress.get(problemId))) {
+                    continue;
+                }
+                
+                // 如果当前是AC，直接设置为AC
+                if ("AC".equals(status)) {
+                    progress.put(problemId, "AC");
+                } else {
+                    // 否则更新为最新状态
+                    progress.put(problemId, status);
+                }
             }
             
             return progress;
