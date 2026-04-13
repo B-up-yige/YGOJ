@@ -3,11 +3,14 @@ package com.ygoj.problem.controller;
 import com.ygoj.common.Result;
 import com.ygoj.problem.Contest;
 import com.ygoj.problem.ContestProblem;
+import com.ygoj.problem.Probleminfo;
 import com.ygoj.problem.service.ContestService;
+import com.ygoj.problem.service.ProblemService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -17,6 +20,9 @@ public class ContestController {
     
     @Autowired
     private ContestService contestService;
+    
+    @Autowired
+    private ProblemService problemService;
 
     /**
      * 获取比赛列表
@@ -167,6 +173,58 @@ public class ContestController {
         } catch (Exception e) {
             log.error("获取比赛题目列表失败, contestId: {}", id, e);
             return Result.error(500, "获取比赛题目列表失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取比赛中的题目详情（带时间验证）
+     */
+    @GetMapping("/{contestId}/problem/{problemId}")
+    public Result getContestProblemDetail(@PathVariable Long contestId, @PathVariable Long problemId) {
+        try {
+            log.info("获取比赛题目详情请求, contestId: {}, problemId: {}", contestId, problemId);
+            
+            // 1. 验证比赛是否存在
+            Contest contest = contestService.getContestById(contestId);
+            if (contest == null) {
+                return Result.error(404, "比赛不存在");
+            }
+            
+            // 2. 验证比赛时间
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime startTime = contest.getStartTime();
+            LocalDateTime endTime = contest.getEndTime();
+            
+            if (now.isBefore(startTime)) {
+                log.warn("比赛尚未开始, contestId: {}, startTime: {}", contestId, startTime);
+                return Result.error(403, "比赛尚未开始，开始时间: " + startTime);
+            }
+            
+            if (now.isAfter(endTime)) {
+                log.warn("比赛已结束, contestId: {}, endTime: {}", contestId, endTime);
+                return Result.error(403, "比赛已结束，结束时间: " + endTime);
+            }
+            
+            // 3. 验证题目是否属于该比赛
+            List<ContestProblem> contestProblems = contestService.getContestProblems(contestId);
+            boolean problemInContest = contestProblems.stream()
+                .anyMatch(cp -> cp.getProblemId().equals(problemId));
+            
+            if (!problemInContest) {
+                return Result.error(404, "该题目不属于此比赛");
+            }
+            
+            // 4. 获取题目详情
+            Probleminfo problem = problemService.getProbleminfoById(problemId);
+            if (problem == null) {
+                return Result.error(404, "题目不存在");
+            }
+            
+            log.info("获取比赛题目详情成功, contestId: {}, problemId: {}", contestId, problemId);
+            return Result.success(problem);
+        } catch (Exception e) {
+            log.error("获取比赛题目详情失败, contestId: {}, problemId: {}", contestId, problemId, e);
+            return Result.error(500, "获取题目详情失败: " + e.getMessage());
         }
     }
 }

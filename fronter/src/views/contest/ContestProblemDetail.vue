@@ -40,9 +40,24 @@
       </div>
 
       <div class="actions">
-        <el-button type="primary" @click="showSubmitDialog">提交代码</el-button>
+        <el-button 
+          type="primary" 
+          @click="showSubmitDialog"
+          :disabled="!canSubmit"
+        >
+          {{ submitButtonText }}
+        </el-button>
         <el-button type="success" @click="viewRecords">查看提交记录</el-button>
       </div>
+      
+      <!-- 比赛时间提示 -->
+      <el-alert
+        v-if="!canSubmit"
+        :title="submitButtonText"
+        :type="alertType"
+        show-icon
+        style="margin-top: 20px;"
+      />
     </el-card>
 
     <!-- 提交代码对话框 -->
@@ -94,6 +109,10 @@ const contestId = route.params.contestId
 const problemLabel = route.params.problemLabel
 const contestTitle = ref('')
 const problemId = ref(null)
+const contestInfo = ref(null)
+const canSubmit = ref(false)
+const submitButtonText = ref('提交代码')
+const alertType = ref('info')
 
 const problem = ref({
   id: null,
@@ -116,6 +135,10 @@ const loadContest = async () => {
   try {
     const res = await getContestInfo(contestId)
     contestTitle.value = res.data.title
+    contestInfo.value = res.data
+    
+    // 检查比赛时间
+    checkContestTime()
     
     // 获取比赛题目列表，找到对应problemLabel的problemId
     const problemsRes = await import('@/api/contest').then(m => m.getContestProblems(contestId))
@@ -136,9 +159,39 @@ const loadContest = async () => {
   }
 }
 
+// 检查比赛时间
+const checkContestTime = () => {
+  if (!contestInfo.value) return
+  
+  const now = new Date()
+  const startTime = new Date(contestInfo.value.startTime)
+  const endTime = new Date(contestInfo.value.endTime)
+  
+  if (now < startTime) {
+    canSubmit.value = false
+    submitButtonText.value = '比赛尚未开始'
+    alertType.value = 'warning'
+  } else if (now > endTime) {
+    canSubmit.value = false
+    submitButtonText.value = '比赛已结束'
+    alertType.value = 'error'
+  } else {
+    canSubmit.value = true
+    submitButtonText.value = '提交代码'
+    alertType.value = 'success'
+  }
+}
+
 const loadProblem = async () => {
   loading.value = true
   try {
+    // 先检查比赛时间
+    if (!canSubmit.value) {
+      ElMessage.warning(submitButtonText.value)
+      router.push(`/contest/${contestId}`)
+      return
+    }
+    
     const res = await getProblemInfo(problemId.value)
     problem.value = res.data
     
@@ -168,6 +221,11 @@ const goBack = () => {
 }
 
 const showSubmitDialog = () => {
+  if (!canSubmit.value) {
+    ElMessage.warning(submitButtonText.value)
+    return
+  }
+  
   if (!userStore.token) {
     ElMessage.warning('请先登录')
     router.push('/login')

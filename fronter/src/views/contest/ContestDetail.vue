@@ -26,6 +26,15 @@
         </el-descriptions-item>
       </el-descriptions>
 
+      <!-- 比赛时间提示 -->
+      <el-alert
+        v-if="!canSubmit"
+        :title="timeAlertMessage"
+        :type="alertType"
+        show-icon
+        style="margin-top: 20px;"
+      />
+
       <div class="problems-section" style="margin-top: 30px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
           <h3 style="margin: 0;">比赛题目</h3>
@@ -36,8 +45,13 @@
           <el-table-column prop="problemId" label="题目ID" width="120" />
           <el-table-column label="操作" width="200">
             <template #default="scope">
-              <el-button link type="primary" @click="viewProblem(scope.row.problemId, scope.row.problemLabel)">
-                做题
+              <el-button 
+                link 
+                type="primary" 
+                @click="viewProblem(scope.row.problemId, scope.row.problemLabel)"
+                :disabled="!canSubmit"
+              >
+                {{ canSubmit ? '做题' : (now < new Date(contest.startTime) ? '未开始' : '已结束') }}
               </el-button>
               <el-button link type="danger" @click="handleDeleteProblem(scope.row.problemId)">
                 删除
@@ -84,12 +98,19 @@ const addProblemForm = ref({
   problemLabel: ''
 })
 const adding = ref(false)
+const canSubmit = ref(true)
+const timeAlertMessage = ref('')
+const alertType = ref('info')
+const now = ref(new Date())
 
 const loadContest = async () => {
   loading.value = true
   try {
     const res = await getContestInfo(route.params.id)
     contest.value = res.data
+    
+    // 检查比赛时间
+    checkContestTime()
     
     // 加载比赛题目
     const problemsRes = await getContestProblems(route.params.id)
@@ -101,6 +122,30 @@ const loadContest = async () => {
     ElMessage.error('加载比赛详情失败')
   } finally {
     loading.value = false
+  }
+}
+
+// 检查比赛时间
+const checkContestTime = () => {
+  if (!contest.value || !contest.value.startTime || !contest.value.endTime) return
+  
+  const currentTime = new Date()
+  now.value = currentTime
+  const startTime = new Date(contest.value.startTime)
+  const endTime = new Date(contest.value.endTime)
+  
+  if (currentTime < startTime) {
+    canSubmit.value = false
+    timeAlertMessage.value = `比赛尚未开始，开始时间：${formatDateTime(contest.value.startTime)}`
+    alertType.value = 'warning'
+  } else if (currentTime > endTime) {
+    canSubmit.value = false
+    timeAlertMessage.value = `比赛已结束，结束时间：${formatDateTime(contest.value.endTime)}`
+    alertType.value = 'error'
+  } else {
+    canSubmit.value = true
+    timeAlertMessage.value = ''
+    alertType.value = 'success'
   }
 }
 

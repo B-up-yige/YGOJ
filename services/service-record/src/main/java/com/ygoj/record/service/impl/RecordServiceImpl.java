@@ -50,6 +50,8 @@ public class RecordServiceImpl implements RecordService {
     private Environment env;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private com.ygoj.record.feign.ContestFeignClient contestFeignClient;
 
     /**
      * 通过提交记录id获取提交记录信息
@@ -118,6 +120,41 @@ public class RecordServiceImpl implements RecordService {
             if(problem.getData() == null){
                 log.warn("提交失败: 题目不存在, problemId: {}", record.getProblemId());
                 return Result.error(400, "题目不存在");
+            }
+
+            // 如果是在比赛中提交，需要验证比赛时间
+            if (record.getContestId() != null) {
+                Result contestResult = contestFeignClient.getContestById(record.getContestId());
+                if (contestResult.getData() == null) {
+                    log.warn("提交失败: 比赛不存在, contestId: {}", record.getContestId());
+                    return Result.error(400, "比赛不存在");
+                }
+                
+                // 解析比赛信息
+                com.fasterxml.jackson.databind.JsonNode contestData = objectMapper.convertValue(
+                    contestResult.getData(), 
+                    com.fasterxml.jackson.databind.JsonNode.class
+                );
+                
+                String startTimeStr = contestData.get("startTime").asText();
+                String endTimeStr = contestData.get("endTime").asText();
+                
+                LocalDateTime startTime = LocalDateTime.parse(startTimeStr.replace("T", " "));
+                LocalDateTime endTime = LocalDateTime.parse(endTimeStr.replace("T", " "));
+                LocalDateTime now = LocalDateTime.now();
+                
+                if (now.isBefore(startTime)) {
+                    log.warn("提交失败: 比赛尚未开始, contestId: {}, startTime: {}", record.getContestId(), startTime);
+                    return Result.error(400, "比赛尚未开始，开始时间: " + startTime);
+                }
+                
+                if (now.isAfter(endTime)) {
+                    log.warn("提交失败: 比赛已结束, contestId: {}, endTime: {}", record.getContestId(), endTime);
+                    return Result.error(400, "比赛已结束，结束时间: " + endTime);
+                }
+                
+                log.info("比赛时间验证通过, contestId: {}, startTime: {}, endTime: {}", 
+                    record.getContestId(), startTime, endTime);
             }
 
             //2 添加信息到数据库

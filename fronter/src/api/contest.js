@@ -77,3 +77,11 @@ export function getUserContestProgress(userId, contestId) {
     params: { userId, contestId }
   })
 }
+
+// 获取比赛中的题目详情（带时间验证）
+export function getContestProblemDetail(contestId, problemId) {
+  return request({
+    url: `/contest/${contestId}/problem/${problemId}`,
+    method: 'get'
+  })
+}
