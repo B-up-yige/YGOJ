@@ -50,8 +50,6 @@ public class RecordServiceImpl implements RecordService {
     private Environment env;
     @Autowired
     private ObjectMapper objectMapper;
-    @Autowired
-    private com.ygoj.record.feign.ContestFeignClient contestFeignClient;
 
     /**
      * 通过提交记录id获取提交记录信息
@@ -124,7 +122,7 @@ public class RecordServiceImpl implements RecordService {
 
             // 如果是在比赛中提交，需要验证比赛时间
             if (record.getContestId() != null) {
-                Result contestResult = contestFeignClient.getContestById(record.getContestId());
+                Result contestResult = problemFeignClient.getContestById(record.getContestId());
                 if (contestResult.getData() == null) {
                     log.warn("提交失败: 比赛不存在, contestId: {}", record.getContestId());
                     return Result.error(400, "比赛不存在");

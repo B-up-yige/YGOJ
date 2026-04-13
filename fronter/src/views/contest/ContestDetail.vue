@@ -43,6 +43,14 @@
         <el-table :data="problems" style="width: 100%">
           <el-table-column prop="problemLabel" label="题号" width="100" />
           <el-table-column prop="problemId" label="题目ID" width="120" />
+          <el-table-column label="我的状态" width="150">
+            <template #default="scope">
+              <el-tag v-if="userProgress[scope.row.problemId]" :type="getStatusTagType(userProgress[scope.row.problemId])">
+                {{ getStatusText(userProgress[scope.row.problemId]) }}
+              </el-tag>
+              <span v-else style="color: #909399;">未提交</span>
+            </template>
+          </el-table-column>
           <el-table-column label="操作" width="200">
             <template #default="scope">
               <el-button 
@@ -84,13 +92,16 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getContestInfo, getContestProblems, addContestProblem, delContestProblem } from '@/api/contest'
+import { getContestInfo, getContestProblems, addContestProblem, delContestProblem, getUserContestProgress } from '@/api/contest'
+import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
 const router = useRouter()
+const userStore = useUserStore()
 const loading = ref(false)
 const contest = ref({})
 const problems = ref([])
+const userProgress = ref({}) // 用户过题情况
 const addProblemDialogVisible = ref(false)
 const addProblemForm = ref({
   contestId: null,
@@ -117,11 +128,29 @@ const loadContest = async () => {
     if (problemsRes.data) {
       problems.value = problemsRes.data
     }
+    
+    // 加载用户过题情况
+    await loadUserProgress()
   } catch (error) {
     console.error('加载比赛详情失败:', error)
     ElMessage.error('加载比赛详情失败')
   } finally {
     loading.value = false
+  }
+}
+
+// 加载用户过题情况
+const loadUserProgress = async () => {
+  const userId = userStore.userInfo?.id || localStorage.getItem('userId')
+  if (!userId) return
+  
+  try {
+    const res = await getUserContestProgress(userId, route.params.id)
+    if (res.data) {
+      userProgress.value = res.data
+    }
+  } catch (error) {
+    console.error('加载用户过题情况失败:', error)
   }
 }
 
@@ -174,9 +203,30 @@ const getStatusText = (status) => {
   const texts = {
     UPCOMING: '未开始',
     RUNNING: '进行中',
-    ENDED: '已结束'
+    ENDED: '已结束',
+    AC: '通过',
+    WA: '答案错误',
+    TLE: '超时',
+    MLE: '超内存',
+    RE: '运行错误',
+    CE: '编译错误',
+    waiting: '判题中'
   }
   return texts[status] || status
+}
+
+// 获取状态标签类型
+const getStatusTagType = (status) => {
+  const types = {
+    AC: 'success',
+    WA: 'danger',
+    TLE: 'warning',
+    MLE: 'warning',
+    RE: 'danger',
+    CE: 'info',
+    waiting: ''
+  }
+  return types[status] || 'info'
 }
 
 const viewProblem = (problemId, problemLabel) => {
