@@ -63,6 +63,48 @@ const router = createRouter({
           path: '/user/:id',
           name: 'UserInfo',
           component: () => import('@/views/user/UserInfo.vue')
+        },
+        // 比赛相关路由
+        {
+          path: '/contests',
+          name: 'ContestList',
+          component: () => import('@/views/contest/ContestList.vue')
+        },
+        {
+          path: '/contest/:id',
+          name: 'ContestDetail',
+          component: () => import('@/views/contest/ContestDetail.vue')
+        },
+        {
+          path: '/contest/edit/:id',
+          name: 'ContestEdit',
+          component: () => import('@/views/contest/ContestEdit.vue')
+        },
+        {
+          path: '/contest/create',
+          name: 'ContestCreate',
+          component: () => import('@/views/contest/ContestEdit.vue')
+        },
+        // 题集相关路由
+        {
+          path: '/problemsets',
+          name: 'ProblemsetList',
+          component: () => import('@/views/problemset/ProblemsetList.vue')
+        },
+        {
+          path: '/problemset/:id',
+          name: 'ProblemsetDetail',
+          component: () => import('@/views/problemset/ProblemsetDetail.vue')
+        },
+        {
+          path: '/problemset/edit/:id',
+          name: 'ProblemsetEdit',
+          component: () => import('@/views/problemset/ProblemsetEdit.vue')
+        },
+        {
+          path: '/problemset/create',
+          name: 'ProblemsetCreate',
+          component: () => import('@/views/problemset/ProblemsetEdit.vue')
         }
       ]
     }

@@ -107,6 +107,70 @@ CREATE TABLE `undo_log`  (
   UNIQUE INDEX `ux_undo_log`(`xid`, `branch_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = 'AT transaction mode undo table' ROW_FORMAT = DYNAMIC;
 
+-- ----------------------------
+-- Table structure for contest (比赛表)
+-- ----------------------------
+DROP TABLE IF EXISTS `contest`;
+CREATE TABLE `contest`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '比赛标题',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '比赛描述',
+  `start_time` datetime NOT NULL COMMENT '比赛开始时间',
+  `end_time` datetime NOT NULL COMMENT '比赛结束时间',
+  `author_id` int(11) NOT NULL COMMENT '创建者ID',
+  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'UPCOMING' COMMENT '比赛状态: UPCOMING/RUNNING/ENDED',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_start_time`(`start_time`) USING BTREE,
+  INDEX `idx_author_id`(`author_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '比赛表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for contest_problem (比赛题目关联表)
+-- ----------------------------
+DROP TABLE IF EXISTS `contest_problem`;
+CREATE TABLE `contest_problem`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `contest_id` int(11) NOT NULL COMMENT '比赛ID',
+  `problem_id` int(11) NOT NULL COMMENT '题目ID',
+  `problem_order` int(11) NOT NULL COMMENT '题目顺序',
+  `problem_label` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '题目标签(A,B,C...)',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_contest_problem`(`contest_id`, `problem_id`) USING BTREE,
+  INDEX `idx_contest_id`(`contest_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '比赛题目关联表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for problemset (题集表)
+-- ----------------------------
+DROP TABLE IF EXISTS `problemset`;
+CREATE TABLE `problemset`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '题集标题',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '题集描述',
+  `author_id` int(11) NOT NULL COMMENT '创建者ID',
+  `is_public` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否公开: 0-私有, 1-公开',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_author_id`(`author_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '题集表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for problemset_problem (题集题目关联表)
+-- ----------------------------
+DROP TABLE IF EXISTS `problemset_problem`;
+CREATE TABLE `problemset_problem`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `problemset_id` int(11) NOT NULL COMMENT '题集ID',
+  `problem_id` int(11) NOT NULL COMMENT '题目ID',
+  `added_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '添加时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_problemset_problem`(`problemset_id`, `problem_id`) USING BTREE,
+  INDEX `idx_problemset_id`(`problemset_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '题集题目关联表' ROW_FORMAT = DYNAMIC;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ==================== record 数据库 ====================

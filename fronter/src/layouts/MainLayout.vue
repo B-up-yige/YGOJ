@@ -23,6 +23,14 @@
           <el-icon><Document /></el-icon>
           <span>题目列表</span>
         </el-menu-item>
+        <el-menu-item index="/contests">
+          <el-icon><Trophy /></el-icon>
+          <span>比赛</span>
+        </el-menu-item>
+        <el-menu-item index="/problemsets">
+          <el-icon><Collection /></el-icon>
+          <span>题集</span>
+        </el-menu-item>
         <el-menu-item index="/records">
           <el-icon><List /></el-icon>
           <span>提交记录</span>
@@ -81,6 +89,8 @@ const activeMenu = computed(() => {
   const path = route.path
   if (path.startsWith('/home')) return '/home'
   if (path.startsWith('/problems')) return '/problems'
+  if (path.startsWith('/contests')) return '/contests'
+  if (path.startsWith('/problemsets')) return '/problemsets'
   if (path.startsWith('/records')) return '/records'
   return ''
 })
