@@ -16,7 +16,7 @@ public interface RecordService {
 
     Result addRecord(Record record);
 
-    List<Record> list(Long page, Long pageSize);
+    List<Record> list(Long page, Long pageSize, Long contestId);
     
     List<RecordDetail> getRecordDetails(Long recordId);
     
@@ -39,4 +39,20 @@ public interface RecordService {
      * 更新用户统计数据（判题完成后调用）
      */
     void updateUserStatistics(Long recordId, String status);
+    
+    /**
+     * 获取用户在比赛中的过题情况
+     * @param userId 用户ID
+     * @param contestId 比赛ID
+     * @return Map<problemId, status>
+     */
+    Map<Long, String> getUserContestProgress(Long userId, Long contestId);
+    
+    /**
+     * 获取用户在题集中的过题情况
+     * @param userId 用户ID
+     * @param problemsetId 题集ID
+     * @return Map<problemId, status>
+     */
+    Map<Long, String> getUserProblemsetProgress(Long userId, Long problemsetId);
 }

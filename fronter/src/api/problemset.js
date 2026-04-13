@@ -68,3 +68,12 @@ export function getProblemsetProblems(id) {
     method: 'get'
   })
 }
+
+// 获取用户在题集中的过题情况
+export function getUserProblemsetProgress(userId, problemsetId) {
+  return request({
+    url: '/record/problemset-progress',
+    method: 'get',
+    params: { userId, problemsetId }
+  })
+}

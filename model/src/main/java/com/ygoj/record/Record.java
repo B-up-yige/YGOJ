@@ -12,6 +12,7 @@ public class Record {
     Long id;
     Long userId;
     Long problemId;
+    Long contestId;      // 比赛ID（可选）
     String code;
     String status;
     String language;

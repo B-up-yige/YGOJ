@@ -68,3 +68,12 @@ export function getContestProblems(id) {
     method: 'get'
   })
 }
+
+// 获取用户在比赛中的过题情况
+export function getUserContestProgress(userId, contestId) {
+  return request({
+    url: '/record/contest-progress',
+    method: 'get',
+    params: { userId, contestId }
+  })
+}

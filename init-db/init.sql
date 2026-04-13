@@ -187,6 +187,7 @@ CREATE TABLE `record`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
   `problem_id` int(11) NOT NULL,
+  `contest_id` int(11) NULL DEFAULT NULL COMMENT '比赛ID（如果是比赛提交）',
   `status` varchar(30) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
   `code` text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `language` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
@@ -195,7 +196,8 @@ CREATE TABLE `record`  (
   `compile_stdout` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   `compile_stderr` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   `submit_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '提交时间',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_contest_id`(`contest_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------

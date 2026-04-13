@@ -187,12 +187,14 @@ public class RecordServiceImpl implements RecordService {
      *
      * @param page     页面
      * @param pageSize 页面大小
+     * @param contestId 比赛ID（可选）
      * @return {@link List<Record>}
      */
     @Override
-    public List<Record> list(Long page, Long pageSize) {
+    public List<Record> list(Long page, Long pageSize, Long contestId) {
         try {
-            log.debug("分页查询提交记录, page: {}, pageSize: {}", page, pageSize);
+            log.debug("分页查询提交记录, page: {}, pageSize: {}, contestId: {}", 
+                    page, pageSize, contestId);
             
             if (page == null || page < 1) {
                 page = 1L;
@@ -203,6 +205,12 @@ public class RecordServiceImpl implements RecordService {
             
             Page<Record> recordPage = new Page<>(page, pageSize);
             LambdaQueryWrapper<Record> wrapper = new LambdaQueryWrapper<>();
+            
+            // 根据上下文过滤
+            if (contestId != null) {
+                wrapper.eq(Record::getContestId, contestId);
+            }
+            
             wrapper.orderByDesc(Record::getSubmitTime);
             return recordMapper.selectPage(recordPage, wrapper).getRecords();
         } catch (Exception e) {
@@ -512,5 +520,83 @@ public class RecordServiceImpl implements RecordService {
         wrapper.orderByDesc(Record::getId).last("LIMIT 1");
         Record record = recordMapper.selectOne(wrapper);
         return record != null ? record.getId() : 0L;
+    }
+    
+    @Override
+    public Map<Long, String> getUserContestProgress(Long userId, Long contestId) {
+        try {
+            log.debug("获取用户比赛过题情况, userId: {}, contestId: {}", userId, contestId);
+            
+            if (userId == null || contestId == null) {
+                return new HashMap<>();
+            }
+            
+            // 查询用户在比赛中所有题目的最新提交状态
+            // 使用子查询获取每个题目的最新记录
+            String sql = "SELECT r.problem_id, r.status FROM record r " +
+                        "INNER JOIN (" +
+                        "  SELECT problem_id, MAX(id) as max_id " +
+                        "  FROM record " +
+                        "  WHERE user_id = ? AND contest_id = ? " +
+                        "  GROUP BY problem_id" +
+                        ") latest ON r.id = latest.max_id";
+            
+            List<Map<String, Object>> results = recordMapper.selectMaps(
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Record>()
+                    .apply(sql, userId, contestId)
+            );
+            
+            Map<Long, String> progress = new HashMap<>();
+            for (Map<String, Object> row : results) {
+                Long problemId = ((Number) row.get("problem_id")).longValue();
+                String status = (String) row.get("status");
+                progress.put(problemId, status);
+            }
+            
+            return progress;
+        } catch (Exception e) {
+            log.error("获取用户比赛过题情况异常, userId: {}, contestId: {}", userId, contestId, e);
+            return new HashMap<>();
+        }
+    }
+    
+    @Override
+    public Map<Long, String> getUserProblemsetProgress(Long userId, Long problemsetId) {
+        try {
+            log.debug("获取用户题集过题情况, userId: {}, problemsetId: {}", userId, problemsetId);
+            
+            if (userId == null || problemsetId == null) {
+                return new HashMap<>();
+            }
+            
+            // 题集过题情况：查询用户在这些题目上的所有提交记录（不限比赛）
+            // 使用子查询获取每个题目的最新记录状态
+            String sql = "SELECT r.problem_id, r.status FROM record r " +
+                        "INNER JOIN (" +
+                        "  SELECT problem_id, MAX(id) as max_id " +
+                        "  FROM record " +
+                        "  WHERE user_id = ? AND problem_id IN (" +
+                        "    SELECT problem_id FROM problemset_problem WHERE problemset_id = ?" +
+                        "  ) " +
+                        "  GROUP BY problem_id" +
+                        ") latest ON r.id = latest.max_id";
+            
+            List<Map<String, Object>> results = recordMapper.selectMaps(
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Record>()
+                    .apply(sql, userId, problemsetId)
+            );
+            
+            Map<Long, String> progress = new HashMap<>();
+            for (Map<String, Object> row : results) {
+                Long problemId = ((Number) row.get("problem_id")).longValue();
+                String status = (String) row.get("status");
+                progress.put(problemId, status);
+            }
+            
+            return progress;
+        } catch (Exception e) {
+            log.error("获取用户题集过题情况异常, userId: {}, problemsetId: {}", userId, problemsetId, e);
+            return new HashMap<>();
+        }
     }
 }

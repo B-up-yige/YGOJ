@@ -87,12 +87,16 @@ public class RecordController {
      *
      * @param page     页面
      * @param pageSize 页面大小
+     * @param contestId 比赛ID（可选）
      * @return {@link Result}
      */
     @GetMapping("/list")
-    public Result list(Long page, Long pageSize) {
+    public Result list(@RequestParam(required = false) Long page,
+                       @RequestParam(required = false) Long pageSize,
+                       @RequestParam(required = false) Long contestId) {
         try {
-            log.debug("获取提交列表请求, page: {}, pageSize: {}", page, pageSize);
+            log.debug("获取提交列表请求, page: {}, pageSize: {}, contestId: {}", 
+                    page, pageSize, contestId);
             
             // 参数校验和默认值设置
             if (page == null || page < 1) {
@@ -102,7 +106,7 @@ public class RecordController {
                 pageSize = 10L;
             }
             
-            return Result.success(recordService.list(page, pageSize));
+            return Result.success(recordService.list(page, pageSize, contestId));
         } catch (Exception e) {
             log.error("获取提交列表失败", e);
             return Result.error(500, "获取提交列表失败: " + e.getMessage());
@@ -195,6 +199,42 @@ public class RecordController {
         } catch (Exception e) {
             log.error("获取用户按标签统计数据失败, userId: {}", userId, e);
             return Result.error(500, "获取用户按标签统计数据失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取用户在比赛中的过题情况
+     *
+     * @param userId 用户ID
+     * @param contestId 比赛ID
+     * @return {@link Result}
+     */
+    @GetMapping("/contest-progress")
+    public Result getUserContestProgress(@RequestParam Long userId, @RequestParam Long contestId) {
+        try {
+            log.info("获取用户比赛过题情况, userId: {}, contestId: {}", userId, contestId);
+            return Result.success(recordService.getUserContestProgress(userId, contestId));
+        } catch (Exception e) {
+            log.error("获取用户比赛过题情况失败, userId: {}, contestId: {}", userId, contestId, e);
+            return Result.error(500, "获取过题情况失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取用户在题集中的过题情况
+     *
+     * @param userId 用户ID
+     * @param problemsetId 题集ID
+     * @return {@link Result}
+     */
+    @GetMapping("/problemset-progress")
+    public Result getUserProblemsetProgress(@RequestParam Long userId, @RequestParam Long problemsetId) {
+        try {
+            log.info("获取用户题集过题情况, userId: {}, problemsetId: {}", userId, problemsetId);
+            return Result.success(recordService.getUserProblemsetProgress(userId, problemsetId));
+        } catch (Exception e) {
+            log.error("获取用户题集过题情况失败, userId: {}, problemsetId: {}", userId, problemsetId, e);
+            return Result.error(500, "获取过题情况失败: " + e.getMessage());
         }
     }
 }

@@ -58,3 +58,12 @@ export function getUserStatsByTag(userId) {
     method: 'get'
   })
 }
+
+// 获取比赛的提交记录列表
+export function getContestRecordList(contestId, page = 1, pageSize = 10) {
+  return request({
+    url: '/record/list',
+    method: 'get',
+    params: { contestId, page, pageSize }
+  })
+}
