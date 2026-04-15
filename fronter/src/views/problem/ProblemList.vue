@@ -11,7 +11,11 @@
     <el-table :data="problems" style="width: 100%" v-loading="loading">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="title" label="标题" />
-      <el-table-column prop="authorId" label="作者 ID" width="120" />
+      <el-table-column label="作者" width="120">
+        <template #default="scope">
+          {{ scope.row.author?.nickname || '未知' }}
+        </template>
+      </el-table-column>
       <el-table-column prop="timeLimit" label="时间限制 (ms)" width="120" />
       <el-table-column prop="memoryLimit" label="内存限制 (MB)" width="120" />
       <el-table-column label="操作" width="280" fixed="right">

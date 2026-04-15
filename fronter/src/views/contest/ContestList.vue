@@ -11,6 +11,11 @@
     <el-table :data="contests" style="width: 100%" v-loading="loading">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="title" label="比赛标题" />
+      <el-table-column label="作者" width="120">
+        <template #default="scope">
+          {{ scope.row.author?.nickname || '未知' }}
+        </template>
+      </el-table-column>
       <el-table-column label="时间" width="350">
         <template #default="scope">
           <div>{{ formatDateTime(scope.row.startTime) }} - {{ formatDateTime(scope.row.endTime) }}</div>

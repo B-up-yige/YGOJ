@@ -1,12 +1,16 @@
 package com.ygoj.problem.service.impl;
 
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.ygoj.common.Result;
 import com.ygoj.problem.Problemset;
 import com.ygoj.problem.ProblemsetProblem;
+import com.ygoj.problem.feign.UserFeignClient;
 import com.ygoj.problem.mapper.ProblemsetMapper;
 import com.ygoj.problem.mapper.ProblemsetProblemMapper;
 import com.ygoj.problem.service.ProblemsetService;
+import com.ygoj.user.Userinfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +27,9 @@ public class ProblemsetServiceImpl implements ProblemsetService {
     
     @Autowired
     private ProblemsetProblemMapper problemsetProblemMapper;
+    
+    @Autowired
+    private UserFeignClient userFeignClient;
 
     @Override
     public List<Problemset> list(Long page, Long pageSize) {
@@ -34,6 +41,22 @@ public class ProblemsetServiceImpl implements ProblemsetService {
             wrapper.eq(Problemset::getIsPublic, true);
             wrapper.orderByDesc(Problemset::getCreatedAt);
             Page<Problemset> result = problemsetMapper.selectPage(problemsetPage, wrapper);
+            
+            // 填充作者信息
+            for (Problemset problemset : result.getRecords()) {
+                if (problemset.getAuthorId() != null) {
+                    try {
+                        Result userInfoResult = userFeignClient.userinfo(problemset.getAuthorId());
+                        if (userInfoResult != null && userInfoResult.getData() != null) {
+                            Userinfo author = JSON.parseObject(JSON.toJSONString(userInfoResult.getData()), Userinfo.class);
+                            problemset.setAuthor(author);
+                        }
+                    } catch (Exception e) {
+                        log.warn("获取题集作者信息失败, problemsetId: {}, authorId: {}", problemset.getId(), problemset.getAuthorId(), e);
+                    }
+                }
+            }
+            
             return result.getRecords();
         } catch (Exception e) {
             log.error("获取题集列表异常", e);

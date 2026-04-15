@@ -11,7 +11,11 @@
     <el-table :data="problemsets" style="width: 100%" v-loading="loading">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="title" label="题集标题" />
-      <el-table-column prop="authorId" label="作者ID" width="120" />
+      <el-table-column label="作者" width="120">
+        <template #default="scope">
+          {{ scope.row.author?.nickname || '未知' }}
+        </template>
+      </el-table-column>
       <el-table-column label="公开状态" width="120">
         <template #default="scope">
           <el-tag :type="scope.row.isPublic ? 'success' : 'info'">

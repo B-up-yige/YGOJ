@@ -163,7 +163,24 @@ public class ProblemServiceImpl implements ProblemService {
             }
             
             Page<Probleminfo> probleminfoPage = new Page<>(page, pageSize);
-            return probleminfoMapper.selectPage(probleminfoPage, null).getRecords();
+            List<Probleminfo> records = probleminfoMapper.selectPage(probleminfoPage, null).getRecords();
+            
+            // 填充作者信息
+            for (Probleminfo problem : records) {
+                if (problem.getAuthorId() != null) {
+                    try {
+                        Result result = userFeignClient.userinfo(problem.getAuthorId());
+                        if (result != null && result.getData() != null) {
+                            Userinfo author = JSON.parseObject(JSON.toJSONString(result.getData()), Userinfo.class);
+                            problem.setAuthor(author);
+                        }
+                    } catch (Exception e) {
+                        log.warn("获取题目作者信息失败, problemId: {}, authorId: {}", problem.getId(), problem.getAuthorId(), e);
+                    }
+                }
+            }
+            
+            return records;
         } catch (Exception e) {
             log.error("分页查询题目异常", e);
             throw new RuntimeException("分页查询题目失败: " + e.getMessage(), e);

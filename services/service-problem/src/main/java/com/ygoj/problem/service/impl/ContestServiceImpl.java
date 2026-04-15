@@ -1,12 +1,16 @@
 package com.ygoj.problem.service.impl;
 
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.ygoj.common.Result;
 import com.ygoj.problem.Contest;
 import com.ygoj.problem.ContestProblem;
+import com.ygoj.problem.feign.UserFeignClient;
 import com.ygoj.problem.mapper.ContestMapper;
 import com.ygoj.problem.mapper.ContestProblemMapper;
 import com.ygoj.problem.service.ContestService;
+import com.ygoj.user.Userinfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +27,9 @@ public class ContestServiceImpl implements ContestService {
     
     @Autowired
     private ContestProblemMapper contestProblemMapper;
+    
+    @Autowired
+    private UserFeignClient userFeignClient;
 
     @Override
     public List<Contest> list(Long page, Long pageSize) {
@@ -33,8 +40,23 @@ public class ContestServiceImpl implements ContestService {
             wrapper.orderByDesc(Contest::getCreatedAt);
             Page<Contest> result = contestMapper.selectPage(contestPage, wrapper);
             
-            // 更新比赛状态
-            result.getRecords().forEach(this::updateContestStatus);
+            // 更新比赛状态并填充作者信息
+            for (Contest contest : result.getRecords()) {
+                updateContestStatus(contest);
+                
+                // 填充作者信息
+                if (contest.getAuthorId() != null) {
+                    try {
+                        Result userInfoResult = userFeignClient.userinfo(contest.getAuthorId());
+                        if (userInfoResult != null && userInfoResult.getData() != null) {
+                            Userinfo author = JSON.parseObject(JSON.toJSONString(userInfoResult.getData()), Userinfo.class);
+                            contest.setAuthor(author);
+                        }
+                    } catch (Exception e) {
+                        log.warn("获取比赛作者信息失败, contestId: {}, authorId: {}", contest.getId(), contest.getAuthorId(), e);
+                    }
+                }
+            }
             
             return result.getRecords();
         } catch (Exception e) {

@@ -1,96 +1,196 @@
 <template>
   <div class="user-info">
-    <el-card v-loading="loading">
-      <template #header>
-        <div class="card-header">
-          <h2>个人中心</h2>
-          <el-button type="primary" @click="goBack">返回</el-button>
+    <!-- 顶部个人信息卡片 -->
+    <el-card class="profile-card" v-loading="loading" shadow="hover">
+      <div class="profile-header">
+        <div class="profile-left">
+          <el-avatar :size="120" :icon="UserFilled" class="avatar" />
+          <div class="profile-info">
+            <h2 class="nickname">{{ user.nickname || '暂无昵称' }}</h2>
+            <p class="username">@{{ user.username }}</p>
+            <div class="profile-meta">
+              <span class="meta-item">
+                <el-icon><User /></el-icon>
+                ID: {{ user.id }}
+              </span>
+              <span class="meta-item" v-if="user.email">
+                <el-icon><Message /></el-icon>
+                {{ user.email }}
+              </span>
+            </div>
+          </div>
         </div>
-      </template>
-
-      <!-- 用户基本信息 -->
-      <div class="user-profile">
-        <el-avatar :size="100" :icon="UserFilled" />
-        <h3 class="nickname">{{ user.nickname || '暂无昵称' }}</h3>
-        <p class="username">@{{ user.username }}</p>
-        <div class="edit-btn-wrapper" v-if="isCurrentUser">
-          <el-button type="primary" @click="showEditDialog" size="small">
+        <div class="profile-right" v-if="isCurrentUser">
+          <el-button type="primary" @click="showEditDialog" size="large">
             <el-icon><Edit /></el-icon>
             编辑资料
           </el-button>
         </div>
       </div>
+    </el-card>
 
-      <!-- 详细信息 -->
-      <el-descriptions title="基本信息" :column="1" border size="large">
-        <el-descriptions-item label="用户 ID">
-          <el-tag>{{ user.id }}</el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="用户名">{{ user.username }}</el-descriptions-item>
-        <el-descriptions-item label="昵称">{{ user.nickname || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="邮箱">
-          <span>{{ user.email || '-' }}</span>
-        </el-descriptions-item>
-      </el-descriptions>
+    <!-- 统计概览 -->
+    <el-row :gutter="20" class="stats-overview">
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card class="stat-card" shadow="hover">
+          <div class="stat-content">
+            <div class="stat-icon submissions">
+              <el-icon><Document /></el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ stats.totalSubmissions }}</div>
+              <div class="stat-label">总提交</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card class="stat-card" shadow="hover">
+          <div class="stat-content">
+            <div class="stat-icon accepted">
+              <el-icon><CircleCheck /></el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ stats.acceptedCount }}</div>
+              <div class="stat-label">已通过</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card class="stat-card" shadow="hover">
+          <div class="stat-content">
+            <div class="stat-icon rate">
+              <el-icon><TrendCharts /></el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ stats.acceptanceRate.toFixed(2) }}%</div>
+              <div class="stat-label">通过率</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card class="stat-card" shadow="hover">
+          <div class="stat-content">
+            <div class="stat-icon rank">
+              <el-icon><Medal /></el-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">#{{ stats.rank }}</div>
+              <div class="stat-label">排名</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
 
-      <!-- 统计信息 -->
-      <div class="statistics" style="margin-top: 30px;">
-        <h3>个人统计</h3>
-        <el-row :gutter="20">
-          <el-col :span="6">
-            <el-statistic title="提交次数" :value="stats.totalSubmissions" />
-          </el-col>
-          <el-col :span="6">
-            <el-statistic title="通过题目" :value="stats.acceptedCount" />
-          </el-col>
-          <el-col :span="6">
-            <el-statistic title="通过率" :value="stats.acceptanceRate" suffix="%" :precision="2" />
-          </el-col>
-          <el-col :span="6">
-            <el-statistic title="排名" :value="stats.rank" />
-          </el-col>
-        </el-row>
-        
-        <!-- 详细统计 -->
-        <el-row :gutter="20" style="margin-top: 20px;">
-          <el-col :span="8">
-            <el-tag type="danger" size="large">答案错误: {{ stats.wrongAnswerCount }}</el-tag>
-          </el-col>
-          <el-col :span="8">
-            <el-tag type="warning" size="large">超时: {{ stats.timeLimitExceededCount }}</el-tag>
-          </el-col>
-          <el-col :span="8">
-            <el-tag type="warning" size="large">超内存: {{ stats.memoryLimitExceededCount }}</el-tag>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20" style="margin-top: 10px;">
-          <el-col :span="12">
-            <el-tag type="info" size="large">运行错误: {{ stats.runtimeErrorCount }}</el-tag>
-          </el-col>
-          <el-col :span="12">
-            <el-tag type="info" size="large">编译错误: {{ stats.compilationErrorCount }}</el-tag>
-          </el-col>
-        </el-row>
-      </div>
-      
-      <!-- 学习曲线图表 -->
-      <div class="learning-curve" style="margin-top: 30px;">
-        <h3>学习曲线（近{{ learningCurveDays }}天）</h3>
-        <div ref="chartRef" style="width: 100%; height: 400px;"></div>
-        <div style="text-align: center; margin-top: 15px;">
-          <el-radio-group v-model="learningCurveDays" @change="loadLearningCurve">
-            <el-radio-button :label="7">近7天</el-radio-button>
-            <el-radio-button :label="30">近30天</el-radio-button>
-            <el-radio-button :label="90">近90天</el-radio-button>
-          </el-radio-group>
+    <!-- 详细统计和图表 -->
+    <el-row :gutter="20">
+      <!-- 左侧：错误分布 -->
+      <el-col :xs="24" :lg="10">
+        <el-card class="detail-card" shadow="hover">
+          <template #header>
+            <div class="card-title">
+              <el-icon><PieChart /></el-icon>
+              <span>提交结果分布</span>
+            </div>
+          </template>
+          <div class="error-stats">
+            <div class="error-item">
+              <div class="error-label">答案错误</div>
+              <el-progress 
+                :percentage="getErrorPercentage(stats.wrongAnswerCount)" 
+                :color="#f56c6c"
+                :stroke-width="20"
+              >
+                <template #default="{ percentage }">
+                  <span class="progress-text">{{ stats.wrongAnswerCount }}</span>
+                </template>
+              </el-progress>
+            </div>
+            <div class="error-item">
+              <div class="error-label">超时</div>
+              <el-progress 
+                :percentage="getErrorPercentage(stats.timeLimitExceededCount)" 
+                :color="#e6a23c"
+                :stroke-width="20"
+              >
+                <template #default="{ percentage }">
+                  <span class="progress-text">{{ stats.timeLimitExceededCount }}</span>
+                </template>
+              </el-progress>
+            </div>
+            <div class="error-item">
+              <div class="error-label">超内存</div>
+              <el-progress 
+                :percentage="getErrorPercentage(stats.memoryLimitExceededCount)" 
+                :color="#e6a23c"
+                :stroke-width="20"
+              >
+                <template #default="{ percentage }">
+                  <span class="progress-text">{{ stats.memoryLimitExceededCount }}</span>
+                </template>
+              </el-progress>
+            </div>
+            <div class="error-item">
+              <div class="error-label">运行错误</div>
+              <el-progress 
+                :percentage="getErrorPercentage(stats.runtimeErrorCount)" 
+                :color="#909399"
+                :stroke-width="20"
+              >
+                <template #default="{ percentage }">
+                  <span class="progress-text">{{ stats.runtimeErrorCount }}</span>
+                </template>
+              </el-progress>
+            </div>
+            <div class="error-item">
+              <div class="error-label">编译错误</div>
+              <el-progress 
+                :percentage="getErrorPercentage(stats.compilationErrorCount)" 
+                :color="#909399"
+                :stroke-width="20"
+              >
+                <template #default="{ percentage }">
+                  <span class="progress-text">{{ stats.compilationErrorCount }}</span>
+                </template>
+              </el-progress>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+
+      <!-- 右侧：学习曲线 -->
+      <el-col :xs="24" :lg="14">
+        <el-card class="chart-card" shadow="hover">
+          <template #header>
+            <div class="card-title">
+              <el-icon><TrendCharts /></el-icon>
+              <span>学习曲线</span>
+              <div class="chart-controls">
+                <el-radio-group v-model="learningCurveDays" @change="loadLearningCurve" size="small">
+                  <el-radio-button :label="7">7天</el-radio-button>
+                  <el-radio-button :label="30">30天</el-radio-button>
+                  <el-radio-button :label="90">90天</el-radio-button>
+                </el-radio-group>
+              </div>
+            </div>
+          </template>
+          <div ref="chartRef" class="chart-container"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 标签分析 -->
+    <el-card class="tag-card" shadow="hover">
+      <template #header>
+        <div class="card-title">
+          <el-icon><CollectionTag /></el-icon>
+          <span>题目标签分析</span>
         </div>
-      </div>
-      
-      <!-- 标签统计图表 -->
-      <div class="tag-statistics" style="margin-top: 30px;">
-        <h3>题目标签分析</h3>
-        <div ref="tagChartRef" style="width: 100%; height: 500px;"></div>
-      </div>
+      </template>
+      <div ref="tagChartRef" class="tag-chart-container"></div>
     </el-card>
 
     <!-- 编辑用户信息对话框 -->
@@ -114,7 +214,7 @@
 <script setup>
 import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { UserFilled, Edit } from '@element-plus/icons-vue'
+import { UserFilled, Edit, User, Message, Document, CircleCheck, TrendCharts, Medal, PieChart, CollectionTag } from '@element-plus/icons-vue'
 import { getUserinfo } from '@/api/user'
 import { getUserStatistics, getUserLearningCurve, getUserStatsByTag } from '@/api/record'
 import { useUserStore } from '@/stores/user'
@@ -459,6 +559,13 @@ const renderEmptyTagChart = () => {
   tagChartInstance.setOption(option)
 }
 
+// 计算错误百分比
+const getErrorPercentage = (count) => {
+  const total = stats.value.totalSubmissions
+  if (total === 0) return 0
+  return Math.round((count / total) * 100)
+}
+
 // 显示编辑对话框
 const showEditDialog = () => {
   ElMessage.info('编辑功能暂未实现')
@@ -488,53 +595,253 @@ onMounted(async () => {
 
 <style scoped>
 .user-info {
-  padding: 20px;
-  max-width: 800px;
+  padding: var(--spacing-2xl);
+  max-width: 1400px;
   margin: 0 auto;
 }
 
-.card-header {
+/* 顶部个人信息卡片 */
+.profile-card {
+  margin-bottom: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.profile-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.card-header h2 {
-  margin: 0;
-}
-
-.user-profile {
-  text-align: center;
-  padding: 30px 0;
+  padding: var(--spacing-xl);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 8px;
-  margin-bottom: 30px;
   color: white;
-  position: relative;
 }
 
-.edit-btn-wrapper {
-  margin-top: 15px;
+.profile-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
 }
 
-.user-profile .nickname {
-  font-size: 24px;
-  font-weight: bold;
-  margin: 15px 0 5px 0;
+.avatar {
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.user-profile .username {
-  font-size: 14px;
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.nickname {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.username {
+  font-size: 1rem;
   opacity: 0.9;
   margin: 0;
 }
 
-.statistics h3 {
-  margin-bottom: 20px;
-  color: #333;
+.profile-meta {
+  display: flex;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-sm);
+  font-size: 0.875rem;
+  opacity: 0.85;
 }
 
-.el-statistic {
-  text-align: center;
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.profile-right .el-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  backdrop-filter: blur(10px);
+  transition: all var(--transition-fast);
+}
+
+.profile-right .el-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 统计概览卡片 */
+.stats-overview {
+  margin-bottom: var(--spacing-xl);
+}
+
+.stat-card {
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md);
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  color: white;
+}
+
+.stat-icon.submissions {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-icon.accepted {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-icon.rate {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-icon.rank {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1;
+  margin-bottom: var(--spacing-xs);
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* 详细卡片 */
+.detail-card,
+.chart-card,
+.tag-card {
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.card-title .el-icon {
+  font-size: 1.25rem;
+  color: var(--color-primary);
+}
+
+.chart-controls {
+  margin-left: auto;
+}
+
+/* 错误统计 */
+.error-stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md);
+}
+
+.error-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.error-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.progress-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* 图表容器 */
+.chart-container {
+  width: 100%;
+  height: 350px;
+}
+
+.tag-chart-container {
+  width: 100%;
+  height: 450px;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .user-info {
+    padding: var(--spacing-md);
+  }
+  
+  .profile-header {
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    text-align: center;
+  }
+  
+  .profile-left {
+    flex-direction: column;
+  }
+  
+  .nickname {
+    font-size: 1.5rem;
+  }
+  
+  .profile-meta {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+  }
+  
+  .chart-container {
+    height: 300px;
+  }
+  
+  .tag-chart-container {
+    height: 350px;
+  }
 }
 </style>
