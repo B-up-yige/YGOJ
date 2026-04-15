@@ -1,34 +1,41 @@
 <template>
   <div class="home">
-    <el-row :gutter="20">
+    <!-- YGOJ Logo Section -->
+    <div class="logo-section fade-in">
+      <div class="logo-icon-large">⚡</div>
+      <h1 class="logo-title">YGOJ</h1>
+      <p class="logo-subtitle">Online Judge System</p>
+    </div>
+
+    <el-row :gutter="24">
       <!-- 快捷操作 -->
-      <el-col :span="8">
-        <el-card shadow="always" class="action-card">
+      <el-col :xs="24" :sm="8">
+        <el-card shadow="always" class="action-card slide-in">
           <template #header>
             <div class="card-header">
               <span><el-icon><Operation /></el-icon> 快捷操作</span>
             </div>
           </template>
           <div class="quick-actions">
-            <el-button type="primary" @click="goToProblems" class="action-btn">
+            <button @click="goToProblems" class="action-btn action-btn-primary">
               <el-icon><Document /></el-icon>
               <span>浏览题目</span>
-            </el-button>
-            <el-button type="success" @click="goToRecords" class="action-btn">
+            </button>
+            <button @click="goToRecords" class="action-btn action-btn-success">
               <el-icon><List /></el-icon>
               <span>查看提交</span>
-            </el-button>
-            <el-button type="warning" @click="createProblem" v-if="isAdmin" class="action-btn">
+            </button>
+            <button @click="createProblem" class="action-btn action-btn-warning">
               <el-icon><Plus /></el-icon>
               <span>创建题目</span>
-            </el-button>
+            </button>
           </div>
         </el-card>
       </el-col>
 
       <!-- 最新提交 -->
-      <el-col :span="8">
-        <el-card shadow="always" class="record-card">
+      <el-col :xs="24" :sm="8">
+        <el-card shadow="always" class="record-card slide-in" style="animation-delay: 0.1s;">
           <template #header>
             <div class="card-header">
               <span><el-icon><TrendCharts /></el-icon> 最新提交</span>
@@ -41,7 +48,7 @@
                 <span class="record-id">#{{ record.id }}</span>
                 <span class="record-problem">题目 #{{ record.problemId }}</span>
               </div>
-              <el-tag :type="getStatusType(record.status)" size="small" effect="dark">
+              <el-tag :type="getStatusType(record.status)" size="small">
                 {{ getStatusText(record.status) }}
               </el-tag>
             </div>
@@ -51,8 +58,8 @@
       </el-col>
 
       <!-- 系统公告 -->
-      <el-col :span="8">
-        <el-card shadow="always" class="notice-card">
+      <el-col :xs="24" :sm="8">
+        <el-card shadow="always" class="notice-card slide-in" style="animation-delay: 0.2s;">
           <template #header>
             <div class="card-header">
               <span><el-icon><Bell /></el-icon> 系统公告</span>
@@ -154,6 +161,52 @@ onMounted(() => {
   margin: 0 auto;
 }
 
+/* Logo Section */
+.logo-section {
+  text-align: center;
+  padding: var(--spacing-2xl) 0;
+  margin-bottom: var(--spacing-xl);
+}
+
+.logo-icon-large {
+  font-size: 4rem;
+  margin-bottom: var(--spacing-md);
+  animation: pulse 2s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.logo-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-info) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.03em;
+  margin: 0 0 var(--spacing-sm);
+  line-height: 1;
+}
+
+.logo-subtitle {
+  font-size: 1.125rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
 /* Card Header */
 .card-header {
   display: flex;
@@ -204,22 +257,65 @@ onMounted(() => {
 .action-card .quick-actions {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
 }
 
 .action-btn {
-  height: 56px;
-  font-size: 1rem;
-  font-weight: 500;
+  height: 48px;
+  width: 100%;
+  border: none;
   border-radius: var(--radius-md);
+  padding: 0 var(--spacing-lg);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: var(--spacing-sm);
-  padding: 0 var(--spacing-lg);
+  justify-content: center;
+  gap: 8px;
   transition: all var(--transition-base);
   position: relative;
   overflow: hidden;
+}
+
+.action-btn .el-icon {
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.action-btn span {
+  text-align: center;
+}
+
+.action-btn-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.action-btn-primary:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.action-btn-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.action-btn-success:hover {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.action-btn-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.action-btn-warning:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .action-btn::before {
@@ -243,7 +339,13 @@ onMounted(() => {
 }
 
 .action-btn .el-icon {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.action-btn span {
+  flex: 1;
+  text-align: center;
 }
 
 /* Record List */

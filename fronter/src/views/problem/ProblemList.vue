@@ -14,11 +14,13 @@
       <el-table-column prop="authorId" label="作者 ID" width="120" />
       <el-table-column prop="timeLimit" label="时间限制 (ms)" width="120" />
       <el-table-column prop="memoryLimit" label="内存限制 (MB)" width="120" />
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column label="操作" width="280" fixed="right">
         <template #default="scope">
-          <el-button link type="primary" @click="handleView(scope.row.id)">查看</el-button>
-          <el-button link type="primary" @click="handleEdit(scope.row.id)">编辑</el-button>
-          <el-button link type="danger" @click="handleDelete(scope.row.id)">删除</el-button>
+          <div class="action-buttons">
+            <el-button size="small" @click="handleView(scope.row.id)">查看</el-button>
+            <el-button size="small" type="primary" @click="handleEdit(scope.row.id)">编辑</el-button>
+            <el-button size="small" type="danger" @click="handleDelete(scope.row.id)">删除</el-button>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -182,32 +184,56 @@ onMounted(() => {
 }
 
 /* Action Buttons */
-:deep(.el-button--link) {
-  padding: var(--spacing-xs) var(--spacing-sm);
+.action-buttons {
+  display: flex;
+  gap: var(--spacing-xs);
+  align-items: center;
+}
+
+:deep(.el-button--small) {
+  padding: 8px 16px;
   font-size: 0.875rem;
   font-weight: 500;
+  border-radius: var(--radius-md);
   transition: all var(--transition-fast);
-  position: relative;
 }
 
-:deep(.el-button--link::after) {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background: currentColor;
-  transition: all var(--transition-fast);
-  transform: translateX(-50%);
+:deep(.el-button--small:not(.el-button--primary):not(.el-button--danger)) {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
 }
 
-:deep(.el-button--link:hover::after) {
-  width: 80%;
-}
-
-:deep(.el-button--link:hover) {
+:deep(.el-button--small:not(.el-button--primary):not(.el-button--danger):hover) {
+  background-color: rgba(37, 99, 235, 0.04);
+  border-color: var(--color-primary-light);
+  color: var(--color-primary);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+:deep(.el-button--primary.el-button--small) {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+}
+
+:deep(.el-button--primary.el-button--small:hover) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+:deep(.el-button--danger.el-button--small) {
+  background: linear-gradient(135deg, var(--color-danger) 0%, #dc2626 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+}
+
+:deep(.el-button--danger.el-button--small:hover) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 /* Pagination */
@@ -287,14 +313,6 @@ onMounted(() => {
 :deep(.el-button--primary:hover) {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
-}
-
-:deep(.el-button--danger) {
-  color: var(--color-danger);
-}
-
-:deep(.el-button--danger:hover) {
-  color: #dc2626;
 }
 
 /* Loading */

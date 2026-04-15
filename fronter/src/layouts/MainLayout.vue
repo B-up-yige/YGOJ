@@ -16,7 +16,7 @@
         @select="handleMenuSelect"
       >
         <el-menu-item index="/home">
-          <el-icon><Home /></el-icon>
+          <el-icon><House /></el-icon>
           <span>首页</span>
         </el-menu-item>
         <el-menu-item index="/problems">
@@ -73,6 +73,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { House, Document, Trophy, Collection, List, ArrowDown, User, SwitchButton } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { getUserIdByToken, getUserinfo } from '@/api/user'
 
