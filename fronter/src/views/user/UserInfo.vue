@@ -101,7 +101,7 @@
               <div class="error-label">答案错误</div>
               <el-progress 
                 :percentage="getErrorPercentage(stats.wrongAnswerCount)" 
-                :color="#f56c6c"
+                color="#f56c6c"
                 :stroke-width="20"
               >
                 <template #default="{ percentage }">
@@ -113,7 +113,7 @@
               <div class="error-label">超时</div>
               <el-progress 
                 :percentage="getErrorPercentage(stats.timeLimitExceededCount)" 
-                :color="#e6a23c"
+                color="#e6a23c"
                 :stroke-width="20"
               >
                 <template #default="{ percentage }">
@@ -125,7 +125,7 @@
               <div class="error-label">超内存</div>
               <el-progress 
                 :percentage="getErrorPercentage(stats.memoryLimitExceededCount)" 
-                :color="#e6a23c"
+                color="#e6a23c"
                 :stroke-width="20"
               >
                 <template #default="{ percentage }">
@@ -137,7 +137,7 @@
               <div class="error-label">运行错误</div>
               <el-progress 
                 :percentage="getErrorPercentage(stats.runtimeErrorCount)" 
-                :color="#909399"
+                color="#909399"
                 :stroke-width="20"
               >
                 <template #default="{ percentage }">
@@ -149,7 +149,7 @@
               <div class="error-label">编译错误</div>
               <el-progress 
                 :percentage="getErrorPercentage(stats.compilationErrorCount)" 
-                :color="#909399"
+                color="#909399"
                 :stroke-width="20"
               >
                 <template #default="{ percentage }">
