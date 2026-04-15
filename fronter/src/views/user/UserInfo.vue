@@ -98,6 +98,18 @@
           </template>
           <div class="error-stats">
             <div class="error-item">
+              <div class="error-label">答案正确</div>
+              <el-progress 
+                :percentage="getErrorPercentage(stats.acceptedCount)" 
+                color="#67c23a"
+                :stroke-width="20"
+              >
+                <template #default="{ percentage }">
+                  <span class="progress-text">{{ stats.acceptedCount }}</span>
+                </template>
+              </el-progress>
+            </div>
+            <div class="error-item">
               <div class="error-label">答案错误</div>
               <el-progress 
                 :percentage="getErrorPercentage(stats.wrongAnswerCount)" 
@@ -642,8 +654,9 @@ onMounted(async () => {
 
 .username {
   font-size: 1rem;
-  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.95);
   margin: 0;
+  font-weight: 500;
 }
 
 .profile-meta {
