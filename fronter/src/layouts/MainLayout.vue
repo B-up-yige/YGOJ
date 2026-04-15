@@ -8,10 +8,10 @@
         mode="horizontal"
         :ellipsis="false"
         :default-active="activeMenu"
-        background-color="#545c64"
-        text-color="#fff"
-        active-text-color="#ffd04b"
-        style="flex: 1; min-width: 0;"
+        background-color="#fff"
+        text-color="#303133"
+        active-text-color="#409EFF"
+        style="flex: 1; min-width: 0; border-bottom: none;"
         router
         @select="handleMenuSelect"
       >
@@ -172,45 +172,93 @@ onMounted(() => {
 <style scoped>
 .layout-container {
   height: 100vh;
-  background: transparent;
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
-  backdrop-filter: blur(10px);
-  padding: 0 20px;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #fff;
+  padding: 0 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid #e4e7ed;
+  height: 60px;
+  line-height: 60px;
 }
 
 .logo {
   margin-right: 40px;
+  flex-shrink: 0;
 }
 
 .logo a {
-  color: #fff;
-  font-size: 28px;
+  color: #409EFF;
+  font-size: 24px;
   font-weight: bold;
   text-decoration: none;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
   transition: all 0.3s ease;
 }
 
 .logo a:hover {
-  color: #ffd04b;
-  text-shadow: 0 0 20px rgba(255, 208, 75, 0.8);
-  transform: scale(1.05);
+  color: #66b1ff;
+  transform: scale(1.02);
 }
 
 .user-actions {
   margin-left: auto;
+  flex-shrink: 0;
 }
 
 .main-content {
-  background: transparent;
-  padding: 20px;
+  flex: 1;
+  background-color: #f5f7fa;
+  padding: 24px;
   overflow-y: auto;
+}
+
+/* 菜单项样式优化 */
+:deep(.el-menu--horizontal) {
+  border-bottom: none;
+}
+
+:deep(.el-menu-item) {
+  height: 60px;
+  line-height: 60px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+:deep(.el-menu-item:hover) {
+  background-color: #ecf5ff;
+}
+
+:deep(.el-menu-item.is-active) {
+  border-bottom: 2px solid #409EFF;
+}
+
+/* 下拉菜单样式 */
+:deep(.el-dropdown-menu__item) {
+  padding: 10px 16px;
+}
+
+:deep(.el-dropdown-menu__item:hover) {
+  background-color: #ecf5ff;
+  color: #409EFF;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 15px;
+  }
+  
+  .logo {
+    margin-right: 20px;
+  }
+  
+  .logo a {
+    font-size: 20px;
+  }
 }
 </style>

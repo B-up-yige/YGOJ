@@ -214,38 +214,137 @@ onMounted(() => {
 
 <style scoped>
 .problemset-list {
-  padding: 20px;
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f0f0f0;
 }
 
 .header h2 {
   margin: 0;
+  color: #303133;
+  font-size: 24px;
+  font-weight: 600;
 }
 
 .pagination {
-  margin-top: 20px;
+  margin-top: 24px;
   display: flex;
   justify-content: flex-end;
+  padding: 16px 0;
+  border-top: 1px solid #e4e7ed;
 }
 
 .progress-info {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .progress-text {
   font-size: 12px;
-  font-weight: bold;
+  font-weight: 600;
+  color: #606266;
 }
 
 .no-data {
   color: #909399;
   font-size: 14px;
+}
+
+/* Element Plus 表格样式优化 */
+:deep(.el-table) {
+  --el-table-border-color: #e4e7ed;
+  --el-table-text-color: #606266;
+  --el-table-header-text-color: #303133;
+  --el-table-row-hover-bg-color: #f5f7fa;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+:deep(.el-table th) {
+  background-color: #fafafa;
+  color: #303133;
+  font-weight: 600;
+  padding: 14px 0;
+}
+
+:deep(.el-table td) {
+  padding: 14px 0;
+  transition: all 0.3s ease;
+}
+
+:deep(.el-table--enable-row-hover .el-table__body tr:hover > td) {
+  background-color: #ecf5ff !important;
+}
+
+/* 进度条样式 */
+:deep(.el-progress-bar__outer) {
+  background-color: #ebeef5;
+  border-radius: 10px;
+}
+
+:deep(.el-progress-bar__inner) {
+  border-radius: 10px;
+  transition: all 0.6s ease;
+}
+
+/* 操作按钮样式 */
+:deep(.el-button--link) {
+  padding: 4px 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+:deep(.el-button--link:hover) {
+  transform: scale(1.05);
+}
+
+/* 分页样式 */
+:deep(.el-pagination.is-background .btn-next),
+:deep(.el-pagination.is-background .btn-prev),
+:deep(.el-pagination.is-background .el-pager li) {
+  background-color: #f4f4f5;
+  color: #606266;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+:deep(.el-pagination.is-background .el-pager li:not(.disabled).active) {
+  background-color: #409EFF;
+  color: #fff;
+}
+
+:deep(.el-pagination.is-background .btn-next):not([disabled]):hover,
+:deep(.el-pagination.is-background .btn-prev):not([disabled]):hover,
+:deep(.el-pagination.is-background .el-pager li:not(.disabled):hover) {
+  color: #409EFF;
+  background-color: #ecf5ff;
+}
+
+/* 按钮样式 */
+:deep(.el-button--primary) {
+  background-color: #409EFF;
+  border-color: #409EFF;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+:deep(.el-button--primary:hover) {
+  background-color: #66b1ff;
+  border-color: #66b1ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
 }
 </style>

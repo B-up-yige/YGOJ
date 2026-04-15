@@ -209,93 +209,56 @@ onMounted(() => {
 
 <style scoped>
 .record-list {
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border-radius: 15px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .record-list h2 {
-  margin-bottom: 20px;
-  color: #fff;
-  text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
-  font-size: 28px;
-  font-weight: bold;
+  margin-bottom: 24px;
+  color: #303133;
+  font-size: 24px;
+  font-weight: 600;
 }
 
-/* Element Plus 表格科技风格 */
+/* Element Plus 表格样式优化 */
 :deep(.el-table) {
-  background: transparent !important;
-  --el-table-tr-bg-color: transparent;
-  --el-table-header-bg-color: rgba(102, 126, 234, 0.2);
-  --el-table-border-color: rgba(255, 255, 255, 0.1);
-  --el-table-text-color: #e0e0e0;
-  --el-table-header-text-color: #fff;
-  --el-table-row-hover-bg-color: rgba(102, 126, 234, 0.1);
+  --el-table-border-color: #e4e7ed;
+  --el-table-text-color: #606266;
+  --el-table-header-text-color: #303133;
+  --el-table-row-hover-bg-color: #f5f7fa;
 }
 
 :deep(.el-table th) {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%) !important;
-  color: #fff;
-  font-weight: bold;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+  background-color: #f5f7fa;
+  color: #303133;
+  font-weight: 600;
 }
 
 :deep(.el-table td) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-:deep(.el-table--enable-row-hover .el-table__body tr:hover > td) {
-  background: rgba(102, 126, 234, 0.15) !important;
-  transition: all 0.3s ease;
+  padding: 12px 0;
 }
 
 /* 分页样式 */
 :deep(.el-pagination) {
-  --el-pagination-button-color: #e0e0e0;
-  --el-pagination-hover-color: #667eea;
-}
-
-:deep(.el-pagination.is-background .btn-next),
-:deep(.el-pagination.is-background .btn-prev),
-:deep(.el-pagination.is-background .el-pager li) {
-  background: rgba(102, 126, 234, 0.2);
-  color: #e0e0e0;
-  border: 1px solid rgba(102, 126, 234, 0.3);
-}
-
-:deep(.el-pagination.is-background .el-pager li:not(.disabled).active) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
-}
-
-:deep(.el-pagination.is-background .btn-next):not([disabled]):hover,
-:deep(.el-pagination.is-background .btn-prev):not([disabled]):hover,
-:deep(.el-pagination.is-background .el-pager li:not(.disabled):hover) {
-  color: #667eea;
-  box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+  margin-top: 20px;
+  justify-content: flex-end;
 }
 
 /* 对话框样式 */
-:deep(.el-dialog) {
-  background: linear-gradient(135deg, rgba(15, 12, 41, 0.95) 0%, rgba(48, 43, 99, 0.95) 100%);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(102, 126, 234, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+:deep(.el-dialog__header) {
+  border-bottom: 1px solid #e4e7ed;
+  padding-bottom: 16px;
 }
 
 :deep(.el-dialog__title) {
-  color: #fff;
-  text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+  color: #303133;
+  font-weight: 600;
 }
 
-:deep(.el-dialog__headerbtn .el-dialog__close) {
-  color: #e0e0e0;
-}
-
-:deep(.el-dialog__headerbtn .el-dialog__close:hover) {
-  color: #667eea;
+:deep(.el-dialog__footer) {
+  border-top: 1px solid #e4e7ed;
+  padding-top: 16px;
 }
 </style>
