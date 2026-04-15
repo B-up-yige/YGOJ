@@ -2,16 +2,16 @@
   <el-container class="layout-container">
     <el-header class="header">
       <div class="logo">
-        <router-link to="/">YGOJ</router-link>
+        <router-link to="/">
+          <span class="logo-icon">⚡</span>
+          <span class="logo-text">YGOJ</span>
+        </router-link>
       </div>
       <el-menu
         mode="horizontal"
         :ellipsis="false"
         :default-active="activeMenu"
-        background-color="#fff"
-        text-color="#303133"
-        active-text-color="#409EFF"
-        style="flex: 1; min-width: 0; border-bottom: none;"
+        class="nav-menu"
         router
         @select="handleMenuSelect"
       >
@@ -21,7 +21,7 @@
         </el-menu-item>
         <el-menu-item index="/problems">
           <el-icon><Document /></el-icon>
-          <span>题目列表</span>
+          <span>题目</span>
         </el-menu-item>
         <el-menu-item index="/contests">
           <el-icon><Trophy /></el-icon>
@@ -33,31 +33,32 @@
         </el-menu-item>
         <el-menu-item index="/records">
           <el-icon><List /></el-icon>
-          <span>提交记录</span>
+          <span>提交</span>
         </el-menu-item>
       </el-menu>
       <div class="user-actions">
-        <el-dropdown v-if="isLoggedIn">
-          <span class="user-info" style="color: white; cursor: pointer;">
-            {{ currentUser?.nickname || '用户' }}
-            <el-icon class="el-icon--right"><ArrowDown /></el-icon>
-          </span>
+        <el-dropdown v-if="isLoggedIn" trigger="click">
+          <div class="user-profile">
+            <div class="avatar">{{ currentUser?.nickname?.charAt(0) || 'U' }}</div>
+            <span class="username">{{ currentUser?.nickname || '用户' }}</span>
+            <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
+          </div>
           <template #dropdown>
-            <el-dropdown-menu>
+            <el-dropdown-menu class="custom-dropdown">
               <el-dropdown-item @click="viewProfile">
                 <el-icon><User /></el-icon>
-                个人中心
+                <span>个人中心</span>
               </el-dropdown-item>
               <el-dropdown-item divided @click="handleLogout">
                 <el-icon><SwitchButton /></el-icon>
-                退出登录
+                <span>退出登录</span>
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <div v-else>
-          <el-button type="text" @click="goToLogin" style="color: white;">登录</el-button>
-          <el-button type="primary" @click="goToRegister" size="small">注册</el-button>
+        <div v-else class="auth-buttons">
+          <el-button class="btn-login" @click="goToLogin">登录</el-button>
+          <el-button type="primary" class="btn-register" @click="goToRegister">注册</el-button>
         </div>
       </div>
     </el-header>
@@ -88,10 +89,11 @@ console.log('当前用户信息:', currentUser.value)
 const activeMenu = computed(() => {
   const path = route.path
   if (path.startsWith('/home')) return '/home'
-  if (path.startsWith('/problems')) return '/problems'
-  if (path.startsWith('/contests')) return '/contests'
-  if (path.startsWith('/problemsets')) return '/problemsets'
-  if (path.startsWith('/records')) return '/records'
+  // 注意：problemsets 必须在 problems 之前判断
+  if (path.startsWith('/problemsets') || path.startsWith('/problemset/')) return '/problemsets'
+  if (path.startsWith('/problems') || path.startsWith('/problem/')) return '/problems'
+  if (path.startsWith('/contests') || path.startsWith('/contest/')) return '/contests'
+  if (path.startsWith('/records') || path.startsWith('/record/')) return '/records'
   return ''
 })
 
@@ -174,91 +176,230 @@ onMounted(() => {
   height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--color-bg);
 }
 
+/* Header */
 .header {
   display: flex;
   align-items: center;
-  background-color: #fff;
-  padding: 0 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border-bottom: 1px solid #e4e7ed;
-  height: 60px;
-  line-height: 60px;
+  gap: var(--spacing-xl);
+  background: var(--color-surface);
+  padding: 0 var(--spacing-2xl);
+  height: 64px;
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.logo {
-  margin-right: 40px;
-  flex-shrink: 0;
-}
-
+/* Logo */
 .logo a {
-  color: #409EFF;
-  font-size: 24px;
-  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: transform var(--transition-fast);
 }
 
 .logo a:hover {
-  color: #66b1ff;
   transform: scale(1.02);
 }
 
-.user-actions {
-  margin-left: auto;
-  flex-shrink: 0;
+.logo-icon {
+  font-size: 1.5rem;
+  animation: pulse 2s ease-in-out infinite;
 }
 
-.main-content {
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-info) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
+}
+
+/* Navigation Menu */
+.nav-menu {
   flex: 1;
-  background-color: #f5f7fa;
-  padding: 24px;
-  overflow-y: auto;
-}
-
-/* 菜单项样式优化 */
-:deep(.el-menu--horizontal) {
-  border-bottom: none;
+  border-bottom: none !important;
+  background: transparent !important;
 }
 
 :deep(.el-menu-item) {
-  height: 60px;
-  line-height: 60px;
-  font-size: 14px;
-  transition: all 0.3s ease;
+  height: 64px;
+  line-height: 64px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid transparent !important;
+  transition: all var(--transition-fast);
+  padding: 0 var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:deep(.el-menu-item .el-icon) {
+  margin-right: 6px;
+  font-size: 1.125rem;
+  display: flex;
+  align-items: center;
+}
+
+:deep(.el-menu-item span) {
+  display: inline-flex;
+  align-items: center;
 }
 
 :deep(.el-menu-item:hover) {
-  background-color: #ecf5ff;
+  background-color: rgba(37, 99, 235, 0.04);
+  color: var(--color-primary);
 }
 
 :deep(.el-menu-item.is-active) {
-  border-bottom: 2px solid #409EFF;
+  color: var(--color-primary);
+  border-bottom: 2px solid var(--color-primary) !important;
+  background-color: rgba(37, 99, 235, 0.04);
 }
 
-/* 下拉菜单样式 */
+/* User Actions */
+.user-actions {
+  margin-left: auto;
+}
+
+/* User Profile */
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.user-profile:hover {
+  background-color: rgba(37, 99, 235, 0.04);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-info) 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.username {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.dropdown-icon {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  transition: transform var(--transition-fast);
+}
+
+.user-profile:hover .dropdown-icon {
+  transform: rotate(180deg);
+}
+
+/* Auth Buttons */
+.auth-buttons {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.btn-login {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.btn-login:hover {
+  color: var(--color-primary);
+  background-color: rgba(37, 99, 235, 0.04);
+}
+
+.btn-register {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.btn-register:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Custom Dropdown */
+:deep(.custom-dropdown) {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-xs);
+}
+
 :deep(.el-dropdown-menu__item) {
-  padding: 10px 16px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  transition: all var(--transition-fast);
 }
 
 :deep(.el-dropdown-menu__item:hover) {
-  background-color: #ecf5ff;
-  color: #409EFF;
+  background-color: rgba(37, 99, 235, 0.04);
+  color: var(--color-primary);
 }
 
-/* 响应式调整 */
+:deep(.el-dropdown-menu__item .el-icon) {
+  margin-right: 8px;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-2xl);
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .header {
-    padding: 0 15px;
+    padding: 0 var(--spacing-md);
+    gap: var(--spacing-md);
   }
   
-  .logo {
-    margin-right: 20px;
+  .logo-text {
+    font-size: 1.25rem;
   }
   
-  .logo a {
-    font-size: 20px;
+  :deep(.el-menu-item span) {
+    display: none;
+  }
+  
+  .username {
+    display: none;
   }
 }
 </style>

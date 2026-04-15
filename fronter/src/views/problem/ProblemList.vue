@@ -129,122 +129,187 @@ onMounted(() => {
 
 <style scoped>
 .problem-list {
-  padding: 24px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  max-width: 1280px;
+  margin: 0 auto;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #f0f0f0;
+  margin-bottom: var(--spacing-2xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid var(--color-border);
 }
 
 .header h2 {
   margin: 0;
-  color: #303133;
-  font-size: 24px;
-  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
-/* Element Plus 表格样式优化 */
+/* Table Container */
 :deep(.el-table) {
-  --el-table-border-color: #e4e7ed;
-  --el-table-text-color: #606266;
-  --el-table-header-text-color: #303133;
-  --el-table-row-hover-bg-color: #f5f7fa;
-  border-radius: 4px;
+  --el-table-border-color: var(--color-border);
+  --el-table-text-color: var(--color-text-secondary);
+  --el-table-header-text-color: var(--color-text-primary);
+  --el-table-row-hover-bg-color: rgba(37, 99, 235, 0.04);
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 :deep(.el-table th) {
-  background-color: #fafafa;
-  color: #303133;
+  background: linear-gradient(to bottom, #fafafa, #f5f5f5);
+  color: var(--color-text-primary);
   font-weight: 600;
-  padding: 14px 0;
+  padding: 16px 0;
+  font-size: 0.9375rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 :deep(.el-table td) {
-  padding: 14px 0;
-  transition: all 0.3s ease;
+  padding: 16px 0;
+  transition: all var(--transition-fast);
+  font-size: 0.9375rem;
 }
 
 :deep(.el-table--enable-row-hover .el-table__body tr:hover > td) {
-  background-color: #ecf5ff !important;
+  background-color: rgba(37, 99, 235, 0.04) !important;
 }
 
-/* 操作按钮样式 */
+/* Action Buttons */
 :deep(.el-button--link) {
-  padding: 4px 8px;
-  font-size: 14px;
-  transition: all 0.3s ease;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+:deep(.el-button--link::after) {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: currentColor;
+  transition: all var(--transition-fast);
+  transform: translateX(-50%);
+}
+
+:deep(.el-button--link:hover::after) {
+  width: 80%;
 }
 
 :deep(.el-button--link:hover) {
-  transform: scale(1.05);
+  transform: translateY(-1px);
 }
 
-/* 分页样式 */
-:deep(.el-pagination) {
-  margin-top: 24px;
+/* Pagination */
+.pagination {
+  margin-top: var(--spacing-xl);
+  display: flex;
   justify-content: flex-end;
-  padding: 16px 0;
-  border-top: 1px solid #e4e7ed;
+  padding: var(--spacing-lg) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+:deep(.el-pagination) {
+  --el-pagination-button-color: var(--color-text-secondary);
+  --el-pagination-hover-color: var(--color-primary);
 }
 
 :deep(.el-pagination.is-background .btn-next),
 :deep(.el-pagination.is-background .btn-prev),
 :deep(.el-pagination.is-background .el-pager li) {
-  background-color: #f4f4f5;
-  color: #606266;
-  border-radius: 4px;
-  transition: all 0.3s ease;
+  background-color: var(--color-surface);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-fast);
+  font-weight: 500;
 }
 
 :deep(.el-pagination.is-background .el-pager li:not(.disabled).active) {
-  background-color: #409EFF;
-  color: #fff;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-info) 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: var(--shadow-md);
 }
 
 :deep(.el-pagination.is-background .btn-next):not([disabled]):hover,
 :deep(.el-pagination.is-background .btn-prev):not([disabled]):hover,
 :deep(.el-pagination.is-background .el-pager li:not(.disabled):hover) {
-  color: #409EFF;
-  background-color: #ecf5ff;
+  color: var(--color-primary);
+  background-color: rgba(37, 99, 235, 0.04);
+  border-color: var(--color-primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
-/* 按钮样式 */
+/* Primary Button */
 :deep(.el-button--primary) {
-  background-color: #409EFF;
-  border-color: #409EFF;
-  border-radius: 6px;
-  padding: 10px 20px;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+:deep(.el-button--primary::before) {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+:deep(.el-button--primary:hover::before) {
+  width: 300px;
+  height: 300px;
 }
 
 :deep(.el-button--primary:hover) {
-  background-color: #66b1ff;
-  border-color: #66b1ff;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 :deep(.el-button--danger) {
-  color: #f56c6c;
+  color: var(--color-danger);
 }
 
 :deep(.el-button--danger:hover) {
-  color: #f78989;
+  color: #dc2626;
 }
 
-/* 加载动画 */
+/* Loading */
 :deep(.el-loading-mask) {
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(2px);
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+}
+
+:deep(.el-loading-spinner .circular) {
+  width: 50px;
+  height: 50px;
+}
+
+:deep(.el-loading-spinner .path) {
+  stroke: var(--color-primary);
+  stroke-width: 3;
 }
 </style>

@@ -150,72 +150,105 @@ onMounted(() => {
 
 <style scoped>
 .home {
-  padding: 0;
+  max-width: 1280px;
+  margin: 0 auto;
 }
 
+/* Card Header */
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-weight: 600;
-  font-size: 16px;
-  color: #303133;
+  font-size: 1.125rem;
+  color: var(--color-text-primary);
 }
 
 .card-header span {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
-/* Element Plus 卡片样式 */
+.card-header span .el-icon {
+  font-size: 1.25rem;
+  color: var(--color-primary);
+}
+
+/* Element Plus Cards */
 :deep(.el-card) {
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-  border: 1px solid #e4e7ed;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-base);
+  overflow: hidden;
 }
 
 :deep(.el-card:hover) {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  border-color: var(--color-primary-light);
 }
 
 :deep(.el-card__header) {
-  padding: 16px 20px;
-  border-bottom: 1px solid #e4e7ed;
-  background-color: #fafafa;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid var(--color-border);
+  background: linear-gradient(to right, rgba(37, 99, 235, 0.02), transparent);
 }
 
 :deep(.el-card__body) {
-  padding: 20px;
+  padding: var(--spacing-xl);
 }
 
-/* 快捷操作样式 */
+/* Quick Actions */
 .action-card .quick-actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--spacing-md);
 }
 
 .action-btn {
-  height: 48px;
-  font-size: 15px;
-  border-radius: 6px;
-  transition: all 0.3s;
+  height: 56px;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--spacing-sm);
+  padding: 0 var(--spacing-lg);
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.action-btn:hover::before {
+  left: 100%;
 }
 
 .action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
 }
 
-.action-btn span {
-  margin-left: 8px;
+.action-btn .el-icon {
+  font-size: 1.25rem;
 }
 
-/* 最新提交样式 */
+/* Record List */
 .record-card .record-list {
-  max-height: 300px;
+  max-height: 320px;
   overflow-y: auto;
 }
 
@@ -223,75 +256,99 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 15px;
-  margin-bottom: 8px;
-  background-color: #f5f7fa;
-  border-radius: 6px;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
 }
 
 .record-item:hover {
-  background-color: #ecf5ff;
-  transform: translateX(5px);
+  background-color: rgba(37, 99, 235, 0.04);
+  border-color: var(--color-primary-light);
+  transform: translateX(4px);
 }
 
 .record-info {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .record-id {
   font-weight: 600;
-  color: #409EFF;
-  font-size: 14px;
+  color: var(--color-primary);
+  font-size: 0.9375rem;
 }
 
 .record-problem {
-  color: #606266;
-  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
 }
 
-/* 系统公告样式 */
+/* Timeline */
 .notice-card :deep(.el-timeline) {
-  padding-top: 10px;
+  padding-top: var(--spacing-sm);
+}
+
+.notice-card :deep(.el-timeline-item__node) {
+  width: 12px;
+  height: 12px;
+  border: 2px solid;
 }
 
 .notice-card :deep(.el-timeline-item__timestamp) {
-  font-size: 13px;
-  color: #909399;
+  font-size: 0.8125rem;
+  color: var(--color-text-tertiary);
   font-weight: 500;
 }
 
 .notice-card :deep(.el-timeline-item__content) {
-  margin-top: 8px;
+  margin-top: var(--spacing-sm);
 }
 
 .notice-item {
   border: none;
   box-shadow: none;
   background-color: transparent;
+  padding: 0;
 }
 
 .notice-item h4 {
-  margin: 0 0 8px 0;
-  font-size: 15px;
-  color: #303133;
+  margin: 0 0 var(--spacing-xs);
+  font-size: 1rem;
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 
 .notice-item p {
   margin: 0;
-  font-size: 13px;
-  color: #606266;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
   line-height: 1.6;
 }
 
-/* 响应式布局 */
+/* Empty State */
+:deep(.el-empty) {
+  padding: var(--spacing-xl) 0;
+}
+
+/* Responsive */
 @media (max-width: 1200px) {
   .el-col {
-    margin-bottom: 20px;
+    margin-bottom: var(--spacing-xl);
+  }
+}
+
+@media (max-width: 768px) {
+  .home {
+    padding: 0;
+  }
+  
+  :deep(.el-card__body) {
+    padding: var(--spacing-lg);
   }
 }
 </style>
