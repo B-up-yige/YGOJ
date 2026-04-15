@@ -8,6 +8,7 @@ import com.ygoj.judger.sandbox.SandboxExecuteRequest;
 import com.ygoj.problem.Probleminfo;
 import com.ygoj.problem.Testcase;
 import com.ygoj.record.RecordDetail;
+import com.ygoj.record.RecordWithInfo;
 import com.ygoj.record.UserDailyStats;
 import com.ygoj.record.feign.JudgerFeignClient;
 import com.ygoj.record.feign.ProblemFeignClient;
@@ -255,6 +256,84 @@ public class RecordServiceImpl implements RecordService {
             return recordMapper.selectPage(recordPage, wrapper).getRecords();
         } catch (Exception e) {
             log.error("分页查询提交记录异常", e);
+            throw new RuntimeException("分页查询提交记录失败: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * 获取带题目名称和用户昵称的记录列表
+     *
+     * @param page     页面
+     * @param pageSize 页面大小
+     * @param contestId 比赛ID（可选）
+     * @return {@link List<RecordWithInfo>}
+     */
+    @Override
+    public List<RecordWithInfo> listWithInfo(Long page, Long pageSize, Long contestId) {
+        try {
+            log.debug("分页查询提交记录(带信息), page: {}, pageSize: {}, contestId: {}", 
+                    page, pageSize, contestId);
+            
+            if (page == null || page < 1) {
+                page = 1L;
+            }
+            if (pageSize == null || pageSize < 1) {
+                pageSize = 10L;
+            }
+            
+            // 先获取记录列表
+            List<Record> records = list(page, pageSize, contestId);
+            
+            // 转换为RecordWithInfo并填充题目名称和用户昵称
+            List<RecordWithInfo> result = new ArrayList<>();
+            for (Record record : records) {
+                RecordWithInfo recordWithInfo = new RecordWithInfo();
+                // 复制基本字段
+                recordWithInfo.setId(record.getId());
+                recordWithInfo.setUserId(record.getUserId());
+                recordWithInfo.setProblemId(record.getProblemId());
+                recordWithInfo.setContestId(record.getContestId());
+                recordWithInfo.setCode(record.getCode());
+                recordWithInfo.setStatus(record.getStatus());
+                recordWithInfo.setLanguage(record.getLanguage());
+                recordWithInfo.setCompileTime(record.getCompileTime());
+                recordWithInfo.setCompileMemory(record.getCompileMemory());
+                recordWithInfo.setCompileStdout(record.getCompileStdout());
+                recordWithInfo.setCompileStderr(record.getCompileStderr());
+                recordWithInfo.setSubmitTime(record.getSubmitTime());
+                
+                // 通过Feign获取用户信息
+                try {
+                    Result userInfoResult = userFeignClient.userinfo(record.getUserId());
+                    if (userInfoResult != null && userInfoResult.getData() != null) {
+                        com.fasterxml.jackson.databind.JsonNode userInfo = objectMapper.convertValue(
+                            userInfoResult.getData(), com.fasterxml.jackson.databind.JsonNode.class);
+                        recordWithInfo.setUserName(userInfo.get("nickname").asText());
+                    }
+                } catch (Exception e) {
+                    log.warn("获取用户信息失败, userId: {}", record.getUserId(), e);
+                    recordWithInfo.setUserName("未知用户");
+                }
+                
+                // 通过Feign获取题目信息
+                try {
+                    Result problemInfoResult = problemFeignClient.getProblemInfo(record.getProblemId());
+                    if (problemInfoResult != null && problemInfoResult.getData() != null) {
+                        com.fasterxml.jackson.databind.JsonNode problemInfo = objectMapper.convertValue(
+                            problemInfoResult.getData(), com.fasterxml.jackson.databind.JsonNode.class);
+                        recordWithInfo.setProblemTitle(problemInfo.get("title").asText());
+                    }
+                } catch (Exception e) {
+                    log.warn("获取题目信息失败, problemId: {}", record.getProblemId(), e);
+                    recordWithInfo.setProblemTitle("未知题目");
+                }
+                
+                result.add(recordWithInfo);
+            }
+            
+            return result;
+        } catch (Exception e) {
+            log.error("分页查询提交记录(带信息)异常", e);
             throw new RuntimeException("分页查询提交记录失败: " + e.getMessage(), e);
         }
     }

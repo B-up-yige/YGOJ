@@ -130,6 +130,11 @@ onMounted(() => {
 <style scoped>
 .problem-list {
   padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header {
@@ -141,5 +146,87 @@ onMounted(() => {
 
 .header h2 {
   margin: 0;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+  font-size: 28px;
+  font-weight: bold;
+}
+
+/* Element Plus 表格科技风格 */
+:deep(.el-table) {
+  background: transparent !important;
+  --el-table-tr-bg-color: transparent;
+  --el-table-header-bg-color: rgba(102, 126, 234, 0.2);
+  --el-table-border-color: rgba(255, 255, 255, 0.1);
+  --el-table-text-color: #e0e0e0;
+  --el-table-header-text-color: #fff;
+  --el-table-row-hover-bg-color: rgba(102, 126, 234, 0.1);
+}
+
+:deep(.el-table th) {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%) !important;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+:deep(.el-table td) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+:deep(.el-table--enable-row-hover .el-table__body tr:hover > td) {
+  background: rgba(102, 126, 234, 0.15) !important;
+  transition: all 0.3s ease;
+}
+
+/* 分页样式 */
+:deep(.el-pagination) {
+  --el-pagination-button-color: #e0e0e0;
+  --el-pagination-hover-color: #667eea;
+}
+
+:deep(.el-pagination.is-background .btn-next),
+:deep(.el-pagination.is-background .btn-prev),
+:deep(.el-pagination.is-background .el-pager li) {
+  background: rgba(102, 126, 234, 0.2);
+  color: #e0e0e0;
+  border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+:deep(.el-pagination.is-background .el-pager li:not(.disabled).active) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+:deep(.el-pagination.is-background .btn-next):not([disabled]):hover,
+:deep(.el-pagination.is-background .btn-prev):not([disabled]):hover,
+:deep(.el-pagination.is-background .el-pager li:not(.disabled):hover) {
+  color: #667eea;
+  box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+/* 按钮科技风格 */
+:deep(.el-button--primary) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+}
+
+:deep(.el-button--primary:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+:deep(.el-button--danger) {
+  background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(235, 51, 73, 0.4);
+  transition: all 0.3s ease;
+}
+
+:deep(.el-button--danger:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(235, 51, 73, 0.6);
 }
 </style>

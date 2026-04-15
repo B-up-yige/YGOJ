@@ -159,12 +159,35 @@ onMounted(() => {
   align-items: center;
   font-weight: bold;
   font-size: 16px;
+  color: #fff;
+  text-shadow: 0 0 8px rgba(102, 126, 234, 0.4);
 }
 
 .card-header span {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* Element Plus 卡片科技风格 */
+:deep(.el-card) {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+:deep(.el-card:hover) {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+:deep(.el-card__header) {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* 快捷操作样式 */
@@ -179,11 +202,14 @@ onMounted(() => {
   font-size: 16px;
   border-radius: 8px;
   transition: all 0.3s;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .action-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
 .action-btn span {
@@ -202,15 +228,18 @@ onMounted(() => {
   align-items: center;
   padding: 12px 15px;
   margin-bottom: 8px;
-  background-color: #f5f7fa;
-  border-radius: 6px;
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .record-item:hover {
-  background-color: #ecf5ff;
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.4);
   transform: translateX(5px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .record-info {
@@ -221,12 +250,13 @@ onMounted(() => {
 
 .record-id {
   font-weight: bold;
-  color: #409EFF;
+  color: #667eea;
   font-size: 14px;
+  text-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
 }
 
 .record-problem {
-  color: #606266;
+  color: #e0e0e0;
   font-size: 14px;
 }
 
@@ -237,7 +267,7 @@ onMounted(() => {
 
 .notice-card :deep(.el-timeline-item__timestamp) {
   font-size: 13px;
-  color: #909399;
+  color: #b0b0b0;
   font-weight: 500;
 }
 
@@ -254,14 +284,15 @@ onMounted(() => {
 .notice-item h4 {
   margin: 0 0 8px 0;
   font-size: 15px;
-  color: #303133;
+  color: #fff;
   font-weight: 600;
+  text-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
 }
 
 .notice-item p {
   margin: 0;
   font-size: 13px;
-  color: #606266;
+  color: #d0d0d0;
   line-height: 1.6;
 }
 

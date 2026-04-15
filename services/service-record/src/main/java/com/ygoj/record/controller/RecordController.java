@@ -106,7 +106,8 @@ public class RecordController {
                 pageSize = 10L;
             }
             
-            return Result.success(recordService.list(page, pageSize, contestId));
+            // 返回带题目名称和用户昵称的记录列表
+            return Result.success(recordService.listWithInfo(page, pageSize, contestId));
         } catch (Exception e) {
             log.error("获取提交列表失败", e);
             return Result.error(500, "获取提交列表失败: " + e.getMessage());

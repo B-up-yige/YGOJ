@@ -172,14 +172,17 @@ onMounted(() => {
 <style scoped>
 .layout-container {
   height: 100vh;
+  background: transparent;
 }
 
 .header {
   display: flex;
   align-items: center;
-  background-color: #545c64;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+  backdrop-filter: blur(10px);
   padding: 0 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .logo {
@@ -188,13 +191,17 @@ onMounted(() => {
 
 .logo a {
   color: #fff;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
   text-decoration: none;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
 }
 
 .logo a:hover {
   color: #ffd04b;
+  text-shadow: 0 0 20px rgba(255, 208, 75, 0.8);
+  transform: scale(1.05);
 }
 
 .user-actions {
@@ -202,7 +209,8 @@ onMounted(() => {
 }
 
 .main-content {
-  background-color: #f0f2f5;
+  background: transparent;
   padding: 20px;
+  overflow-y: auto;
 }
 </style>

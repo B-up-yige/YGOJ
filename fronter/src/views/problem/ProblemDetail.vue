@@ -40,6 +40,24 @@
         <el-button type="primary" @click="showSubmitDialog">提交代码</el-button>
         <el-button type="success" @click="viewRecords">查看记录</el-button>
       </div>
+
+      <!-- 未登录提示 -->
+      <el-alert
+        v-if="!isLoggedIn"
+        title="提示"
+        description="您需要登录后才能提交代码。请先登录或注册账号。"
+        type="info"
+        :closable="false"
+        style="margin-top: 20px;"
+      >
+        <template #default>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span>您需要登录后才能提交代码。</span>
+            <el-button type="primary" size="small" @click="router.push('/login')">立即登录</el-button>
+            <el-button size="small" @click="router.push('/register')">注册账号</el-button>
+          </div>
+        </template>
+      </el-alert>
     </el-card>
 
     <!-- 提交代码对话框 -->
@@ -72,7 +90,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getProblemInfo, getProblemTags } from '@/api/problem'
@@ -85,6 +103,9 @@ const userStore = useUserStore()
 const loading = ref(false)
 const submitting = ref(false)
 const submitDialogVisible = ref(false)
+
+// 计算是否已登录
+const isLoggedIn = computed(() => !!userStore.token)
 
 const problem = ref({
   id: route.params.id,
@@ -192,6 +213,10 @@ onMounted(() => {
 
 .card-header h2 {
   margin: 0;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+  font-size: 28px;
+  font-weight: bold;
 }
 
 .section {
@@ -200,7 +225,9 @@ onMounted(() => {
 
 .section h3 {
   margin-bottom: 10px;
-  color: #333;
+  color: #fff;
+  text-shadow: 0 0 8px rgba(102, 126, 234, 0.4);
+  font-size: 20px;
 }
 
 .tags-section {
@@ -209,7 +236,9 @@ onMounted(() => {
 
 .tags-section h3 {
   margin-bottom: 10px;
-  color: #333;
+  color: #fff;
+  text-shadow: 0 0 8px rgba(102, 126, 234, 0.4);
+  font-size: 20px;
 }
 
 .tags-container {
@@ -221,5 +250,110 @@ onMounted(() => {
 .actions {
   margin-top: 30px;
   text-align: center;
+}
+
+/* Element Plus 卡片科技风格 */
+:deep(.el-card) {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+:deep(.el-card__header) {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+:deep(.el-descriptions) {
+  --el-descriptions-table-border-color: rgba(255, 255, 255, 0.1);
+}
+
+:deep(.el-descriptions__label) {
+  color: #fff;
+  background: rgba(102, 126, 234, 0.1);
+}
+
+:deep(.el-descriptions__content) {
+  color: #e0e0e0;
+}
+
+/* 按钮科技风格 */
+:deep(.el-button--primary) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+}
+
+:deep(.el-button--primary:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+:deep(.el-button--success) {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4);
+  transition: all 0.3s ease;
+}
+
+:deep(.el-button--success:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(56, 239, 125, 0.6);
+}
+
+/* 对话框样式 */
+:deep(.el-dialog) {
+  background: linear-gradient(135deg, rgba(15, 12, 41, 0.95) 0%, rgba(48, 43, 99, 0.95) 100%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+:deep(.el-dialog__title) {
+  color: #fff;
+  text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: #e0e0e0;
+}
+
+:deep(.el-dialog__headerbtn .el-dialog__close:hover) {
+  color: #667eea;
+}
+
+/* 表单样式 */
+:deep(.el-form-item__label) {
+  color: #e0e0e0;
+}
+
+:deep(.el-textarea__inner) {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  color: #e0e0e0;
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+:deep(.el-textarea__inner:focus) {
+  border-color: #667eea;
+  box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+}
+
+/* 警告框样式 */
+:deep(.el-alert) {
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+:deep(.el-alert__title) {
+  color: #fff;
+}
+
+:deep(.el-alert__description) {
+  color: #e0e0e0;
 }
 </style>

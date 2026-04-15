@@ -3,6 +3,7 @@ package com.ygoj.record.service;
 import com.ygoj.common.Result;
 import com.ygoj.record.Record;
 import com.ygoj.record.RecordDetail;
+import com.ygoj.record.RecordWithInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,11 @@ public interface RecordService {
     Result addRecord(Record record);
 
     List<Record> list(Long page, Long pageSize, Long contestId);
+    
+    /**
+     * 获取带题目名称和用户昵称的记录列表
+     */
+    List<RecordWithInfo> listWithInfo(Long page, Long pageSize, Long contestId);
     
     List<RecordDetail> getRecordDetails(Long recordId);
     

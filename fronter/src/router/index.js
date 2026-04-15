@@ -122,22 +122,9 @@ const router = createRouter({
   ]
 })
 
-// 路由守卫
+// 路由守卫 - 允许未登录访问，但提交等操作需要登录
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token')
-  
-  // 如果访问登录页或注册页，直接放行
-  if (to.path === '/login' || to.path === '/register') {
-    next()
-    return
-  }
-  
-  // 如果没有 token，跳转到登录页
-  if (!token) {
-    next('/login')
-    return
-  }
-  
+  // 所有页面都允许访问，登录检查在具体操作中处理
   next()
 })
 
