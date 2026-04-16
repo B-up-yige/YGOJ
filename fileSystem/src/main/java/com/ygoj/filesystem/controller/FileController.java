@@ -1,7 +1,6 @@
 package com.ygoj.filesystem.controller;
 
 import com.ygoj.common.Result;
-import com.ygoj.common.filter.Permission;
 import com.ygoj.filesystem.service.FileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +30,6 @@ public class FileController {
      * @return {@link Result}
      */
     @PostMapping("/file/upload")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "0", // 任意登录用户
-        message = "请先登录"
-    )
     public Result uploadFile(@RequestParam MultipartFile file) {
         log.info("文件上传请求, fileName: {}, size: {} bytes", 
                 file.getOriginalFilename(), file.getSize());
@@ -56,11 +50,6 @@ public class FileController {
      * @return {@link ResponseEntity}<{byte[]}>}
      */
     @GetMapping("/file/download/{fileId}")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "0", // 任意登录用户
-        message = "请先登录"
-    )
     public ResponseEntity<byte[]> downloadFile(@PathVariable String fileId) {
         log.info("文件下载请求, fileId: {}", fileId);
         try {
@@ -88,11 +77,6 @@ public class FileController {
      * @return {@link Result}
      */
     @DeleteMapping("/file/delete/{fileId}")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "0", // 任意登录用户
-        message = "请先登录"
-    )
     public Result deleteFile(@PathVariable String fileId) {
         log.info("文件删除请求, fileId: {}", fileId);
         try {

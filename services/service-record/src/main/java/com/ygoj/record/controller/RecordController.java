@@ -1,7 +1,6 @@
 package com.ygoj.record.controller;
 
 import com.ygoj.common.Result;
-import com.ygoj.common.filter.Permission;
 import com.ygoj.record.Record;
 import com.ygoj.record.feign.JudgerFeignClient;
 import com.ygoj.record.feign.ProblemFeignClient;
@@ -25,11 +24,6 @@ public class RecordController {
      * @return {@link Result}
      */
     @GetMapping("/recordinfo/{id}")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "7",
-        message = "您没有查看提交记录的权限"
-    )
     public Result getRecordInfo(@PathVariable Long id) {
         try {
             log.info("获取提交记录请求, recordId: {}", id);
@@ -59,11 +53,6 @@ public class RecordController {
      * @return {@link Result}
      */
     @PostMapping("/submit")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "1",
-        message = "您没有提交代码的权限"
-    )
     public Result addRecord(@RequestBody Record record) {
         try {
             log.info("提交代码请求, userId: {}, problemId: {}, language: {}", 
@@ -140,11 +129,6 @@ public class RecordController {
      * @return {@link Result}
      */
     @GetMapping("/recordinfo/{id}/details")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "7",
-        message = "您没有查看提交记录的权限"
-    )
     public Result getRecordDetails(@PathVariable Long id) {
         try {
             log.info("获取提交记录测试点详情, recordId: {}", id);
@@ -167,11 +151,6 @@ public class RecordController {
      * @return {@link Result}
      */
     @GetMapping("/statistics/{userId}")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "8",
-        message = "您没有查看排行榜的权限"
-    )
     public Result getUserStatistics(@PathVariable Long userId) {
         try {
             log.info("获取用户统计数据, userId: {}", userId);
@@ -195,11 +174,6 @@ public class RecordController {
      * @return {@link Result}
      */
     @GetMapping("/learning-curve/{userId}")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "8",
-        message = "您没有查看排行榜的权限"
-    )
     public Result getUserLearningCurve(@PathVariable Long userId, @RequestParam(required = false, defaultValue = "30") Integer days) {
         try {
             log.info("获取用户学习曲线数据, userId: {}, days: {}", userId, days);
@@ -222,11 +196,6 @@ public class RecordController {
      * @return {@link Result}
      */
     @GetMapping("/statistics/{userId}/by-tag")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "8",
-        message = "您没有查看排行榜的权限"
-    )
     public Result getUserStatsByTag(@PathVariable Long userId) {
         try {
             log.info("获取用户按标签统计数据, userId: {}", userId);
@@ -250,11 +219,6 @@ public class RecordController {
      * @return {@link Result}
      */
     @GetMapping("/contest-progress")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "11",
-        message = "您没有参加该比赛的权限"
-    )
     public Result getUserContestProgress(@RequestParam Long userId, @RequestParam Long contestId) {
         try {
             log.info("获取用户比赛过题情况, userId: {}, contestId: {}", userId, contestId);
@@ -273,11 +237,6 @@ public class RecordController {
      * @return {@link Result}
      */
     @GetMapping("/problemset-progress")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "14",
-        message = "您没有查看题集的权限"
-    )
     public Result getUserProblemsetProgress(@RequestParam Long userId, @RequestParam Long problemsetId) {
         try {
             log.info("获取用户题集过题情况, userId: {}, problemsetId: {}", userId, problemsetId);
@@ -295,11 +254,6 @@ public class RecordController {
      * @return {@link Result}
      */
     @PostMapping("/rejudge/{id}")
-    @Permission(
-        type = Permission.PermissionType.ROLE,
-        value = "ADMIN",
-        message = "只有管理员可以重测题目"
-    )
     public Result rejudge(@PathVariable Long id) {
         try {
             log.info("重测请求, recordId: {}", id);

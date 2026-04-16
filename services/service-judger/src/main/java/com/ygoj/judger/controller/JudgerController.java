@@ -1,7 +1,6 @@
 package com.ygoj.judger.controller;
 
 import com.ygoj.common.Result;
-import com.ygoj.common.filter.Permission;
 import com.ygoj.judger.sandbox.SandboxExecuteRequest;
 import com.ygoj.judger.service.JudgeService;
 import lombok.extern.slf4j.Slf4j;
@@ -20,11 +19,6 @@ public class JudgerController {
      * 判题接口（内部服务调用）
      */
     @PostMapping("/judge")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "1",
-        message = "您没有提交代码的权限"
-    )
     public Result judge(@RequestBody SandboxExecuteRequest sandboxExecuteRequest) {
         try {
             log.info("收到判题请求, recordId: {}, language: {}", 
@@ -53,3 +47,4 @@ public class JudgerController {
         }
     }
 }
+

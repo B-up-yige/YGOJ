@@ -2,7 +2,6 @@ package com.ygoj.user.controller;
 
 import cn.hutool.core.lang.Validator;
 import com.ygoj.common.Result;
-import com.ygoj.common.filter.Permission;
 import com.ygoj.user.Userinfo;
 import com.ygoj.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +24,6 @@ public class UserController {
      * @return {@link Result}
      */
     @PostMapping("/register")
-    @Permission(requireLogin = false)
     public Result register(@RequestBody Userinfo userinfo) {
         try {
             log.info("用户注册请求, username: {}, email: {}", userinfo.getUsername(), userinfo.getEmail());
@@ -102,7 +100,6 @@ public class UserController {
      * @return {@link Result}
      */
     @PostMapping("/login")
-    @Permission(requireLogin = false)
     public Result login(String loginStr, String password) {
         try {
             log.info("用户登录请求, loginStr: {}", loginStr);
@@ -137,11 +134,6 @@ public class UserController {
      * @return {@link Result}
      */
     @PostMapping("/logout")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "0", // 任何登录用户都可以注销
-        message = "请先登录"
-    )
     public Result logout(HttpServletRequest request) {
         try {
             String token = request.getHeader("Authorization");
@@ -167,11 +159,6 @@ public class UserController {
      * @return {@link Result}
      */
     @GetMapping("/userinfo/{id}")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "0", // 任意登录用户
-        message = "请先登录"
-    )
     public Result userinfo(@PathVariable("id") Long id) {
         try {
             log.info("获取用户信息请求, userId: {}", id);
@@ -198,11 +185,6 @@ public class UserController {
      * 通过token获取用户ID（需要登录）
      */
     @PostMapping("/userinfo")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "0", // 任意登录用户
-        message = "请先登录"
-    )
     public Result getUserIdByToken(@RequestBody Map<String, Object> json) {
         try {
             String token = (String) json.get("token");
@@ -229,11 +211,6 @@ public class UserController {
      * 获取所有用户列表（仅管理员）
      */
     @GetMapping("/admin/users")
-    @Permission(
-        type = Permission.PermissionType.ROLE,
-        value = "ADMIN",
-        message = "只有管理员可以查看用户列表"
-    )
     public Result getAllUsers(@RequestParam(defaultValue = "1") Long page,
                               @RequestParam(defaultValue = "10") Long pageSize) {
         try {
@@ -249,11 +226,6 @@ public class UserController {
      * 更新用户权限（仅管理员）
      */
     @PutMapping("/admin/user/permission")
-    @Permission(
-        type = Permission.PermissionType.ROLE,
-        value = "ADMIN",
-        message = "只有管理员可以修改用户权限"
-    )
     public Result updateUserPermission(@RequestBody Map<String, Object> params) {
         try {
             Long userId = Long.valueOf(params.get("userId").toString());
@@ -283,11 +255,6 @@ public class UserController {
      * 删除用户（仅管理员）
      */
     @DeleteMapping("/admin/user/{id}")
-    @Permission(
-        type = Permission.PermissionType.ROLE,
-        value = "ADMIN",
-        message = "只有管理员可以删除用户"
-    )
     public Result deleteUser(@PathVariable Long id) {
         try {
             log.info("管理员删除用户请求, userId: {}", id);

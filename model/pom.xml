@@ -67,12 +67,14 @@
             <artifactId>spring-data-redis</artifactId>
         </dependency>
 
-        <!-- Apache Shiro (Jakarta EE for Spring Boot 3) -->
+        <!-- Spring Security -->
         <dependency>
-            <groupId>org.apache.shiro</groupId>
-            <artifactId>shiro-spring-boot-starter</artifactId>
-            <classifier>jakarta</classifier>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+            <version>3.3.4</version>
         </dependency>
+
+
     </dependencies>
 
 </project>

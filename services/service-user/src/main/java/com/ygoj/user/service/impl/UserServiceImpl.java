@@ -1,11 +1,10 @@
 package com.ygoj.user.service.impl;
 
 import cn.hutool.core.lang.Validator;
-import cn.hutool.jwt.JWT;
-import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ygoj.common.Result;
+import com.ygoj.common.security.JwtUtils;
 import com.ygoj.user.mapper.UserinfoMapper;
 import com.ygoj.user.Userinfo;
 import com.ygoj.user.service.UserService;
@@ -28,6 +27,8 @@ public class UserServiceImpl implements UserService {
     private UserinfoMapper userinfoMapper;
     @Autowired
     private RedisTemplate redisTemplate;
+    @Autowired
+    private JwtUtils jwtUtils;
 
     /**
      * 注册新用户
@@ -133,22 +134,18 @@ public class UserServiceImpl implements UserService {
             if(userinfo != null){
                 log.info("登录验证成功, userId: {}", userinfo.getId());
                 String token = System.currentTimeMillis() + UUID.randomUUID().toString();
-                String jwt;
-
-                Map<String, Object>payload = new HashMap<>();
-                payload.put("username", userinfo.getUsername());
-                payload.put("userId", userinfo.getId());
-                payload.put("email", userinfo.getEmail());
                 
                 // 从数据库获取用户角色和权限
                 String role = userinfo.getRole() != null ? userinfo.getRole() : "USER";
                 Long permission = userinfo.getPermission() != null ? userinfo.getPermission() : 1L;
                 
-                payload.put("role", role);
-                payload.put("permission", permission);
-
-                //TODO：密钥从配置文件获取
-                jwt = JWTUtil.createToken(payload, "tes".getBytes());
+                // 使用 JwtUtils 生成 JWT
+                String jwt = jwtUtils.generateToken(
+                    userinfo.getId(),
+                    userinfo.getUsername(),
+                    role,
+                    permission
+                );
 
                 //设置redis缓存
                 redisTemplate.opsForValue().set(token, jwt, 7, TimeUnit.DAYS);
@@ -239,17 +236,19 @@ public class UserServiceImpl implements UserService {
                 throw new IllegalArgumentException("Token不能为空");
             }
             
-            String JWTstr = (String) redisTemplate.opsForValue().getAndExpire(token, 7, TimeUnit.DAYS);
-
-            if(JWTstr == null || JWTstr.isBlank()){
+            // 使用 JwtUtils 解析 token
+            Long userId = jwtUtils.getUserIdFromToken(token);
+            
+            if (userId == null) {
                 log.warn("Token无效或已过期");
                 return null;
             }
-
-            JWT jwt = JWTUtil.parseToken(JWTstr);
-            Map<String, Object> payload = jwt.getPayloads();
-
-            Long userId = ((Number) payload.get("userId")).longValue();
+            
+            // 刷新 Token 过期时间
+            if (Boolean.TRUE.equals(redisTemplate.hasKey(token))) {
+                redisTemplate.expire(token, 7, TimeUnit.DAYS);
+            }
+            
             log.debug("解析token成功, userId: {}", userId);
             return userId;
         } catch (IllegalArgumentException e) {
