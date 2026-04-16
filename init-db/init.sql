@@ -50,9 +50,10 @@ CREATE TABLE `userinfo`  (
 -- 初始化管理员账号
 -- ----------------------------
 -- 默认管理员账号: admin / Admin@123456
+-- 密码使用MD5加密: MD5("Admin@123456") = "0f2797f2182804d0cc7f0b85d254c146"
 -- 权限值说明: 65535 = 所有权限位都设置为1 (二进制: 11111111111111111)
 INSERT INTO `userinfo` (`username`, `nickname`, `password`, `email`, `role`, `permission`) 
-VALUES ('admin', '系统管理员', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'admin@ygoj.com', 'ADMIN', 65535)
+VALUES ('admin', '系统管理员', '0f2797f2182804d0cc7f0b85d254c146', 'admin@ygoj.com', 'ADMIN', 65535)
 ON DUPLICATE KEY UPDATE `role` = 'ADMIN', `permission` = 65535;
 
 SET FOREIGN_KEY_CHECKS = 1;

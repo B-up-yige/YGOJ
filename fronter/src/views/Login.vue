@@ -85,7 +85,13 @@ const handleLogin = async () => {
             const userInfoRes = await getUserinfo(userId)
             if (userInfoRes.data) {
               userStore.setUserInfo(userInfoRes.data)
+              // 保存用户权限信息
+              const role = userInfoRes.data.role || 'USER'
+              const permission = userInfoRes.data.permission || 3
+              userStore.setUserAuth(role, permission)
               console.log('登录成功后获取到用户信息:', userInfoRes.data)
+              console.log('用户角色:', role)
+              console.log('用户权限:', permission)
             }
           } catch (err) {
             console.error('获取用户信息失败:', err)
