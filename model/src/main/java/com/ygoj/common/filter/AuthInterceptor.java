@@ -5,6 +5,9 @@ import cn.hutool.jwt.JWTUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -12,6 +15,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 权限拦截器，验证用户是否有访问接口的权限
@@ -20,7 +24,10 @@ import java.util.Set;
  * @date 2026/02/11 12:18
  */
 @Slf4j
+@Component
 public class AuthInterceptor implements HandlerInterceptor {
+    @Autowired
+    private RedisTemplate redisTemplate;
     
     @Override
     public boolean preHandle(HttpServletRequest request,
@@ -72,10 +79,25 @@ public class AuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        // 从 Redis 中获取 JWT
+        String jwtString = (String) redisTemplate.opsForValue().get(token);
+        if (jwtString == null || jwtString.isEmpty()) {
+            log.warn("Token已过期或无效, token: {}, uri: {}", token, request.getRequestURI());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"code\":401,\"message\":\"Token无效或已过期\"}");
+            return false;
+        }
+        
+        // 刷新Token过期时间（续期）
+        redisTemplate.expire(token, 7, TimeUnit.DAYS);
+        
+        log.debug("从Redis获取到JWT, token: {}", token);
+
         // 解析JWT
         JWT jwt;
         try {
-            jwt = JWTUtil.parseToken(token);
+            jwt = JWTUtil.parseToken(jwtString);
         } catch (Exception e) {
             log.warn("Token解析失败: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
