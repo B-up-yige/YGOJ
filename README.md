@@ -7,6 +7,157 @@
 
 数据库: mysql5.7.40
 
+## 权限系统
+
+### 概述
+
+YGOJ 采用基于 JWT + 拦截器的权限控制系统，支持三种权限验证模式：
+
+1. **角色权限（ROLE）**：基于用户角色的粗粒度控制（USER, ADMIN, CONTEST_ADMIN等）
+2. **位运算权限（BIT）**：基于二进制位的细粒度控制（查看题目、提交代码、创建题目等）
+3. **自定义权限（CUSTOM）**：基于字符串标识的灵活控制（problem:create, contest:manage等）
+
+### 核心组件
+
+- **Permission 注解**：标记在 Controller 方法或类上，定义访问权限要求
+- **AuthInterceptor 拦截器**：自动拦截请求，验证用户权限
+- **PermissionConstants 常量类**：预定义所有角色和权限常量
+
+### 使用示例
+
+```java
+// 角色权限：仅管理员可访问
+@Permission(
+    type = Permission.PermissionType.ROLE, 
+    value = PermissionConstants.ROLE_ADMIN
+)
+@GetMapping("/admin/users")
+public Result listUsers() { ... }
+
+// 位运算权限：需要"查看题目"权限
+@Permission(
+    type = Permission.PermissionType.BIT, 
+    value = String.valueOf(PermissionConstants.PERM_PROBLEM_VIEW)
+)
+@GetMapping("/problem/{id}")
+public Result getProblem(@PathVariable Long id) { ... }
+
+// 多权限OR逻辑：创建或编辑题目
+@Permission(
+    type = Permission.PermissionType.BIT,
+    value = String.valueOf(PermissionConstants.PERM_PROBLEM_CREATE),
+    extra = {String.valueOf(PermissionConstants.PERM_PROBLEM_EDIT)},
+    logical = Permission.Logical.OR
+)
+@PostMapping("/problem/save")
+public Result saveProblem(@RequestBody Problem problem) { ... }
+
+// 公开接口：无需登录
+@Permission(requireLogin = false)
+@GetMapping("/public/info")
+public Result getPublicInfo() { ... }
+```
+
+### 权限常量说明
+
+**角色常量：**
+- `ROLE_USER` - 普通用户
+- `ROLE_ADMIN` - 系统管理员
+- `ROLE_CONTEST_ADMIN` - 比赛管理员
+- `ROLE_PROBLEM_ADMIN` - 题目管理员
+
+**常用位运算权限：**
+- `PERM_PROBLEM_VIEW (0)` - 查看题目
+- `PERM_PROBLEM_SUBMIT (1)` - 提交代码
+- `PERM_PROBLEM_CREATE (2)` - 创建题目
+- `PERM_PROBLEM_EDIT (3)` - 编辑题目
+- `PERM_CONTEST_JOIN (11)` - 参加比赛
+- `PERM_USER_MANAGE (15)` - 用户管理
+
+**权限值计算：**
+```java
+// 普通用户：查看题目 + 提交代码 = 1 + 2 = 3
+long permission = (1 << 0) | (1 << 1);  // = 3
+
+// 题目管理员：所有题目相关权限 = 63
+long permission = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5);
+```
+
+### 数据库配置
+
+用户信息表（userinfo）包含以下权限字段：
+
+```sql
+-- 用户角色（默认 USER）
+role VARCHAR(50) DEFAULT 'USER'
+
+-- 位运算权限值（默认 3 = 查看题目 + 提交代码）
+permission BIGINT DEFAULT 3
+```
+
+**设置用户权限示例：**
+```sql
+-- 设置普通用户
+UPDATE userinfo SET role = 'USER', permission = 3 WHERE id = ?;
+
+-- 设置题目管理员
+UPDATE userinfo SET role = 'PROBLEM_ADMIN', permission = 63 WHERE id = ?;
+
+-- 设置超级管理员（所有权限）
+UPDATE userinfo SET role = 'ADMIN', permission = 131071 WHERE id = ?;
+```
+
+### JWT Token 结构
+
+登录成功后，JWT payload 包含：
+```json
+{
+  "username": "testuser",
+  "userId": 1,
+  "email": "test@example.com",
+  "role": "USER",
+  "permission": 3
+}
+```
+
+### 前端调用
+
+```javascript
+// 登录获取 token
+const response = await axios.post('/api/user/login', {
+  loginStr: 'username',
+  password: 'password'
+});
+const token = response.data.data;
+
+// 后续请求携带 token
+axios.get('/api/problem/1', {
+  headers: {
+    'Authorization': token  // 或 'Bearer ' + token
+  }
+});
+```
+
+### 错误响应
+
+- **401 未授权**：未登录或 Token 无效
+- **403 权限不足**：已登录但权限不够
+
+```json
+{
+  "code": 403,
+  "message": "您没有查看题目的权限"
+}
+```
+
+### 注意事项
+
+1. 新用户注册后需要在数据库中手动设置 role 和 permission
+2. 修改用户权限后，用户需要重新登录才能生效
+3. Token 默认有效期为 7 天
+4. 推荐使用 `Authorization: Bearer <token>` 格式传递 Token
+5. 详细文档参见：`model/src/main/java/com/ygoj/common/filter/PermissionUsageExample.java`
+
 ## Docker 部署
 
 ### 架构说明

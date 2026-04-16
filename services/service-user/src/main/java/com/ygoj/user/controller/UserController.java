@@ -20,11 +20,12 @@ public class UserController {
     private UserService userService;
 
     /**
-     * 用户注册接口
+     * 用户注册接口（公开访问）
      * @param userinfo 注册用户信息
      * @return {@link Result}
      */
     @PostMapping("/register")
+    @Permission(requireLogin = false)
     public Result register(@RequestBody Userinfo userinfo) {
         try {
             log.info("用户注册请求, username: {}, email: {}", userinfo.getUsername(), userinfo.getEmail());
@@ -94,13 +95,14 @@ public class UserController {
     }
 
     /**
-     * 登录功能接口
+     * 登录功能接口（公开访问）
      *
      * @param loginStr 登录str（用户名称或邮箱）
      * @param password 密码
      * @return {@link Result}
      */
     @PostMapping("/login")
+    @Permission(requireLogin = false)
     public Result login(String loginStr, String password) {
         try {
             log.info("用户登录请求, loginStr: {}", loginStr);
@@ -135,7 +137,11 @@ public class UserController {
      * @return {@link Result}
      */
     @PostMapping("/logout")
-    @Permission(auth = 0)
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "0", // 任何登录用户都可以注销
+        message = "请先登录"
+    )
     public Result logout(HttpServletRequest request) {
         try {
             String token = request.getHeader("Authorization");
@@ -155,12 +161,17 @@ public class UserController {
     }
 
     /**
-     * 根据id获取用户信息
+     * 根据id获取用户信息（需要登录）
      *
      * @param id 用户id
      * @return {@link Result}
      */
     @GetMapping("/userinfo/{id}")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "0", // 任意登录用户
+        message = "请先登录"
+    )
     public Result userinfo(@PathVariable("id") Long id) {
         try {
             log.info("获取用户信息请求, userId: {}", id);
@@ -183,7 +194,15 @@ public class UserController {
         }
     }
 
+    /**
+     * 通过token获取用户ID（需要登录）
+     */
     @PostMapping("/userinfo")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "0", // 任意登录用户
+        message = "请先登录"
+    )
     public Result getUserIdByToken(@RequestBody Map<String, Object> json) {
         try {
             String token = (String) json.get("token");

@@ -1,6 +1,7 @@
 package com.ygoj.problem.controller;
 
 import com.ygoj.common.Result;
+import com.ygoj.common.filter.Permission;
 import com.ygoj.problem.Contest;
 import com.ygoj.problem.ContestProblem;
 import com.ygoj.problem.Probleminfo;
@@ -25,9 +26,14 @@ public class ContestController {
     private ProblemService problemService;
 
     /**
-     * 获取比赛列表
+     * 获取比赛列表（公开访问）
      */
     @GetMapping("/list")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "14",
+        message = "您没有查看比赛的权限"
+    )
     public Result list(@RequestParam(defaultValue = "1") Long page,
                        @RequestParam(defaultValue = "10") Long pageSize,
                        @RequestParam(required = false) String title) {
@@ -42,9 +48,14 @@ public class ContestController {
     }
 
     /**
-     * 获取比赛详情
+     * 获取比赛详情（公开访问）
      */
     @GetMapping("/{id}")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "14",
+        message = "您没有查看比赛的权限"
+    )
     public Result getContestById(@PathVariable Long id) {
         try {
             log.info("获取比赛详情请求, contestId: {}", id);
@@ -60,9 +71,14 @@ public class ContestController {
     }
 
     /**
-     * 创建比赛
+     * 创建比赛（需要创建比赛权限）
      */
     @PostMapping("/add")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "9",
+        message = "您没有创建比赛的权限"
+    )
     public Result addContest(@RequestBody Contest contest) {
         try {
             log.info("创建比赛请求, title: {}", contest.getTitle());
@@ -87,9 +103,14 @@ public class ContestController {
     }
 
     /**
-     * 编辑比赛
+     * 编辑比赛（需要管理比赛权限）
      */
     @PutMapping("/edit")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "10",
+        message = "您没有管理比赛的权限"
+    )
     public Result editContest(@RequestBody Contest contest) {
         try {
             log.info("编辑比赛请求, contestId: {}", contest.getId());
@@ -108,9 +129,14 @@ public class ContestController {
     }
 
     /**
-     * 删除比赛
+     * 删除比赛（需要管理比赛权限）
      */
     @DeleteMapping("/del/{id}")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "10",
+        message = "您没有管理比赛的权限"
+    )
     public Result delContest(@PathVariable Long id) {
         try {
             log.info("删除比赛请求, contestId: {}", id);
@@ -124,9 +150,14 @@ public class ContestController {
     }
 
     /**
-     * 添加比赛题目
+     * 添加比赛题目（需要管理比赛权限）
      */
     @PostMapping("/problem/add")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "10",
+        message = "您没有管理比赛的权限"
+    )
     public Result addContestProblem(@RequestBody ContestProblem contestProblem) {
         try {
             log.info("添加比赛题目请求, contestId: {}, problemId: {}", 
@@ -146,9 +177,14 @@ public class ContestController {
     }
 
     /**
-     * 删除比赛题目
+     * 删除比赛题目（需要管理比赛权限）
      */
     @DeleteMapping("/problem/del")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "10",
+        message = "您没有管理比赛的权限"
+    )
     public Result delContestProblem(@RequestParam Long contestId,
                                      @RequestParam Long problemId) {
         try {
@@ -163,9 +199,14 @@ public class ContestController {
     }
 
     /**
-     * 获取比赛的题目列表
+     * 获取比赛的题目列表（需要参加比赛权限 + 时间验证）
      */
     @GetMapping("/{id}/problems")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "11",
+        message = "您没有参加该比赛的权限"
+    )
     public Result getContestProblems(@PathVariable Long id) {
         try {
             log.info("获取比赛题目列表请求, contestId: {}", id);
@@ -178,9 +219,14 @@ public class ContestController {
     }
     
     /**
-     * 获取比赛中的题目详情（带时间验证）
+     * 获取比赛中的题目详情（带时间验证，需要参加比赛权限）
      */
     @GetMapping("/{contestId}/problem/{problemId}")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "11",
+        message = "您没有参加该比赛的权限"
+    )
     public Result getContestProblemDetail(@PathVariable Long contestId, @PathVariable Long problemId) {
         try {
             log.info("获取比赛题目详情请求, contestId: {}, problemId: {}", contestId, problemId);

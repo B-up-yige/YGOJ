@@ -1,6 +1,7 @@
 package com.ygoj.problem.controller;
 
 import com.ygoj.common.Result;
+import com.ygoj.common.filter.Permission;
 import com.ygoj.problem.Probleminfo;
 import com.ygoj.problem.Tag;
 import com.ygoj.problem.Testcase;
@@ -23,12 +24,17 @@ public class ProblemController {
     FileSystemFeignClient fileSystemFeignClient;
 
     /**
-     * 获取题目信息
+     * 获取题目信息（公开访问）
      *
      * @param id 题目id
      * @return {@link Result}
      */
     @GetMapping("/probleminfo/{id}")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "0",
+        message = "您没有查看题目的权限"
+    )
     public Result getProblemInfo(@PathVariable("id") Long id) {
         try {
             log.info("获取题目信息请求, problemId: {}", id);
@@ -46,12 +52,17 @@ public class ProblemController {
     }
 
     /**
-     * 添加题目
+     * 添加题目（需要创建题目权限）
      *
      * @param probleminfo 题目信息
      * @return {@link Result}
      */
     @PostMapping("/add")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "2",
+        message = "您没有创建题目的权限"
+    )
     public Result addProblem(@RequestBody Probleminfo probleminfo) {
         try {
             log.info("添加题目请求, title: {}, authorId: {}", probleminfo.getTitle(), probleminfo.getAuthorId());
@@ -74,12 +85,17 @@ public class ProblemController {
     }
 
     /**
-     * 编辑题目信息
+     * 编辑题目信息（需要编辑题目权限）
      *
      * @param probleminfo 题目信息
      * @return {@link Result}
      */
     @PutMapping("/edit")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "3",
+        message = "您没有编辑题目的权限"
+    )
     public Result editProblem(@RequestBody Probleminfo probleminfo) {
         try {
             log.info("编辑题目请求, problemId: {}", probleminfo.getId());
@@ -98,12 +114,17 @@ public class ProblemController {
     }
 
     /**
-     * 删除题目
+     * 删除题目（需要删除题目权限）
      *
      * @param id 题目id
      * @return {@link Result}
      */
     @DeleteMapping("/del/{id}")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "4",
+        message = "您没有删除题目的权限"
+    )
     public Result delProblemInfo(@PathVariable("id") Long id) {
         try {
             log.info("删除题目请求, problemId: {}", id);
@@ -116,7 +137,15 @@ public class ProblemController {
         }
     }
 
+    /**
+     * 获取题目列表（公开访问）
+     */
     @GetMapping("/list")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "0",
+        message = "您没有查看题目的权限"
+    )
     public Result list(@RequestParam(required = false, defaultValue = "1") Long page,
                        @RequestParam(required = false, defaultValue = "10") Long pageSize,
                        @RequestParam(required = false) String title,
@@ -139,7 +168,15 @@ public class ProblemController {
         }
     }
 
+    /**
+     * 添加测试用例（需要编辑题目权限）
+     */
     @PostMapping("/addTestCase")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "3",
+        message = "您没有编辑题目的权限"
+    )
     public Result addTestCase(@RequestParam Long problemId,
                               @RequestParam MultipartFile input, @RequestParam MultipartFile output) {
         try {
@@ -191,7 +228,15 @@ public class ProblemController {
         }
     }
 
+    /**
+     * 删除测试用例（需要编辑题目权限）
+     */
     @DeleteMapping("/delTestCase")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "3",
+        message = "您没有编辑题目的权限"
+    )
     public Result delTestCase(@RequestBody Testcase testcase) {
         try {
             log.info("删除测试用例请求, testcaseId: {}", testcase.getId());
@@ -218,7 +263,15 @@ public class ProblemController {
         }
     }
 
+    /**
+     * 获取测试用例列表（需要查看题目权限）
+     */
     @GetMapping("/getTestCase")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "0",
+        message = "您没有查看题目的权限"
+    )
     public Result getTestCase(@RequestParam Long problemId) {
         try {
             log.debug("获取测试用例列表, problemId: {}", problemId);
@@ -234,7 +287,15 @@ public class ProblemController {
         }
     }
 
+    /**
+     * 获取题目标签（需要查看题目权限）
+     */
     @GetMapping("/probleminfo/{id}/tag")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "0",
+        message = "您没有查看题目的权限"
+    )
     public Result getTag(@PathVariable("id") Long id) {
         try {
             log.debug("获取题目标签, problemId: {}", id);
@@ -250,7 +311,15 @@ public class ProblemController {
         }
     }
 
+    /**
+     * 添加题目标签（需要编辑题目权限）
+     */
     @PostMapping("/probleminfo/{id}/addTag")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "3",
+        message = "您没有编辑题目的权限"
+    )
     public Result addTag(@PathVariable("id") Long id, @RequestBody String tagName) {
         log.info("添加题目标签请求, problemId: {}, tag: {}", id, tagName);
         //检验数据
@@ -285,7 +354,15 @@ public class ProblemController {
         return Result.success();
     }
 
+    /**
+     * 删除题目标签（需要编辑题目权限）
+     */
     @DeleteMapping("/probleminfo/{id}/delTag")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "3",
+        message = "您没有编辑题目的权限"
+    )
     public Result delTag(@PathVariable("id") Long id, @RequestBody String tagName) {
         try {
             log.info("删除题目标签请求, problemId: {}, tag: {}", id, tagName);

@@ -137,15 +137,21 @@ public class UserServiceImpl implements UserService {
                 payload.put("username", userinfo.getUsername());
                 payload.put("userId", userinfo.getId());
                 payload.put("email", userinfo.getEmail());
-                //TODO:用户权限从数据库获取
-                payload.put("permission", 1);
+                
+                // 从数据库获取用户角色和权限
+                String role = userinfo.getRole() != null ? userinfo.getRole() : "USER";
+                Long permission = userinfo.getPermission() != null ? userinfo.getPermission() : 1L;
+                
+                payload.put("role", role);
+                payload.put("permission", permission);
 
                 //TODO：密钥从配置文件获取
                 jwt = JWTUtil.createToken(payload, "tes".getBytes());
 
                 //设置redis缓存
                 redisTemplate.opsForValue().set(token, jwt, 7, TimeUnit.DAYS);
-                log.debug("生成token并缓存到Redis, userId: {}", userinfo.getId());
+                log.debug("生成token并缓存到Redis, userId: {}, role: {}, permission: {}", 
+                    userinfo.getId(), role, permission);
 
                 userinfo.setPassword(token);
             } else {

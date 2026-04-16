@@ -1,6 +1,7 @@
 package com.ygoj.problem.controller;
 
 import com.ygoj.common.Result;
+import com.ygoj.common.filter.Permission;
 import com.ygoj.problem.Problemset;
 import com.ygoj.problem.ProblemsetProblem;
 import com.ygoj.problem.service.ProblemsetService;
@@ -19,9 +20,14 @@ public class ProblemsetController {
     private ProblemsetService problemsetService;
 
     /**
-     * 获取题集列表
+     * 获取题集列表（公开访问）
      */
     @GetMapping("/list")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "14",
+        message = "您没有查看题集的权限"
+    )
     public Result list(@RequestParam(defaultValue = "1") Long page,
                        @RequestParam(defaultValue = "10") Long pageSize,
                        @RequestParam(required = false) String title) {
@@ -36,9 +42,14 @@ public class ProblemsetController {
     }
 
     /**
-     * 获取题集详情
+     * 获取题集详情（公开访问）
      */
     @GetMapping("/{id}")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "14",
+        message = "您没有查看题集的权限"
+    )
     public Result getProblemsetById(@PathVariable Long id) {
         try {
             log.info("获取题集详情请求, problemsetId: {}", id);
@@ -54,9 +65,14 @@ public class ProblemsetController {
     }
 
     /**
-     * 创建题集
+     * 创建题集（需要创建题集权限）
      */
     @PostMapping("/add")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "12",
+        message = "您没有创建题集的权限"
+    )
     public Result addProblemset(@RequestBody Problemset problemset) {
         try {
             log.info("创建题集请求, title: {}", problemset.getTitle());
@@ -78,9 +94,14 @@ public class ProblemsetController {
     }
 
     /**
-     * 编辑题集
+     * 编辑题集（需要管理题集权限）
      */
     @PutMapping("/edit")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "13",
+        message = "您没有管理题集的权限"
+    )
     public Result editProblemset(@RequestBody Problemset problemset) {
         try {
             log.info("编辑题集请求, problemsetId: {}", problemset.getId());
@@ -99,9 +120,14 @@ public class ProblemsetController {
     }
 
     /**
-     * 删除题集
+     * 删除题集（需要管理题集权限）
      */
     @DeleteMapping("/del/{id}")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "13",
+        message = "您没有管理题集的权限"
+    )
     public Result delProblemset(@PathVariable Long id) {
         try {
             log.info("删除题集请求, problemsetId: {}", id);
@@ -115,9 +141,14 @@ public class ProblemsetController {
     }
 
     /**
-     * 添加题集题目
+     * 添加题集题目（需要管理题集权限）
      */
     @PostMapping("/problem/add")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "13",
+        message = "您没有管理题集的权限"
+    )
     public Result addProblemsetProblem(@RequestBody ProblemsetProblem problemsetProblem) {
         try {
             log.info("添加题集题目请求, problemsetId: {}, problemId: {}", 
@@ -137,9 +168,14 @@ public class ProblemsetController {
     }
 
     /**
-     * 删除题集题目
+     * 删除题集题目（需要管理题集权限）
      */
     @DeleteMapping("/problem/del")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "13",
+        message = "您没有管理题集的权限"
+    )
     public Result delProblemsetProblem(@RequestParam Long problemsetId,
                                         @RequestParam Long problemId) {
         try {
@@ -154,9 +190,14 @@ public class ProblemsetController {
     }
 
     /**
-     * 获取题集的题目列表
+     * 获取题集的题目列表（需要查看题集权限）
      */
     @GetMapping("/{id}/problems")
+    @Permission(
+        type = Permission.PermissionType.BIT,
+        value = "14",
+        message = "您没有查看题集的权限"
+    )
     public Result getProblemsetProblems(@PathVariable Long id) {
         try {
             log.info("获取题集题目列表请求, problemsetId: {}", id);

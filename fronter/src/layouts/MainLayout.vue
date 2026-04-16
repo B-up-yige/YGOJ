@@ -164,8 +164,16 @@ const loadUserInfo = async () => {
     const userInfoRes = await getUserinfo(userId)
     if (userInfoRes.data) {
       userStore.setUserInfo(userInfoRes.data)
+      // 保存用户权限信息（从 JWT 中解析）
+      // 注意：这里需要从后端 API 获取用户的 role 和 permission
+      // 暂时使用默认值，后续可以添加专门的接口获取用户权限
+      const role = userInfoRes.data.role || 'USER'
+      const permission = userInfoRes.data.permission || 3
+      userStore.setUserAuth(role, permission)
       console.log('获取到用户信息:', userInfoRes.data)
       console.log('用户昵称:', userInfoRes.data.nickname)
+      console.log('用户角色:', role)
+      console.log('用户权限:', permission)
     }
   } catch (error) {
     console.error('加载用户信息失败:', error)
