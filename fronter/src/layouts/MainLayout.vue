@@ -37,6 +37,15 @@
         </el-menu-item>
       </el-menu>
       <div class="user-actions">
+        <!-- 主题切换按钮 -->
+        <el-button 
+          class="theme-toggle" 
+          @click="toggleTheme"
+          :title="isDarkMode ? '切换到亮色模式' : '切换到暗色模式'"
+        >
+          <el-icon><component :is="isDarkMode ? Sunny : Moon" /></el-icon>
+        </el-button>
+        
         <el-dropdown v-if="isLoggedIn" trigger="click">
           <div class="user-profile">
             <div class="avatar">{{ currentUser?.nickname?.charAt(0) || 'U' }}</div>
@@ -73,7 +82,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { House, Document, Trophy, Collection, List, ArrowDown, User, SwitchButton } from '@element-plus/icons-vue'
+import { House, Document, Trophy, Collection, List, ArrowDown, User, SwitchButton, Sunny, Moon } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { getUserIdByToken, getUserinfo } from '@/api/user'
 
@@ -83,6 +92,35 @@ const userStore = useUserStore()
 
 const isLoggedIn = computed(() => !!userStore.token)
 const currentUser = computed(() => userStore.userInfo)
+
+// 主题切换
+const isDarkMode = ref(false)
+
+const toggleTheme = () => {
+  isDarkMode.value = !isDarkMode.value
+  updateTheme()
+}
+
+const updateTheme = () => {
+  if (isDarkMode.value) {
+    document.documentElement.classList.add('dark')
+    document.documentElement.setAttribute('data-theme', 'dark')
+    localStorage.setItem('theme', 'dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+    document.documentElement.removeAttribute('data-theme')
+    localStorage.setItem('theme', 'light')
+  }
+}
+
+// 初始化主题
+const initTheme = () => {
+  const savedTheme = localStorage.getItem('theme')
+  if (savedTheme === 'dark') {
+    isDarkMode.value = true
+    updateTheme()
+  }
+}
 
 console.log('当前是否登录:', isLoggedIn.value)
 console.log('当前用户信息:', currentUser.value)
@@ -168,6 +206,7 @@ const handleMenuSelect = (index) => {
 }
 
 onMounted(() => {
+  initTheme()
   loadUserInfo()
 })
 </script>
@@ -275,6 +314,35 @@ onMounted(() => {
 /* User Actions */
 .user-actions {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle:hover {
+  background: rgba(37, 99, 235, 0.04);
+  border-color: var(--color-primary-light);
+  color: var(--color-primary);
+  transform: rotate(15deg);
+}
+
+.theme-toggle .el-icon {
+  font-size: 1.25rem;
 }
 
 /* User Profile */

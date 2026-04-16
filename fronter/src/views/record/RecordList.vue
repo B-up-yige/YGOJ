@@ -210,29 +210,29 @@ onMounted(() => {
 <style scoped>
 .record-list {
   padding: 24px;
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 .record-list h2 {
   margin-bottom: 24px;
-  color: #303133;
+  color: var(--color-text-primary);
   font-size: 24px;
   font-weight: 600;
 }
 
 /* Element Plus 表格样式优化 */
 :deep(.el-table) {
-  --el-table-border-color: #e4e7ed;
-  --el-table-text-color: #606266;
-  --el-table-header-text-color: #303133;
-  --el-table-row-hover-bg-color: #f5f7fa;
+  --el-table-border-color: var(--color-border);
+  --el-table-text-color: var(--color-text-secondary);
+  --el-table-header-text-color: var(--color-text-primary);
+  --el-table-row-hover-bg-color: rgba(37, 99, 235, 0.04);
 }
 
 :deep(.el-table th) {
-  background-color: #f5f7fa;
-  color: #303133;
+  background-color: rgba(0, 0, 0, 0.02);
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 

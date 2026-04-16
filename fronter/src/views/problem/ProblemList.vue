@@ -168,7 +168,7 @@ onMounted(() => {
 }
 
 :deep(.el-table th) {
-  background: linear-gradient(to bottom, #fafafa, #f5f5f5);
+  background-color: rgba(0, 0, 0, 0.02);
   color: var(--color-text-primary);
   font-weight: 600;
   padding: 16px 0;
