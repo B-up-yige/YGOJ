@@ -19,12 +19,11 @@ public class RecordController {
     private RecordService recordService;
 
     /**
-     * 获取提交记录信息(需要登录)
+     * 获取提交记录信息(公开访问)
      *
      * @param id 提交记录id
      * @return {@link Result}
      */
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/recordinfo/{id}")
     public Result getRecordInfo(@PathVariable Long id) {
         try {
@@ -86,7 +85,7 @@ public class RecordController {
     }
 
     /**
-     * 分页获取提交列表(需要登录)
+     * 分页获取提交列表(公开访问)
      *
      * @param page           页面
      * @param pageSize       页面大小
@@ -97,7 +96,6 @@ public class RecordController {
      * @param mySubmissions  是否只看我的提交(可选)
      * @return {@link Result}
      */
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/list")
     public Result list(@RequestParam(required = false) Long page,
                        @RequestParam(required = false) Long pageSize,
@@ -127,12 +125,11 @@ public class RecordController {
     }
     
     /**
-     * 获取提交记录的测试点详情(需要登录)
+     * 获取提交记录的测试点详情(公开访问)
      *
      * @param id 提交记录id
      * @return {@link Result}
      */
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/recordinfo/{id}/details")
     public Result getRecordDetails(@PathVariable Long id) {
         try {
@@ -150,12 +147,11 @@ public class RecordController {
     }
     
     /**
-     * 获取用户统计数据(需要登录 - 可查看自己的或公开的)
+     * 获取用户统计数据(公开访问)
      *
      * @param userId 用户ID
      * @return {@link Result}
      */
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/statistics/{userId}")
     public Result getUserStatistics(@PathVariable Long userId) {
         try {
@@ -173,13 +169,12 @@ public class RecordController {
     }
     
     /**
-     * 获取用户学习曲线数据(需要登录)
+     * 获取用户学习曲线数据(公开访问)
      *
      * @param userId 用户ID
      * @param days   天数(默认30天)
      * @return {@link Result}
      */
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/learning-curve/{userId}")
     public Result getUserLearningCurve(@PathVariable Long userId, @RequestParam(required = false, defaultValue = "30") Integer days) {
         try {
@@ -197,12 +192,11 @@ public class RecordController {
     }
     
     /**
-     * 获取用户按标签统计的数据(需要登录)
+     * 获取用户按标签统计的数据(公开访问)
      *
      * @param userId 用户ID
      * @return {@link Result}
      */
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/statistics/{userId}/by-tag")
     public Result getUserStatsByTag(@PathVariable Long userId) {
         try {
@@ -220,13 +214,12 @@ public class RecordController {
     }
     
     /**
-     * 获取用户在比赛中的过题情况(需要登录)
+     * 获取用户在比赛中的过题情况(公开访问)
      *
      * @param userId 用户ID
      * @param contestId 比赛ID
      * @return {@link Result}
      */
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/contest-progress")
     public Result getUserContestProgress(@RequestParam Long userId, @RequestParam Long contestId) {
         try {
@@ -239,13 +232,12 @@ public class RecordController {
     }
     
     /**
-     * 获取用户在题集中的过题情况(需要登录)
+     * 获取用户在题集中的过题情况(公开访问)
      *
      * @param userId 用户ID
      * @param problemsetId 题集ID
      * @return {@link Result}
      */
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/problemset-progress")
     public Result getUserProblemsetProgress(@RequestParam Long userId, @RequestParam Long problemsetId) {
         try {
