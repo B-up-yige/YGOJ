@@ -141,11 +141,6 @@ public class ProblemController {
      * 获取题目列表（公开访问）
      */
     @GetMapping("/list")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "0",
-        message = "您没有查看题目的权限"
-    )
     public Result list(@RequestParam(required = false, defaultValue = "1") Long page,
                        @RequestParam(required = false, defaultValue = "10") Long pageSize,
                        @RequestParam(required = false) String title,
