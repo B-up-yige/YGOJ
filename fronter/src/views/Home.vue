@@ -21,11 +21,19 @@
               <el-icon><Document /></el-icon>
               <span>浏览题目</span>
             </button>
-            <button @click="goToRecords" class="action-btn action-btn-success">
+            <button @click="goToContests" class="action-btn action-btn-success">
+              <el-icon><Trophy /></el-icon>
+              <span>浏览比赛</span>
+            </button>
+            <button @click="goToProblemsets" class="action-btn action-btn-warning">
+              <el-icon><Collection /></el-icon>
+              <span>浏览题集</span>
+            </button>
+            <button @click="goToRecords" class="action-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
               <el-icon><List /></el-icon>
               <span>查看提交</span>
             </button>
-            <button @click="createProblem" class="action-btn action-btn-warning">
+            <button v-if="isAdmin" @click="createProblem" class="action-btn" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">
               <el-icon><Plus /></el-icon>
               <span>创建题目</span>
             </button>
@@ -90,6 +98,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getRecordList } from '@/api/record'
+import { Trophy, Collection, Document, List, Plus, Operation, TrendCharts, Bell } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -127,6 +136,14 @@ const getStatusText = (status) => {
 
 const goToProblems = () => {
   router.push('/problems')
+}
+
+const goToContests = () => {
+  router.push('/contests')
+}
+
+const goToProblemsets = () => {
+  router.push('/problemsets')
 }
 
 const goToRecords = () => {
@@ -306,6 +323,16 @@ onMounted(() => {
   background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.action-btn-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.action-btn-warning:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .action-btn-warning {
