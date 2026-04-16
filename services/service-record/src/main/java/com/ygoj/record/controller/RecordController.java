@@ -106,11 +106,6 @@ public class RecordController {
      * @return {@link Result}
      */
     @GetMapping("/list")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "7",
-        message = "您没有查看提交记录的权限"
-    )
     public Result list(@RequestParam(required = false) Long page,
                        @RequestParam(required = false) Long pageSize,
                        @RequestParam(required = false) Long contestId,

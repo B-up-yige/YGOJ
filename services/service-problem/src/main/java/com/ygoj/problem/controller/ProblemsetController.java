@@ -23,11 +23,6 @@ public class ProblemsetController {
      * 获取题集列表（公开访问）
      */
     @GetMapping("/list")
-    @Permission(
-        type = Permission.PermissionType.BIT,
-        value = "14",
-        message = "您没有查看题集的权限"
-    )
     public Result list(@RequestParam(defaultValue = "1") Long page,
                        @RequestParam(defaultValue = "10") Long pageSize,
                        @RequestParam(required = false) String title) {
