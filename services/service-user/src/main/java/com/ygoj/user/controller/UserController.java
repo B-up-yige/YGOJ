@@ -224,4 +224,82 @@ public class UserController {
             return Result.error(500, "获取用户ID失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 获取所有用户列表（仅管理员）
+     */
+    @GetMapping("/admin/users")
+    @Permission(
+        type = Permission.PermissionType.ROLE,
+        value = "ADMIN",
+        message = "只有管理员可以查看用户列表"
+    )
+    public Result getAllUsers(@RequestParam(defaultValue = "1") Long page,
+                              @RequestParam(defaultValue = "10") Long pageSize) {
+        try {
+            log.info("管理员获取用户列表请求, page: {}, pageSize: {}", page, pageSize);
+            return userService.getAllUsers(page, pageSize);
+        } catch (Exception e) {
+            log.error("获取用户列表失败", e);
+            return Result.error(500, "获取用户列表失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 更新用户权限（仅管理员）
+     */
+    @PutMapping("/admin/user/permission")
+    @Permission(
+        type = Permission.PermissionType.ROLE,
+        value = "ADMIN",
+        message = "只有管理员可以修改用户权限"
+    )
+    public Result updateUserPermission(@RequestBody Map<String, Object> params) {
+        try {
+            Long userId = Long.valueOf(params.get("userId").toString());
+            String role = (String) params.get("role");
+            Long permission = Long.valueOf(params.get("permission").toString());
+            
+            log.info("管理员更新用户权限请求, userId: {}, role: {}, permission: {}", userId, role, permission);
+            
+            if (userId == null) {
+                return Result.error(400, "用户ID不能为空");
+            }
+            if (role == null || role.trim().isEmpty()) {
+                return Result.error(400, "角色不能为空");
+            }
+            if (permission == null) {
+                return Result.error(400, "权限值不能为空");
+            }
+            
+            return userService.updateUserPermission(userId, role, permission);
+        } catch (Exception e) {
+            log.error("更新用户权限失败", e);
+            return Result.error(500, "更新用户权限失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 删除用户（仅管理员）
+     */
+    @DeleteMapping("/admin/user/{id}")
+    @Permission(
+        type = Permission.PermissionType.ROLE,
+        value = "ADMIN",
+        message = "只有管理员可以删除用户"
+    )
+    public Result deleteUser(@PathVariable Long id) {
+        try {
+            log.info("管理员删除用户请求, userId: {}", id);
+            
+            if (id == null) {
+                return Result.error(400, "用户ID不能为空");
+            }
+            
+            return userService.deleteUser(id);
+        } catch (Exception e) {
+            log.error("删除用户失败, userId: {}", id, e);
+            return Result.error(500, "删除用户失败: " + e.getMessage());
+        }
+    }
 }

@@ -4,6 +4,8 @@ import cn.hutool.core.lang.Validator;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.ygoj.common.Result;
 import com.ygoj.user.mapper.UserinfoMapper;
 import com.ygoj.user.Userinfo;
 import com.ygoj.user.service.UserService;
@@ -255,6 +257,88 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             log.error("通过token获取用户ID异常", e);
             throw new RuntimeException("获取用户ID失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 获取所有用户列表（分页）
+     */
+    @Override
+    public Result getAllUsers(Long page, Long pageSize) {
+        try {
+            log.info("获取用户列表, page: {}, pageSize: {}", page, pageSize);
+            
+            Page<Userinfo> pageInfo = new Page<>(page, pageSize);
+            LambdaQueryWrapper<Userinfo> wrapper = new LambdaQueryWrapper<>();
+            wrapper.orderByDesc(Userinfo::getId);
+            
+            Page<Userinfo> result = userinfoMapper.selectPage(pageInfo, wrapper);
+            
+            // 清除密码信息
+            result.getRecords().forEach(user -> user.setPassword(null));
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("list", result.getRecords());
+            data.put("total", result.getTotal());
+            data.put("page", result.getCurrent());
+            data.put("pageSize", result.getSize());
+            
+            return Result.success(data);
+        } catch (Exception e) {
+            log.error("获取用户列表异常", e);
+            return Result.error(500, "获取用户列表失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 更新用户权限
+     */
+    @Override
+    public Result updateUserPermission(Long userId, String role, Long permission) {
+        try {
+            log.info("更新用户权限, userId: {}, role: {}, permission: {}", userId, role, permission);
+            
+            Userinfo user = userinfoMapper.selectById(userId);
+            if (user == null) {
+                return Result.error(404, "用户不存在");
+            }
+            
+            user.setRole(role);
+            user.setPermission(permission);
+            userinfoMapper.updateById(user);
+            
+            log.info("用户权限更新成功, userId: {}", userId);
+            return Result.success("权限更新成功");
+        } catch (Exception e) {
+            log.error("更新用户权限异常, userId: {}", userId, e);
+            return Result.error(500, "更新用户权限失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 删除用户
+     */
+    @Override
+    public Result deleteUser(Long userId) {
+        try {
+            log.info("删除用户, userId: {}", userId);
+            
+            Userinfo user = userinfoMapper.selectById(userId);
+            if (user == null) {
+                return Result.error(404, "用户不存在");
+            }
+            
+            // 不允许删除管理员账号
+            if ("ADMIN".equals(user.getRole())) {
+                return Result.error(403, "不能删除管理员账号");
+            }
+            
+            userinfoMapper.deleteById(userId);
+            log.info("用户删除成功, userId: {}", userId);
+            return Result.success("用户删除成功");
+        } catch (Exception e) {
+            log.error("删除用户异常, userId: {}", userId, e);
+            return Result.error(500, "删除用户失败: " + e.getMessage());
         }
     }
 }

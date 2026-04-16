@@ -58,6 +58,10 @@
                 <el-icon><User /></el-icon>
                 <span>个人中心</span>
               </el-dropdown-item>
+              <el-dropdown-item v-if="userStore.isAdmin" @click="goToAdmin">
+                <el-icon><Setting /></el-icon>
+                <span>系统管理</span>
+              </el-dropdown-item>
               <el-dropdown-item divided @click="handleLogout">
                 <el-icon><SwitchButton /></el-icon>
                 <span>退出登录</span>
@@ -82,7 +86,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { House, Document, Trophy, Collection, List, ArrowDown, User, SwitchButton, Sunny, Moon } from '@element-plus/icons-vue'
+import { House, Document, Trophy, Collection, List, ArrowDown, User, SwitchButton, Sunny, Moon, Setting } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { getUserIdByToken, getUserinfo } from '@/api/user'
 
@@ -192,6 +196,10 @@ const viewProfile = () => {
   if (currentUser.value?.id) {
     router.push(`/user/${currentUser.value.id}`)
   }
+}
+
+const goToAdmin = () => {
+  router.push('/admin/users')
 }
 
 const handleLogout = async () => {

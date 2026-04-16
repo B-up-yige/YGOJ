@@ -116,6 +116,13 @@ const router = createRouter({
           path: '/problemset/create',
           name: 'ProblemsetCreate',
           component: () => import('@/views/problemset/ProblemsetEdit.vue')
+        },
+        // 管理相关路由
+        {
+          path: '/admin/users',
+          name: 'UserManagement',
+          component: () => import('@/views/admin/UserManagement.vue'),
+          meta: { requiresAdmin: true }
         }
       ]
     }
