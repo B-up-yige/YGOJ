@@ -41,18 +41,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             
             if (token != null && !token.isEmpty()) {
                 // 检查 Token 是否在 Redis 中存在（验证有效性）
-                if (Boolean.TRUE.equals(redisTemplate.hasKey(token))) {
+                Object jwtValue = redisTemplate.opsForValue().get(token);
+                if (jwtValue != null) {
                     // 刷新 Token 过期时间
                     redisTemplate.expire(token, 7, TimeUnit.DAYS);
                     
+                    // 从 Redis 中获取 JWT 字符串
+                    String jwtToken = jwtValue.toString();
+                    
                     // 验证并解析 JWT
-                    cn.hutool.jwt.JWT jwt = jwtUtils.validateToken(token);
+                    cn.hutool.jwt.JWT jwt = jwtUtils.validateToken(jwtToken);
                     
                     if (jwt != null) {
                         // 获取用户信息
-                        Long userId = jwtUtils.getUserIdFromToken(token);
-                        String username = jwtUtils.getUsernameFromToken(token);
-                        String role = jwtUtils.getRoleFromToken(token);
+                        Long userId = jwtUtils.getUserIdFromToken(jwtToken);
+                        String username = jwtUtils.getUsernameFromToken(jwtToken);
+                        String role = jwtUtils.getRoleFromToken(jwtToken);
                         
                         if (userId != null && username != null) {
                             // 创建认证对象
