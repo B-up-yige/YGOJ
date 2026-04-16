@@ -4,6 +4,7 @@ import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +28,7 @@ public class ShiroConfig {
      * 创建 SecurityManager
      */
     @Bean
+    @ConditionalOnMissingBean
     public SecurityManager securityManager() {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
         securityManager.setRealm(jwtRealm);
@@ -51,27 +53,17 @@ public class ShiroConfig {
     }
 
     /**
-     * 配置 Shiro 过滤器链
+     * 配置 Shiro 过滤器链 (仅用于支持 Shiro 注解)
      */
     @Bean
+    @ConditionalOnMissingBean
     public ShiroFilterFactoryBean shiroFilterFactoryBean(SecurityManager securityManager) {
         ShiroFilterFactoryBean filterFactoryBean = new ShiroFilterFactoryBean();
         filterFactoryBean.setSecurityManager(securityManager);
 
-        // 配置过滤规则
+        // 配置过滤规则 - 全部放行,由 JwtFilter 处理认证
         Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
-        
-        // 公开接口，不需要认证
-        filterChainDefinitionMap.put("/user/login", "anon");
-        filterChainDefinitionMap.put("/user/register", "anon");
-        filterChainDefinitionMap.put("/problem/list", "anon");
-        filterChainDefinitionMap.put("/problem/detail/**", "anon");
-        filterChainDefinitionMap.put("/contest/list", "anon");
-        filterChainDefinitionMap.put("/contest/detail/**", "anon");
-        
-        // 其他所有接口需要 JWT 认证 (由 JwtFilter 处理)
         filterChainDefinitionMap.put("/**", "anon");
-
         filterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);
 
         return filterFactoryBean;

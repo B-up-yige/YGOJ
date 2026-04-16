@@ -15,7 +15,9 @@ import java.util.concurrent.Executors;
 
 @EnableFeignClients
 @EnableDiscoveryClient
-@SpringBootApplication
+@SpringBootApplication(excludeName = {
+    "org.apache.shiro.spring.config.web.autoconfigure.ShiroWebAutoConfiguration"
+})
 public class RecordMainApplication {
     public static void main(String[] args) {
         SpringApplication.run(RecordMainApplication.class, args);
