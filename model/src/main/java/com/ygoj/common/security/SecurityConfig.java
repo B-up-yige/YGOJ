@@ -45,7 +45,8 @@ public class SecurityConfig {
                 // 公开接口 - 用户认证
                 .requestMatchers(
                     "/user/login",
-                    "/user/register"
+                    "/user/register",
+                    "/user/userinfo/**"
                 ).permitAll()
                 
                 // 公开接口 - 题目相关
@@ -65,6 +66,16 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/problemset/list",
                     "/problemset/**"
+                ).permitAll()
+                
+                // 公开接口 - 提交记录相关
+                .requestMatchers(
+                    "/record/list",
+                    "/record/recordinfo/**",
+                    "/record/statistics/**",
+                    "/record/learning-curve/**",
+                    "/record/contest-progress",
+                    "/record/problemset-progress"
                 ).permitAll()
                 
                 // 其他所有请求需要认证
