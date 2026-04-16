@@ -65,39 +65,38 @@ const handleLogin = async () => {
         
         ElMessage.success('登录成功')
         
-        // 延迟一下，确保 token 已经保存
-        setTimeout(async () => {
-          try {
-            // 第一步：通过 token 获取用户 ID
-            const idRes = await getUserIdByToken(token)
-            
-            // 如果 token 无效 (返回 null)，清除本地存储并跳转到登录页
-            if (!idRes.data) {
-              console.log('token 已失效，清除本地存储')
-              userStore.logout()
-              router.push('/login')
-              return
-            }
-            
-            const userId = idRes.data
-            
-            // 第二步：通过用户 ID 获取完整用户信息
-            const userInfoRes = await getUserinfo(userId)
-            if (userInfoRes.data) {
-              userStore.setUserInfo(userInfoRes.data)
-              // 保存用户权限信息
-              const role = userInfoRes.data.role || 'USER'
-              const permission = userInfoRes.data.permission || 3
-              userStore.setUserAuth(role, permission)
-              console.log('登录成功后获取到用户信息:', userInfoRes.data)
-              console.log('用户角色:', role)
-              console.log('用户权限:', permission)
-            }
-          } catch (err) {
-            console.error('获取用户信息失败:', err)
+        // 等待获取用户信息后再跳转
+        try {
+          // 第一步：通过 token 获取用户 ID
+          const idRes = await getUserIdByToken(token)
+          
+          // 如果 token 无效 (返回 null)，清除本地存储并跳转到登录页
+          if (!idRes.data) {
+            console.log('token 已失效，清除本地存储')
+            userStore.logout()
+            router.push('/login')
+            return
           }
-        }, 100)
+          
+          const userId = idRes.data
+          
+          // 第二步：通过用户 ID 获取完整用户信息
+          const userInfoRes = await getUserinfo(userId)
+          if (userInfoRes.data) {
+            userStore.setUserInfo(userInfoRes.data)
+            // 保存用户权限信息
+            const role = userInfoRes.data.role || 'USER'
+            const permission = userInfoRes.data.permission || 3
+            userStore.setUserAuth(role, permission)
+            console.log('登录成功后获取到用户信息:', userInfoRes.data)
+            console.log('用户角色:', role)
+            console.log('用户权限:', permission)
+          }
+        } catch (err) {
+          console.error('获取用户信息失败:', err)
+        }
         
+        // 获取完用户信息后再跳转
         router.push('/')
       } catch (error) {
         console.error('登录失败:', error)
