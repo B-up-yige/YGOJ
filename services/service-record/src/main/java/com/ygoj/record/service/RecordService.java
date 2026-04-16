@@ -61,4 +61,12 @@ public interface RecordService {
      * @return Map<problemId, status>
      */
     Map<Long, String> getUserProblemsetProgress(Long userId, Long problemsetId);
+    
+    /**
+     * 重新判题
+     *
+     * @param recordId 提交记录ID
+     * @return {@link Result}
+     */
+    Result rejudge(Long recordId);
 }

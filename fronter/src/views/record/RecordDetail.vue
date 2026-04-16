@@ -67,6 +67,7 @@
 
       <div class="actions" style="margin-top: 30px; text-align: center;">
         <el-button type="primary" @click="viewProblem">查看题目</el-button>
+        <el-button type="warning" @click="handleRejudge">重测</el-button>
         <el-button @click="goBack">返回</el-button>
       </div>
     </el-card>
@@ -76,7 +77,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getRecordInfo, getRecordDetails } from '@/api/record'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getRecordInfo, getRecordDetails, rejudge } from '@/api/record'
 import { CircleClose, Warning } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -161,6 +163,26 @@ const goBack = () => {
 const viewProblem = () => {
   if (record.value.problemId) {
     router.push(`/problem/${record.value.problemId}`)
+  }
+}
+
+const handleRejudge = async () => {
+  try {
+    await ElMessageBox.confirm('确定要重新判题吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await rejudge(record.value.id)
+    ElMessage.success('重测任务已提交')
+    // 重新加载记录详情
+    loadRecord()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('重测失败:', error)
+      ElMessage.error('重测失败')
+    }
   }
 }
 

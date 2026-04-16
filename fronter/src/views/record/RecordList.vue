@@ -26,10 +26,10 @@
           {{ formatTime(scope.row.submitTime) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="150" fixed="right">
+      <el-table-column label="操作" width="200" fixed="right">
         <template #default="scope">
           <el-button link type="primary" @click="handleView(scope.row.id)">详情</el-button>
-          <el-button link type="warning" @click="handleEditStatus(scope.row)">修改状态</el-button>
+          <el-button link type="warning" @click="handleRejudge(scope.row.id)">重测</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -72,8 +72,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { getRecordList, getContestRecordList } from '@/api/record'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getRecordList, getContestRecordList, rejudge } from '@/api/record'
 
 const router = useRouter()
 const route = useRoute()
@@ -198,8 +198,24 @@ const handleView = (id) => {
   router.push(`/record/${id}`)
 }
 
-const handleEditStatus = (record) => {
-  ElMessage.info('修改状态功能暂未实现')
+const handleRejudge = async (id) => {
+  try {
+    await ElMessageBox.confirm('确定要重新判题吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await rejudge(id)
+    ElMessage.success('重测任务已提交')
+    // 刷新列表
+    loadRecords()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('重测失败:', error)
+      ElMessage.error('重测失败')
+    }
+  }
 }
 
 onMounted(() => {

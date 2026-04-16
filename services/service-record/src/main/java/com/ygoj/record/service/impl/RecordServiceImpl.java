@@ -749,4 +749,86 @@ public class RecordServiceImpl implements RecordService {
             return new HashMap<>();
         }
     }
+    
+    @Override
+    public Result rejudge(Long recordId) {
+        try {
+            log.info("开始重新判题, recordId: {}", recordId);
+            
+            if (recordId == null) {
+                return Result.error(400, "记录ID不能为空");
+            }
+            
+            // 1. 获取原提交记录
+            Record record = recordMapper.selectById(recordId);
+            if (record == null) {
+                log.warn("重测失败: 记录不存在, recordId: {}", recordId);
+                return Result.error(404, "提交记录不存在");
+            }
+            
+            // 2. 重置记录状态为waiting
+            record.setStatus("waiting");
+            record.setCompileTime(null);
+            record.setCompileMemory(null);
+            record.setCompileStdout(null);
+            record.setCompileStderr(null);
+            recordMapper.updateById(record);
+            log.info("记录状态已重置为waiting, recordId: {}", recordId);
+            
+            // 3. 构建判题请求（复用addRecord中的逻辑）
+            SandboxExecuteRequest sandboxExecuteRequest = new SandboxExecuteRequest();
+            sandboxExecuteRequest.setRecordId(record.getId());
+            sandboxExecuteRequest.setCode(record.getCode());
+            sandboxExecuteRequest.setLanguage(record.getLanguage());
+
+            // 获取运行配置
+            String language = record.getLanguage();
+            sandboxExecuteRequest.setCompileCommand(
+                    env.getProperty(String.format("language.%s.compile", language))
+            );
+            sandboxExecuteRequest.setRunCommand(
+                    env.getProperty(String.format("language.%s.run", language))
+            );
+            sandboxExecuteRequest.setImage(
+                    env.getProperty(String.format("language.%s.image", language))
+            );
+            sandboxExecuteRequest.setFileName(
+                    env.getProperty(String.format("language.%s.fileName", language))
+            );
+
+            // 获取测试用例
+            Result testCaseResult = problemFeignClient.getTestCase(record.getProblemId());
+            List<Testcase> testcaseList = objectMapper.convertValue(
+                testCaseResult.getData(), 
+                objectMapper.getTypeFactory().constructParametricType(List.class, Testcase.class)
+            );
+            
+            if (testcaseList == null || testcaseList.isEmpty()) {
+                log.warn("重测失败: 题目没有测试用例, problemId: {}", record.getProblemId());
+                return Result.error(400, "题目没有测试用例");
+            }
+            
+            List<String> inputList = testcaseList.stream().map(Testcase::getInputFileId).toList();
+            List<String> outputList = testcaseList.stream().map(Testcase::getOutputFileId).toList();
+
+            sandboxExecuteRequest.setInputList(inputList);
+            sandboxExecuteRequest.setOutputList(outputList);
+
+            // 获取题目信息
+            Result problem = problemFeignClient.getProblemInfo(record.getProblemId());
+            Probleminfo probleminfo = objectMapper.convertValue(problem.getData(), Probleminfo.class);
+            sandboxExecuteRequest.setTimeLimit(probleminfo.getTimeLimit());
+            sandboxExecuteRequest.setMemoryLimit(probleminfo.getMemoryLimit());
+
+            // 4. 调用judger服务
+            log.info("发送重测请求到judger服务, recordId: {}", record.getId());
+            Result judge = judgerFeignClient.judge(sandboxExecuteRequest);
+            log.info("重测请求发送成功, recordId: {}", record.getId());
+
+            return Result.success("重测任务已提交");
+        } catch (Exception e) {
+            log.error("重测失败, recordId: {}", recordId, e);
+            return Result.error(500, "重测失败: " + e.getMessage());
+        }
+    }
 }

@@ -67,3 +67,11 @@ export function getContestRecordList(contestId, page = 1, pageSize = 10) {
     params: { contestId, page, pageSize }
   })
 }
+
+// 重新判题
+export function rejudge(id) {
+  return request({
+    url: `/record/rejudge/${id}`,
+    method: 'post'
+  })
+}

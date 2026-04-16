@@ -238,4 +238,26 @@ public class RecordController {
             return Result.error(500, "获取过题情况失败: " + e.getMessage());
         }
     }
+    
+    /**
+     * 重新判题
+     *
+     * @param id 提交记录ID
+     * @return {@link Result}
+     */
+    @PostMapping("/rejudge/{id}")
+    public Result rejudge(@PathVariable Long id) {
+        try {
+            log.info("重测请求, recordId: {}", id);
+            
+            if (id == null) {
+                return Result.error(400, "记录ID不能为空");
+            }
+            
+            return recordService.rejudge(id);
+        } catch (Exception e) {
+            log.error("重测失败, recordId: {}", id, e);
+            return Result.error(500, "重测失败: " + e.getMessage());
+        }
+    }
 }
