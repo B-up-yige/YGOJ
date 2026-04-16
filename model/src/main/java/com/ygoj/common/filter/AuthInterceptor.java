@@ -92,8 +92,8 @@ public class AuthInterceptor implements HandlerInterceptor {
         // 刷新Token过期时间（续期）
         redisTemplate.expire(token, 7, TimeUnit.DAYS);
         
-        log.debug("从Redis获取到JWT, token: {}", token);
-
+        log.debug("从 Redis获取到JWT, token: {}", token);
+        
         // 解析JWT
         JWT jwt;
         try {
@@ -105,6 +105,12 @@ public class AuthInterceptor implements HandlerInterceptor {
             response.getWriter().write("{\"code\":401,\"message\":\"Token无效或已过期\"}");
             return false;
         }
+                
+        // 调试日志：输出JWT中的权限信息
+        Object permObj = jwt.getPayload("permission");
+        Object roleObj = jwt.getPayload("role");
+        log.info("JWT权限信息 - userId: {}, role: {}, permission: {}", 
+            jwt.getPayload("userId"), roleObj, permObj);
 
         // 根据权限类型进行验证
         return validatePermission(jwt, permission, response);

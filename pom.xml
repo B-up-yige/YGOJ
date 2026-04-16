@@ -28,6 +28,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-cloud.version>2023.0.3</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.3.2</spring-cloud-alibaba.version>
+        <shiro.version>2.0.2</shiro.version>
     </properties>
 
     <dependencyManagement>
@@ -45,6 +46,17 @@
                 <version>${spring-cloud-alibaba.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!-- Apache Shiro -->
+            <dependency>
+                <groupId>org.apache.shiro</groupId>
+                <artifactId>shiro-spring-boot-starter</artifactId>
+                <version>${shiro.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.shiro</groupId>
+                <artifactId>shiro-core</artifactId>
+                <version>${shiro.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -11,77 +11,141 @@
 
 ### 概述
 
-YGOJ 采用基于 JWT + 拦截器的权限控制系统，支持三种权限验证模式：
+YGOJ 采用 **Apache Shiro** 权限框架，基于 JWT + Realm 实现无状态认证和授权，支持：
 
 1. **角色权限（ROLE）**：基于用户角色的粗粒度控制（USER, ADMIN, CONTEST_ADMIN等）
-2. **位运算权限（BIT）**：基于二进制位的细粒度控制（查看题目、提交代码、创建题目等）
-3. **自定义权限（CUSTOM）**：基于字符串标识的灵活控制（problem:create, contest:manage等）
+2. **细粒度权限（Permission）**：基于字符串标识的权限控制（problem:create, contest:manage等）
+3. **组合逻辑**：支持 AND/OR 逻辑组合多个角色或权限
 
 ### 核心组件
 
-- **Permission 注解**：标记在 Controller 方法或类上，定义访问权限要求
-- **AuthInterceptor 拦截器**：自动拦截请求，验证用户权限
-- **PermissionConstants 常量类**：预定义所有角色和权限常量
+- **Shiro 注解**：`@RequiresRoles`, `@RequiresPermissions` 等内置注解
+- **JwtRealm**：JWT 认证和授权实现，从 Redis 获取用户信息
+- **JwtFilter**：JWT Token 提取和验证过滤器
+- **ShiroUtils**：权限检查工具类，提供便捷的静态方法
+- **ShiroConfig**：Shiro 核心配置类
 
 ### 使用示例
 
+#### 1. 需要登录才能访问
 ```java
-// 角色权限：仅管理员可访问
-@Permission(
-    type = Permission.PermissionType.ROLE, 
-    value = PermissionConstants.ROLE_ADMIN
-)
-@GetMapping("/admin/users")
-public Result listUsers() { ... }
+import org.apache.shiro.authz.annotation.RequiresAuthentication;
 
-// 位运算权限：需要"查看题目"权限
-@Permission(
-    type = Permission.PermissionType.BIT, 
-    value = String.valueOf(PermissionConstants.PERM_PROBLEM_VIEW)
-)
-@GetMapping("/problem/{id}")
-public Result getProblem(@PathVariable Long id) { ... }
-
-// 多权限OR逻辑：创建或编辑题目
-@Permission(
-    type = Permission.PermissionType.BIT,
-    value = String.valueOf(PermissionConstants.PERM_PROBLEM_CREATE),
-    extra = {String.valueOf(PermissionConstants.PERM_PROBLEM_EDIT)},
-    logical = Permission.Logical.OR
-)
-@PostMapping("/problem/save")
-public Result saveProblem(@RequestBody Problem problem) { ... }
-
-// 公开接口：无需登录
-@Permission(requireLogin = false)
-@GetMapping("/public/info")
-public Result getPublicInfo() { ... }
+@RequiresAuthentication
+@GetMapping("/user/profile")
+public Result getUserProfile() {
+    ShiroUser user = ShiroUtils.getCurrentUser();
+    return Result.success(user);
+}
 ```
 
-### 权限常量说明
-
-**角色常量：**
-- `ROLE_USER` - 普通用户
-- `ROLE_ADMIN` - 系统管理员
-- `ROLE_CONTEST_ADMIN` - 比赛管理员
-- `ROLE_PROBLEM_ADMIN` - 题目管理员
-
-**常用位运算权限：**
-- `PERM_PROBLEM_VIEW (0)` - 查看题目
-- `PERM_PROBLEM_SUBMIT (1)` - 提交代码
-- `PERM_PROBLEM_CREATE (2)` - 创建题目
-- `PERM_PROBLEM_EDIT (3)` - 编辑题目
-- `PERM_CONTEST_JOIN (11)` - 参加比赛
-- `PERM_USER_MANAGE (15)` - 用户管理
-
-**权限值计算：**
+#### 2. 需要指定角色
 ```java
-// 普通用户：查看题目 + 提交代码 = 1 + 2 = 3
-long permission = (1 << 0) | (1 << 1);  // = 3
+import org.apache.shiro.authz.annotation.RequiresRoles;
 
-// 题目管理员：所有题目相关权限 = 63
-long permission = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5);
+@RequiresRoles("ADMIN")
+@PostMapping("/admin/delete-user")
+public Result deleteUser(@RequestParam Long userId) {
+    // 只有管理员可以删除用户
+    return Result.success();
+}
 ```
+
+#### 3. 需要指定权限
+```java
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+
+@RequiresPermissions("problem:create")
+@PostMapping("/problem/create")
+public Result createProblem(@RequestBody Problem problem) {
+    // 只有拥有 problem:create 权限的用户可以创建题目
+    return Result.success();
+}
+```
+
+#### 4. 多角色检查（OR 逻辑）
+```java
+@RequiresRoles(value = {"ADMIN", "CONTEST_ADMIN"}, logical = Logical.OR)
+@PostMapping("/contest/manage")
+public Result manageContest() {
+    // ADMIN 或 CONTEST_ADMIN 都可以访问
+    return Result.success();
+}
+```
+
+#### 5. 多权限检查（AND 逻辑）
+```java
+@RequiresPermissions(value = {"problem:edit", "problem:delete"}, logical = Logical.AND)
+@DeleteMapping("/problem/delete/{id}")
+public Result deleteProblem(@PathVariable Long id) {
+    // 需要同时拥有编辑和删除权限
+    return Result.success();
+}
+```
+
+#### 6. 代码中动态检查权限
+```java
+import com.ygoj.common.shiro.ShiroUtils;
+
+@GetMapping("/check")
+public Result checkPermission() {
+    // 检查是否已认证
+    if (!ShiroUtils.isAuthenticated()) {
+        return Result.error("请先登录");
+    }
+    
+    // 检查角色
+    if (!ShiroUtils.hasRole("ADMIN")) {
+        return Result.error("需要管理员权限");
+    }
+    
+    // 检查权限
+    if (!ShiroUtils.hasPermission("problem:create")) {
+        return Result.error("没有创建题目的权限");
+    }
+    
+    // 获取当前用户信息
+    ShiroUser user = ShiroUtils.getCurrentUser();
+    Long userId = ShiroUtils.getCurrentUserId();
+    String username = ShiroUtils.getCurrentUsername();
+    
+    return Result.success(user);
+}
+```
+
+### 权限映射说明
+
+**角色列表：**
+- `USER` - 普通用户
+- `ADMIN` - 系统管理员（拥有所有角色和权限）
+- `CONTEST_ADMIN` - 比赛管理员
+- `PROBLEM_ADMIN` - 题目管理员
+
+**权限列表（由位运算自动转换）：**
+| 权限字符串 | 说明 | 对应位 |
+|-----------|------|--------|
+| problem:view | 查看题目 | 0 |
+| problem:submit | 提交代码 | 1 |
+| problem:create | 创建题目 | 2 |
+| problem:edit | 编辑题目 | 3 |
+| problem:delete | 删除题目 | 4 |
+| solution:view | 查看题解 | 5 |
+| solution:create | 发布题解 | 6 |
+| record:view | 查看提交记录 | 7 |
+| ranking:view | 查看排行榜 | 8 |
+| contest:create | 创建比赛 | 9 |
+| contest:manage | 管理比赛 | 10 |
+| contest:join | 参加比赛 | 11 |
+| problemset:create | 创建题集 | 12 |
+| problemset:manage | 管理题集 | 13 |
+| problemset:view | 查看题集 | 14 |
+| user:manage | 用户管理 | 15 |
+| system:config | 系统设置 | 16 |
+
+**角色继承关系：**
+- `ADMIN` → 拥有 `USER`, `CONTEST_ADMIN`, `PROBLEM_ADMIN` 所有角色
+- `CONTEST_ADMIN` → 拥有 `USER` 角色
+- `PROBLEM_ADMIN` → 拥有 `USER` 角色
 
 ### 数据库配置
 
@@ -91,9 +155,14 @@ long permission = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5
 -- 用户角色（默认 USER）
 role VARCHAR(50) DEFAULT 'USER'
 
--- 位运算权限值（默认 3 = 查看题目 + 提交代码）
+-- 位运算权限值（会自动转换为权限字符串）
 permission BIGINT DEFAULT 3
 ```
+
+**权限值说明：**
+- 数据库中存储位运算值（如 3 = 第0位和第1位）
+- Shiro Realm 会自动将其转换为权限字符串（如 "problem:view", "problem:submit"）
+- 前端和后端代码中使用权限字符串进行判断
 
 **初始管理员账号：**
 
@@ -109,15 +178,17 @@ permission BIGINT DEFAULT 3
 
 **设置用户权限示例：**
 ```sql
--- 设置普通用户
+-- 设置普通用户（查看题目 + 提交代码）
 UPDATE userinfo SET role = 'USER', permission = 3 WHERE id = ?;
 
--- 设置题目管理员
+-- 设置题目管理员（题目相关所有权限）
 UPDATE userinfo SET role = 'PROBLEM_ADMIN', permission = 63 WHERE id = ?;
 
 -- 设置超级管理员（所有权限）
 UPDATE userinfo SET role = 'ADMIN', permission = 131071 WHERE id = ?;
 ```
+
+> **注意**：修改用户权限后，用户需要重新登录才能生效。
 
 ### JWT Token 结构
 
@@ -145,7 +216,7 @@ const token = response.data.data;
 // 后续请求携带 token
 axios.get('/api/problem/1', {
   headers: {
-    'Authorization': token  // 或 'Bearer ' + token
+    'Authorization': 'Bearer ' + token  // 推荐格式
   }
 });
 ```
@@ -158,17 +229,29 @@ axios.get('/api/problem/1', {
 ```json
 {
   "code": 403,
-  "message": "您没有查看题目的权限"
+  "message": "权限不足，无法访问该资源"
 }
 ```
 
+### Shiro 内置注解
+
+| 注解 | 说明 | 示例 |
+|------|------|------|
+| `@RequiresAuthentication` | 需要认证 | 登录用户可访问 |
+| `@RequiresRoles("ADMIN")` | 需要指定角色 | 仅管理员可访问 |
+| `@RequiresPermissions("problem:create")` | 需要指定权限 | 有创建题目权限可访问 |
+| `@RequiresUser` | 需要用户（记住我或认证） | 登录或记住我可访问 |
+| `@RequiresGuest` | 需要游客（未认证） | 仅未登录用户可访问 |
+
 ### 注意事项
 
-1. 新用户注册后需要在数据库中手动设置 role 和 permission
-2. 修改用户权限后，用户需要重新登录才能生效
+1. **新用户注册后需要在数据库中手动设置 role 和 permission**
+2. **修改用户权限后，用户需要重新登录才能生效**
 3. Token 默认有效期为 7 天
 4. 推荐使用 `Authorization: Bearer <token>` 格式传递 Token
-5. 详细文档参见：`model/src/main/java/com/ygoj/common/filter/PermissionUsageExample.java`
+5. 公开接口（如登录、注册、题目列表）在 `ShiroConfig` 中配置为 `anon`
+6. Shiro 会自动处理权限验证失败，返回统一的错误响应
+7. 所有服务的 WebConfig 中原有拦截器已禁用，由 Shiro 统一接管权限控制
 
 ## Docker 部署
 

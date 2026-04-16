@@ -66,6 +66,12 @@
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-redis</artifactId>
         </dependency>
+
+        <!-- Apache Shiro -->
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-spring-boot-starter</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
