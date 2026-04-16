@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -16,6 +17,7 @@ import java.util.concurrent.Executors;
 @EnableFeignClients
 @EnableDiscoveryClient
 @SpringBootApplication
+@ComponentScan(basePackages = {"com.ygoj.record", "com.ygoj.common.security"})
 public class RecordMainApplication {
     public static void main(String[] args) {
         SpringApplication.run(RecordMainApplication.class, args);
