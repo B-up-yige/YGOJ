@@ -8,6 +8,24 @@
       </el-button>
     </div>
 
+    <!-- 搜索区域 -->
+    <div class="search-bar">
+      <el-input
+        v-model="searchTitle"
+        placeholder="搜索题集标题"
+        clearable
+        style="width: 300px; margin-right: 10px"
+        @clear="handleSearch"
+        @keyup.enter="handleSearch"
+      >
+        <template #prefix>
+          <el-icon><Search /></el-icon>
+        </template>
+      </el-input>
+      <el-button type="primary" @click="handleSearch">搜索</el-button>
+      <el-button @click="handleReset">重置</el-button>
+    </div>
+
     <el-table :data="problemsets" style="width: 100%" v-loading="loading">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="title" label="题集标题" />
@@ -70,6 +88,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search, Plus } from '@element-plus/icons-vue'
 import { getProblemsetList, delProblemset, getUserProblemsetProgress, getProblemsetProblems } from '@/api/problemset'
 
 const router = useRouter()
@@ -80,11 +99,12 @@ const pageSize = ref(10)
 const total = ref(0)
 const userId = ref(null)
 const problemsetProgress = ref({}) // 存储每个题集的过题情况: { problemsetId: { problemId: status } }
+const searchTitle = ref('')
 
 const loadProblemsets = async () => {
   loading.value = true
   try {
-    const res = await getProblemsetList(currentPage.value, pageSize.value)
+    const res = await getProblemsetList(currentPage.value, pageSize.value, searchTitle.value)
     if (res.data) {
       if (Array.isArray(res.data)) {
         problemsets.value = res.data
@@ -105,6 +125,19 @@ const loadProblemsets = async () => {
   } finally {
     loading.value = false
   }
+}
+
+// 搜索
+const handleSearch = () => {
+  currentPage.value = 1
+  loadProblemsets()
+}
+
+// 重置搜索
+const handleReset = () => {
+  searchTitle.value = ''
+  currentPage.value = 1
+  loadProblemsets()
 }
 
 // 加载所有题集的过题情况
@@ -240,6 +273,17 @@ onMounted(() => {
   color: #303133;
   font-size: 24px;
   font-weight: 600;
+}
+
+/* Search Bar */
+.search-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 16px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .pagination {

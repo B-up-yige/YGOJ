@@ -148,12 +148,14 @@ public class ProblemServiceImpl implements ProblemService {
      *
      * @param page     页面
      * @param pageSize 页面大小
+     * @param title    题目标题（可选）
+     * @param tag      题目标签（可选）
      * @return {@link List<Probleminfo>}
      */
     @Override
-    public List<Probleminfo> list(Long page, Long pageSize) {
+    public List<Probleminfo> list(Long page, Long pageSize, String title, String tag) {
         try {
-            log.debug("分页查询题目, page: {}, pageSize: {}", page, pageSize);
+            log.debug("分页查询题目, page: {}, pageSize: {}, title: {}, tag: {}", page, pageSize, title, tag);
             
             if (page == null || page < 1) {
                 page = 1L;
@@ -163,7 +165,34 @@ public class ProblemServiceImpl implements ProblemService {
             }
             
             Page<Probleminfo> probleminfoPage = new Page<>(page, pageSize);
-            List<Probleminfo> records = probleminfoMapper.selectPage(probleminfoPage, null).getRecords();
+            LambdaQueryWrapper<Probleminfo> wrapper = new LambdaQueryWrapper<>();
+            
+            // 标题模糊搜索
+            if (title != null && !title.trim().isEmpty()) {
+                wrapper.like(Probleminfo::getTitle, title.trim());
+            }
+            
+            // 标签筛选：需要关联tag表查询
+            if (tag != null && !tag.trim().isEmpty()) {
+                String tagTrimmed = tag.trim();
+                // 先查询有这个标签的题目ID列表
+                LambdaQueryWrapper<Tag> tagWrapper = new LambdaQueryWrapper<>();
+                tagWrapper.eq(Tag::getTag, tagTrimmed);
+                List<Tag> tags = tagMapper.selectList(tagWrapper);
+                List<Long> problemIds = tags.stream()
+                    .map(Tag::getProblemId)
+                    .distinct()
+                    .collect(java.util.stream.Collectors.toList());
+                
+                if (problemIds.isEmpty()) {
+                    // 如果没有找到有这个标签的题目，返回空列表
+                    return new java.util.ArrayList<>();
+                }
+                wrapper.in(Probleminfo::getId, problemIds);
+            }
+            
+            wrapper.orderByDesc(Probleminfo::getId);
+            List<Probleminfo> records = probleminfoMapper.selectPage(probleminfoPage, wrapper).getRecords();
             
             // 填充作者信息
             for (Probleminfo problem : records) {

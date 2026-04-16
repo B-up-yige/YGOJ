@@ -8,6 +8,36 @@
       </el-button>
     </div>
 
+    <!-- 搜索区域 -->
+    <div class="search-bar">
+      <el-input
+        v-model="searchTitle"
+        placeholder="搜索题目标题"
+        clearable
+        style="width: 300px; margin-right: 10px"
+        @clear="handleSearch"
+        @keyup.enter="handleSearch"
+      >
+        <template #prefix>
+          <el-icon><Search /></el-icon>
+        </template>
+      </el-input>
+      <el-input
+        v-model="searchTag"
+        placeholder="按标签筛选"
+        clearable
+        style="width: 200px; margin-right: 10px"
+        @clear="handleSearch"
+        @keyup.enter="handleSearch"
+      >
+        <template #prefix>
+          <el-icon><Filter /></el-icon>
+        </template>
+      </el-input>
+      <el-button type="primary" @click="handleSearch">搜索</el-button>
+      <el-button @click="handleReset">重置</el-button>
+    </div>
+
     <el-table :data="problems" style="width: 100%" v-loading="loading">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="title" label="标题" />
@@ -48,6 +78,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search, Filter, Plus } from '@element-plus/icons-vue'
 import { getProblemList, delProblem } from '@/api/problem'
 
 const router = useRouter()
@@ -56,12 +87,14 @@ const problems = ref([])
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+const searchTitle = ref('')
+const searchTag = ref('')
 
 // 加载题目列表
 const loadProblems = async () => {
   loading.value = true
   try {
-    const res = await getProblemList(currentPage.value, pageSize.value)
+    const res = await getProblemList(currentPage.value, pageSize.value, searchTitle.value, searchTag.value)
     // 后端返回的数据格式：{ data: [...] }
     if (res.data) {
       // 如果返回的是数组
@@ -84,6 +117,20 @@ const loadProblems = async () => {
   } finally {
     loading.value = false
   }
+}
+
+// 搜索
+const handleSearch = () => {
+  currentPage.value = 1
+  loadProblems()
+}
+
+// 重置搜索
+const handleReset = () => {
+  searchTitle.value = ''
+  searchTag.value = ''
+  currentPage.value = 1
+  loadProblems()
 }
 
 // 分页大小改变时触发
@@ -154,6 +201,17 @@ onMounted(() => {
   font-size: 1.75rem;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+/* Search Bar */
+.search-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Table Container */

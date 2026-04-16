@@ -17,12 +17,12 @@ public interface RecordService {
 
     Result addRecord(Record record);
 
-    List<Record> list(Long page, Long pageSize, Long contestId);
+    List<Record> list(Long page, Long pageSize, Long contestId, Long problemId, String status, Long userId, Boolean mySubmissions);
     
     /**
      * 获取带题目名称和用户昵称的记录列表
      */
-    List<RecordWithInfo> listWithInfo(Long page, Long pageSize, Long contestId);
+    List<RecordWithInfo> listWithInfo(Long page, Long pageSize, Long contestId, Long problemId, String status, Long userId, Boolean mySubmissions);
     
     List<RecordDetail> getRecordDetails(Long recordId);
     

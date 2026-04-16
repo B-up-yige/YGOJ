@@ -1,11 +1,11 @@
 import request from '@/utils/request'
 
 // 获取题目列表
-export function getProblemList(page = 1, pageSize = 10) {
+export function getProblemList(page = 1, pageSize = 10, title = '', tag = '') {
   return request({
     url: '/problem/list',
     method: 'get',
-    params: { page, pageSize }
+    params: { page, pageSize, title, tag }
   })
 }
 

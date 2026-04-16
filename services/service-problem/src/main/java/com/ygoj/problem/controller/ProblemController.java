@@ -117,9 +117,12 @@ public class ProblemController {
     }
 
     @GetMapping("/list")
-    public Result list(Long page, Long pageSize){
+    public Result list(@RequestParam(required = false, defaultValue = "1") Long page,
+                       @RequestParam(required = false, defaultValue = "10") Long pageSize,
+                       @RequestParam(required = false) String title,
+                       @RequestParam(required = false) String tag){
         try {
-            log.debug("获取题目列表请求, page: {}, pageSize: {}", page, pageSize);
+            log.debug("获取题目列表请求, page: {}, pageSize: {}, title: {}, tag: {}", page, pageSize, title, tag);
             
             // 参数校验和默认值设置
             if (page == null || page < 1) {
@@ -129,7 +132,7 @@ public class ProblemController {
                 pageSize = 10L;
             }
             
-            return Result.success(problemService.list(page, pageSize));
+            return Result.success(problemService.list(page, pageSize, title, tag));
         } catch (Exception e) {
             log.error("获取题目列表失败", e);
             return Result.error(500, "获取题目列表失败: " + e.getMessage());

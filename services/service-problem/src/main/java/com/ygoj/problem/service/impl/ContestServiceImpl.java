@@ -32,11 +32,17 @@ public class ContestServiceImpl implements ContestService {
     private UserFeignClient userFeignClient;
 
     @Override
-    public List<Contest> list(Long page, Long pageSize) {
+    public List<Contest> list(Long page, Long pageSize, String title) {
         try {
-            log.info("获取比赛列表, page: {}, pageSize: {}", page, pageSize);
+            log.info("获取比赛列表, page: {}, pageSize: {}, title: {}", page, pageSize, title);
             Page<Contest> contestPage = new Page<>(page, pageSize);
             LambdaQueryWrapper<Contest> wrapper = new LambdaQueryWrapper<>();
+            
+            // 标题模糊搜索
+            if (title != null && !title.trim().isEmpty()) {
+                wrapper.like(Contest::getTitle, title.trim());
+            }
+            
             wrapper.orderByDesc(Contest::getCreatedAt);
             Page<Contest> result = contestMapper.selectPage(contestPage, wrapper);
             

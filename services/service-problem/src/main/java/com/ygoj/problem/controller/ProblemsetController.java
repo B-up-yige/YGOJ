@@ -23,10 +23,11 @@ public class ProblemsetController {
      */
     @GetMapping("/list")
     public Result list(@RequestParam(defaultValue = "1") Long page,
-                       @RequestParam(defaultValue = "10") Long pageSize) {
+                       @RequestParam(defaultValue = "10") Long pageSize,
+                       @RequestParam(required = false) String title) {
         try {
-            log.info("获取题集列表请求, page: {}, pageSize: {}", page, pageSize);
-            List<Problemset> problemsets = problemsetService.list(page, pageSize);
+            log.info("获取题集列表请求, page: {}, pageSize: {}, title: {}", page, pageSize, title);
+            List<Problemset> problemsets = problemsetService.list(page, pageSize, title);
             return Result.success(problemsets);
         } catch (Exception e) {
             log.error("获取题集列表失败", e);

@@ -2,6 +2,51 @@
   <div class="record-list">
     <h2>{{ contestId ? '比赛提交记录' : '提交记录' }}</h2>
 
+    <!-- 搜索区域 -->
+    <div class="search-bar">
+      <el-input
+        v-model="searchProblemId"
+        placeholder="题目ID"
+        clearable
+        style="width: 150px; margin-right: 10px"
+        @clear="handleSearch"
+      >
+        <template #prefix>
+          <el-icon><Document /></el-icon>
+        </template>
+      </el-input>
+      <el-select
+        v-model="searchStatus"
+        placeholder="选择状态"
+        clearable
+        style="width: 180px; margin-right: 10px"
+        @change="handleSearch"
+        @clear="handleSearch"
+      >
+        <el-option label="通过" value="AC" />
+        <el-option label="答案错误" value="WA" />
+        <el-option label="超时" value="TLE" />
+        <el-option label="超内存" value="MLE" />
+        <el-option label="运行错误" value="RE" />
+        <el-option label="编译错误" value="CE" />
+        <el-option label="等待中" value="waiting" />
+      </el-select>
+      <el-input
+        v-model="searchUserId"
+        placeholder="用户ID"
+        clearable
+        style="width: 150px; margin-right: 10px"
+        @clear="handleSearch"
+      >
+        <template #prefix>
+          <el-icon><User /></el-icon>
+        </template>
+      </el-input>
+      <el-checkbox v-model="mySubmissions" @change="handleSearch">我的提交</el-checkbox>
+      <el-button type="primary" @click="handleSearch" style="margin-left: 10px">搜索</el-button>
+      <el-button @click="handleReset">重置</el-button>
+    </div>
+
     <el-table :data="records" style="width: 100%" v-loading="loading">
       <el-table-column prop="id" label="记录 ID" width="100" />
       <el-table-column prop="userName" label="用户" width="150">
@@ -73,6 +118,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Document, User } from '@element-plus/icons-vue'
 import { getRecordList, getContestRecordList, rejudge } from '@/api/record'
 
 const router = useRouter()
@@ -90,6 +136,12 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 
+// 搜索条件
+const searchProblemId = ref('')
+const searchStatus = ref('')
+const searchUserId = ref('')
+const mySubmissions = ref(false)
+
 const statusForm = ref({
   status: ''
 })
@@ -99,12 +151,32 @@ const loadRecords = async () => {
   loading.value = true
   try {
     let res
+    
+    // 构建搜索参数
+    const problemIdParam = searchProblemId.value ? parseInt(searchProblemId.value) : null
+    const userIdParam = mySubmissions.value ? parseInt(localStorage.getItem('userId')) : (searchUserId.value ? parseInt(searchUserId.value) : null)
+    
     if (contestId.value) {
       // 比赛提交记录
-      res = await getContestRecordList(contestId.value, currentPage.value, pageSize.value)
+      res = await getContestRecordList(
+        contestId.value, 
+        currentPage.value, 
+        pageSize.value,
+        problemIdParam,
+        searchStatus.value,
+        userIdParam,
+        mySubmissions.value
+      )
     } else {
       // 普通提交记录
-      res = await getRecordList(currentPage.value, pageSize.value)
+      res = await getRecordList(
+        currentPage.value, 
+        pageSize.value,
+        problemIdParam,
+        searchStatus.value,
+        userIdParam,
+        mySubmissions.value
+      )
     }
     
     // 后端返回的数据格式：{ data: [...] }
@@ -121,12 +193,6 @@ const loadRecords = async () => {
         records.value = []
         total.value = 0
       }
-      
-      // 如果有problemId过滤，前端过滤
-      if (problemId.value) {
-        records.value = records.value.filter(r => r.problemId == problemId.value)
-        total.value = records.value.length
-      }
     }
   } catch (error) {
     console.error('加载记录列表失败:', error)
@@ -134,6 +200,22 @@ const loadRecords = async () => {
   } finally {
     loading.value = false
   }
+}
+
+// 搜索
+const handleSearch = () => {
+  currentPage.value = 1
+  loadRecords()
+}
+
+// 重置搜索
+const handleReset = () => {
+  searchProblemId.value = ''
+  searchStatus.value = ''
+  searchUserId.value = ''
+  mySubmissions.value = false
+  currentPage.value = 1
+  loadRecords()
 }
 
 // 分页大小改变时触发
@@ -236,6 +318,19 @@ onMounted(() => {
   color: var(--color-text-primary);
   font-size: 24px;
   font-weight: 600;
+}
+
+/* Search Bar */
+.search-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Element Plus 表格样式优化 */

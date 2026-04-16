@@ -9,7 +9,7 @@ public interface ContestService {
     /**
      * 获取比赛列表
      */
-    List<Contest> list(Long page, Long pageSize);
+    List<Contest> list(Long page, Long pageSize, String title);
 
     /**
      * 根据ID获取比赛详情

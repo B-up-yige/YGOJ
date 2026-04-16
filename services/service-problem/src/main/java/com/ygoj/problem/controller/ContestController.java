@@ -29,10 +29,11 @@ public class ContestController {
      */
     @GetMapping("/list")
     public Result list(@RequestParam(defaultValue = "1") Long page,
-                       @RequestParam(defaultValue = "10") Long pageSize) {
+                       @RequestParam(defaultValue = "10") Long pageSize,
+                       @RequestParam(required = false) String title) {
         try {
-            log.info("获取比赛列表请求, page: {}, pageSize: {}", page, pageSize);
-            List<Contest> contests = contestService.list(page, pageSize);
+            log.info("获取比赛列表请求, page: {}, pageSize: {}, title: {}", page, pageSize, title);
+            List<Contest> contests = contestService.list(page, pageSize, title);
             return Result.success(contests);
         } catch (Exception e) {
             log.error("获取比赛列表失败", e);

@@ -1,11 +1,11 @@
 import request from '@/utils/request'
 
 // 获取比赛列表
-export function getContestList(page = 1, pageSize = 10) {
+export function getContestList(page = 1, pageSize = 10, title = '') {
   return request({
     url: '/contest/list',
     method: 'get',
-    params: { page, pageSize }
+    params: { page, pageSize, title }
   })
 }
 

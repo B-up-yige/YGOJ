@@ -32,13 +32,19 @@ public class ProblemsetServiceImpl implements ProblemsetService {
     private UserFeignClient userFeignClient;
 
     @Override
-    public List<Problemset> list(Long page, Long pageSize) {
+    public List<Problemset> list(Long page, Long pageSize, String title) {
         try {
-            log.info("获取题集列表, page: {}, pageSize: {}", page, pageSize);
+            log.info("获取题集列表, page: {}, pageSize: {}, title: {}", page, pageSize, title);
             Page<Problemset> problemsetPage = new Page<>(page, pageSize);
             LambdaQueryWrapper<Problemset> wrapper = new LambdaQueryWrapper<>();
             // 只返回公开的题集
             wrapper.eq(Problemset::getIsPublic, true);
+            
+            // 标题模糊搜索
+            if (title != null && !title.trim().isEmpty()) {
+                wrapper.like(Problemset::getTitle, title.trim());
+            }
+            
             wrapper.orderByDesc(Problemset::getCreatedAt);
             Page<Problemset> result = problemsetMapper.selectPage(problemsetPage, wrapper);
             

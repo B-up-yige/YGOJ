@@ -85,18 +85,26 @@ public class RecordController {
     /**
      * 分页获取提交列表
      *
-     * @param page     页面
-     * @param pageSize 页面大小
-     * @param contestId 比赛ID（可选）
+     * @param page           页面
+     * @param pageSize       页面大小
+     * @param contestId      比赛ID（可选）
+     * @param problemId      题目ID（可选）
+     * @param status         状态（可选）
+     * @param userId         用户ID（可选）
+     * @param mySubmissions  是否只看我的提交（可选）
      * @return {@link Result}
      */
     @GetMapping("/list")
     public Result list(@RequestParam(required = false) Long page,
                        @RequestParam(required = false) Long pageSize,
-                       @RequestParam(required = false) Long contestId) {
+                       @RequestParam(required = false) Long contestId,
+                       @RequestParam(required = false) Long problemId,
+                       @RequestParam(required = false) String status,
+                       @RequestParam(required = false) Long userId,
+                       @RequestParam(required = false) Boolean mySubmissions) {
         try {
-            log.debug("获取提交列表请求, page: {}, pageSize: {}, contestId: {}", 
-                    page, pageSize, contestId);
+            log.debug("获取提交列表请求, page: {}, pageSize: {}, contestId: {}, problemId: {}, status: {}, userId: {}, mySubmissions: {}", 
+                    page, pageSize, contestId, problemId, status, userId, mySubmissions);
             
             // 参数校验和默认值设置
             if (page == null || page < 1) {
@@ -107,7 +115,7 @@ public class RecordController {
             }
             
             // 返回带题目名称和用户昵称的记录列表
-            return Result.success(recordService.listWithInfo(page, pageSize, contestId));
+            return Result.success(recordService.listWithInfo(page, pageSize, contestId, problemId, status, userId, mySubmissions));
         } catch (Exception e) {
             log.error("获取提交列表失败", e);
             return Result.error(500, "获取提交列表失败: " + e.getMessage());

@@ -15,7 +15,7 @@ public interface ProblemService {
 
     void editProbleminfo(Probleminfo probleminfo);
 
-    List<Probleminfo> list(Long page, Long pageSize);
+    List<Probleminfo> list(Long page, Long pageSize, String title, String tag);
 
     void addTestCase(Testcase testcase);
 

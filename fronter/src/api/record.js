@@ -1,11 +1,11 @@
 import request from '@/utils/request'
 
 // 获取记录列表
-export function getRecordList(page = 1, pageSize = 10) {
+export function getRecordList(page = 1, pageSize = 10, problemId = null, status = '', userId = null, mySubmissions = false) {
   return request({
     url: '/record/list',
     method: 'get',
-    params: { page, pageSize }
+    params: { page, pageSize, problemId, status, userId, mySubmissions }
   })
 }
 
@@ -60,11 +60,11 @@ export function getUserStatsByTag(userId) {
 }
 
 // 获取比赛的提交记录列表
-export function getContestRecordList(contestId, page = 1, pageSize = 10) {
+export function getContestRecordList(contestId, page = 1, pageSize = 10, problemId = null, status = '', userId = null, mySubmissions = false) {
   return request({
     url: '/record/list',
     method: 'get',
-    params: { contestId, page, pageSize }
+    params: { contestId, page, pageSize, problemId, status, userId, mySubmissions }
   })
 }
 

@@ -9,7 +9,7 @@ public interface ProblemsetService {
     /**
      * 获取题集列表
      */
-    List<Problemset> list(Long page, Long pageSize);
+    List<Problemset> list(Long page, Long pageSize, String title);
 
     /**
      * 根据ID获取题集详情

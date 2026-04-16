@@ -232,10 +232,10 @@ public class RecordServiceImpl implements RecordService {
      * @return {@link List<Record>}
      */
     @Override
-    public List<Record> list(Long page, Long pageSize, Long contestId) {
+    public List<Record> list(Long page, Long pageSize, Long contestId, Long problemId, String status, Long userId, Boolean mySubmissions) {
         try {
-            log.debug("分页查询提交记录, page: {}, pageSize: {}, contestId: {}", 
-                    page, pageSize, contestId);
+            log.debug("分页查询提交记录, page: {}, pageSize: {}, contestId: {}, problemId: {}, status: {}, userId: {}, mySubmissions: {}", 
+                    page, pageSize, contestId, problemId, status, userId, mySubmissions);
             
             if (page == null || page < 1) {
                 page = 1L;
@@ -252,6 +252,21 @@ public class RecordServiceImpl implements RecordService {
                 wrapper.eq(Record::getContestId, contestId);
             }
             
+            // 按题目筛选
+            if (problemId != null) {
+                wrapper.eq(Record::getProblemId, problemId);
+            }
+            
+            // 按状态筛选
+            if (status != null && !status.trim().isEmpty()) {
+                wrapper.eq(Record::getStatus, status.trim());
+            }
+            
+            // 按用户筛选
+            if (userId != null) {
+                wrapper.eq(Record::getUserId, userId);
+            }
+            
             wrapper.orderByDesc(Record::getSubmitTime);
             return recordMapper.selectPage(recordPage, wrapper).getRecords();
         } catch (Exception e) {
@@ -263,16 +278,20 @@ public class RecordServiceImpl implements RecordService {
     /**
      * 获取带题目名称和用户昵称的记录列表
      *
-     * @param page     页面
-     * @param pageSize 页面大小
-     * @param contestId 比赛ID（可选）
+     * @param page           页面
+     * @param pageSize       页面大小
+     * @param contestId      比赛ID（可选）
+     * @param problemId      题目ID（可选）
+     * @param status         状态（可选）
+     * @param userId         用户ID（可选）
+     * @param mySubmissions  是否只看我的提交（可选）
      * @return {@link List<RecordWithInfo>}
      */
     @Override
-    public List<RecordWithInfo> listWithInfo(Long page, Long pageSize, Long contestId) {
+    public List<RecordWithInfo> listWithInfo(Long page, Long pageSize, Long contestId, Long problemId, String status, Long userId, Boolean mySubmissions) {
         try {
-            log.debug("分页查询提交记录(带信息), page: {}, pageSize: {}, contestId: {}", 
-                    page, pageSize, contestId);
+            log.debug("分页查询提交记录(带信息), page: {}, pageSize: {}, contestId: {}, problemId: {}, status: {}, userId: {}, mySubmissions: {}", 
+                    page, pageSize, contestId, problemId, status, userId, mySubmissions);
             
             if (page == null || page < 1) {
                 page = 1L;
@@ -282,7 +301,7 @@ public class RecordServiceImpl implements RecordService {
             }
             
             // 先获取记录列表
-            List<Record> records = list(page, pageSize, contestId);
+            List<Record> records = list(page, pageSize, contestId, problemId, status, userId, mySubmissions);
             
             // 转换为RecordWithInfo并填充题目名称和用户昵称
             List<RecordWithInfo> result = new ArrayList<>();
