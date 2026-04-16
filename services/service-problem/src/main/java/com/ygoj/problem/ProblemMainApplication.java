@@ -9,7 +9,7 @@ import org.springframework.context.annotation.ComponentScan;
 @SpringBootApplication
 @EnableFeignClients
 @EnableDiscoveryClient
-@ComponentScan(basePackages = {"com.ygoj.problem", "com.ygoj.common.security"})
+@ComponentScan(basePackages = {"com.ygoj.problem", "com.ygoj.common"})
 public class ProblemMainApplication {
     public static void main(String[] args) {
         SpringApplication.run(ProblemMainApplication.class, args);

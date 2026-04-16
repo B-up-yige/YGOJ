@@ -7,7 +7,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @EnableDiscoveryClient
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.ygoj.user", "com.ygoj.common.security"})
+@ComponentScan(basePackages = {"com.ygoj.user", "com.ygoj.common"})
 public class UserMainApplication {
     public static void main(String[] args) {
         SpringApplication.run(UserMainApplication.class, args);

@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
 @EnableFeignClients
 @EnableDiscoveryClient
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.ygoj.record", "com.ygoj.common.security"})
+@ComponentScan(basePackages = {"com.ygoj.record", "com.ygoj.common"})
 public class RecordMainApplication {
     public static void main(String[] args) {
         SpringApplication.run(RecordMainApplication.class, args);
