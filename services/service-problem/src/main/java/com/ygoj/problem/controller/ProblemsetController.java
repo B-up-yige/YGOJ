@@ -6,6 +6,7 @@ import com.ygoj.problem.ProblemsetProblem;
 import com.ygoj.problem.service.ProblemsetService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public class ProblemsetController {
     private ProblemsetService problemsetService;
 
     /**
-     * 获取题集列表（公开访问）
+     * 获取题集列表(公开访问)
      */
     @GetMapping("/list")
     public Result list(@RequestParam(defaultValue = "1") Long page,
@@ -36,7 +37,7 @@ public class ProblemsetController {
     }
 
     /**
-     * 获取题集详情（公开访问）
+     * 获取题集详情(公开访问)
      */
     @GetMapping("/{id}")
     public Result getProblemsetById(@PathVariable Long id) {
@@ -54,8 +55,9 @@ public class ProblemsetController {
     }
 
     /**
-     * 创建题集（需要创建题集权限）
+     * 创建题集(需要创建题集权限)
      */
+    @PreAuthorize("hasAuthority('PROBLEMSET_CREATE')")
     @PostMapping("/add")
     public Result addProblemset(@RequestBody Problemset problemset) {
         try {
@@ -78,8 +80,9 @@ public class ProblemsetController {
     }
 
     /**
-     * 编辑题集（需要管理题集权限）
+     * 编辑题集(需要管理题集权限)
      */
+    @PreAuthorize("hasAuthority('PROBLEMSET_MANAGE')")
     @PutMapping("/edit")
     public Result editProblemset(@RequestBody Problemset problemset) {
         try {
@@ -99,8 +102,9 @@ public class ProblemsetController {
     }
 
     /**
-     * 删除题集（需要管理题集权限）
+     * 删除题集(需要管理题集权限)
      */
+    @PreAuthorize("hasAuthority('PROBLEMSET_MANAGE')")
     @DeleteMapping("/del/{id}")
     public Result delProblemset(@PathVariable Long id) {
         try {
@@ -115,8 +119,9 @@ public class ProblemsetController {
     }
 
     /**
-     * 添加题集题目（需要管理题集权限）
+     * 添加题集题目(需要管理题集权限)
      */
+    @PreAuthorize("hasAuthority('PROBLEMSET_MANAGE')")
     @PostMapping("/problem/add")
     public Result addProblemsetProblem(@RequestBody ProblemsetProblem problemsetProblem) {
         try {
@@ -137,8 +142,9 @@ public class ProblemsetController {
     }
 
     /**
-     * 删除题集题目（需要管理题集权限）
+     * 删除题集题目(需要管理题集权限)
      */
+    @PreAuthorize("hasAuthority('PROBLEMSET_MANAGE')")
     @DeleteMapping("/problem/del")
     public Result delProblemsetProblem(@RequestParam Long problemsetId,
                                         @RequestParam Long problemId) {
@@ -154,8 +160,9 @@ public class ProblemsetController {
     }
 
     /**
-     * 获取题集的题目列表（需要查看题集权限）
+     * 获取题集的题目列表(需要登录)
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}/problems")
     public Result getProblemsetProblems(@PathVariable Long id) {
         try {

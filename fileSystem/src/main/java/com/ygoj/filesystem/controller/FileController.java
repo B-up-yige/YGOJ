@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,11 +25,12 @@ public class FileController {
     private FileService fileService;
     
     /**
-     * 上传文件（内部服务调用，需要登录）
+     * 上传文件(内部服务调用 - 需要登录)
      *
      * @param file 文件
      * @return {@link Result}
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/file/upload")
     public Result uploadFile(@RequestParam MultipartFile file) {
         log.info("文件上传请求, fileName: {}, size: {} bytes", 
@@ -44,11 +46,12 @@ public class FileController {
     }
     
     /**
-     * 下载文件（内部服务调用，需要登录）
+     * 下载文件(内部服务调用 - 需要登录)
      *
      * @param fileId 文件 id
      * @return {@link ResponseEntity}<{byte[]}>}
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/file/download/{fileId}")
     public ResponseEntity<byte[]> downloadFile(@PathVariable String fileId) {
         log.info("文件下载请求, fileId: {}", fileId);
@@ -71,11 +74,12 @@ public class FileController {
     }
     
     /**
-     * 删除文件（内部服务调用，需要登录）
+     * 删除文件(内部服务调用 - 需要登录)
      *
      * @param fileId 文件 id
      * @return {@link Result}
      */
+    @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/file/delete/{fileId}")
     public Result deleteFile(@PathVariable String fileId) {
         log.info("文件删除请求, fileId: {}", fileId);

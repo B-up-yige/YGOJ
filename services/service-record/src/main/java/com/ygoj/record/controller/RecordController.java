@@ -8,6 +8,7 @@ import com.ygoj.record.feign.UserFeignClient;
 import com.ygoj.record.service.RecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,11 +19,12 @@ public class RecordController {
     private RecordService recordService;
 
     /**
-     * 获取提交记录信息（需要查看提交记录权限）
+     * 获取提交记录信息(需要登录)
      *
      * @param id 提交记录id
      * @return {@link Result}
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/recordinfo/{id}")
     public Result getRecordInfo(@PathVariable Long id) {
         try {
@@ -47,11 +49,12 @@ public class RecordController {
     }
 
     /**
-     * 添加提交记录（需要提交代码权限）
+     * 添加提交记录(需要提交代码权限)
      *
      * @param record 提交记录
      * @return {@link Result}
      */
+    @PreAuthorize("hasAuthority('PROBLEM_SUBMIT')")
     @PostMapping("/submit")
     public Result addRecord(@RequestBody Record record) {
         try {
@@ -83,17 +86,18 @@ public class RecordController {
     }
 
     /**
-     * 分页获取提交列表（需要查看提交记录权限）
+     * 分页获取提交列表(需要登录)
      *
      * @param page           页面
      * @param pageSize       页面大小
-     * @param contestId      比赛ID（可选）
-     * @param problemId      题目ID（可选）
-     * @param status         状态（可选）
-     * @param userId         用户ID（可选）
-     * @param mySubmissions  是否只看我的提交（可选）
+     * @param contestId      比赛ID(可选)
+     * @param problemId      题目ID(可选)
+     * @param status         状态(可选)
+     * @param userId         用户ID(可选)
+     * @param mySubmissions  是否只看我的提交(可选)
      * @return {@link Result}
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/list")
     public Result list(@RequestParam(required = false) Long page,
                        @RequestParam(required = false) Long pageSize,
@@ -123,11 +127,12 @@ public class RecordController {
     }
     
     /**
-     * 获取提交记录的测试点详情（需要查看提交记录权限）
+     * 获取提交记录的测试点详情(需要登录)
      *
      * @param id 提交记录id
      * @return {@link Result}
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/recordinfo/{id}/details")
     public Result getRecordDetails(@PathVariable Long id) {
         try {
@@ -145,11 +150,12 @@ public class RecordController {
     }
     
     /**
-     * 获取用户统计数据（需要查看排行榜权限）
+     * 获取用户统计数据(需要登录 - 可查看自己的或公开的)
      *
      * @param userId 用户ID
      * @return {@link Result}
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/statistics/{userId}")
     public Result getUserStatistics(@PathVariable Long userId) {
         try {
@@ -167,12 +173,13 @@ public class RecordController {
     }
     
     /**
-     * 获取用户学习曲线数据（需要查看排行榜权限）
+     * 获取用户学习曲线数据(需要登录)
      *
      * @param userId 用户ID
-     * @param days   天数（默认30天）
+     * @param days   天数(默认30天)
      * @return {@link Result}
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/learning-curve/{userId}")
     public Result getUserLearningCurve(@PathVariable Long userId, @RequestParam(required = false, defaultValue = "30") Integer days) {
         try {
@@ -190,11 +197,12 @@ public class RecordController {
     }
     
     /**
-     * 获取用户按标签统计的数据（需要查看排行榜权限）
+     * 获取用户按标签统计的数据(需要登录)
      *
      * @param userId 用户ID
      * @return {@link Result}
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/statistics/{userId}/by-tag")
     public Result getUserStatsByTag(@PathVariable Long userId) {
         try {
@@ -212,12 +220,13 @@ public class RecordController {
     }
     
     /**
-     * 获取用户在比赛中的过题情况（需要参加比赛权限）
+     * 获取用户在比赛中的过题情况(需要登录)
      *
      * @param userId 用户ID
      * @param contestId 比赛ID
      * @return {@link Result}
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/contest-progress")
     public Result getUserContestProgress(@RequestParam Long userId, @RequestParam Long contestId) {
         try {
@@ -230,12 +239,13 @@ public class RecordController {
     }
     
     /**
-     * 获取用户在题集中的过题情况（需要查看题集权限）
+     * 获取用户在题集中的过题情况(需要登录)
      *
      * @param userId 用户ID
      * @param problemsetId 题集ID
      * @return {@link Result}
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/problemset-progress")
     public Result getUserProblemsetProgress(@RequestParam Long userId, @RequestParam Long problemsetId) {
         try {
@@ -248,11 +258,12 @@ public class RecordController {
     }
     
     /**
-     * 重新判题（需要管理员权限）
+     * 重新判题(需要管理员权限)
      *
      * @param id 提交记录ID
      * @return {@link Result}
      */
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/rejudge/{id}")
     public Result rejudge(@PathVariable Long id) {
         try {

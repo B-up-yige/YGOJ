@@ -7,6 +7,7 @@ import com.ygoj.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -19,7 +20,7 @@ public class UserController {
     private UserService userService;
 
     /**
-     * 用户注册接口（公开访问）
+     * 用户注册接口(公开访问)
      * @param userinfo 注册用户信息
      * @return {@link Result}
      */
@@ -93,9 +94,9 @@ public class UserController {
     }
 
     /**
-     * 登录功能接口（公开访问）
+     * 登录功能接口(公开访问)
      *
-     * @param loginStr 登录str（用户名称或邮箱）
+     * @param loginStr 登录str(用户名称或邮箱)
      * @param password 密码
      * @return {@link Result}
      */
@@ -128,11 +129,12 @@ public class UserController {
     }
 
     /**
-     * 注销
+     * 注销(需要登录)
      *
      * @param request 请求
      * @return {@link Result}
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/logout")
     public Result logout(HttpServletRequest request) {
         try {
@@ -153,11 +155,12 @@ public class UserController {
     }
 
     /**
-     * 根据id获取用户信息（需要登录）
+     * 根据id获取用户信息(需要登录)
      *
      * @param id 用户id
      * @return {@link Result}
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/userinfo/{id}")
     public Result userinfo(@PathVariable("id") Long id) {
         try {
@@ -182,8 +185,9 @@ public class UserController {
     }
 
     /**
-     * 通过token获取用户ID（需要登录）
+     * 通过token获取用户ID(需要登录)
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/userinfo")
     public Result getUserIdByToken(@RequestBody Map<String, Object> json) {
         try {
@@ -208,8 +212,9 @@ public class UserController {
     }
 
     /**
-     * 获取所有用户列表（仅管理员）
+     * 获取所有用户列表(仅管理员 - 需要用户管理权限)
      */
+    @PreAuthorize("hasAuthority('USER_MANAGE')")
     @GetMapping("/admin/users")
     public Result getAllUsers(@RequestParam(defaultValue = "1") Long page,
                               @RequestParam(defaultValue = "10") Long pageSize) {
@@ -223,8 +228,9 @@ public class UserController {
     }
 
     /**
-     * 更新用户权限（仅管理员）
+     * 更新用户权限(仅管理员 - 需要用户管理权限)
      */
+    @PreAuthorize("hasAuthority('USER_MANAGE')")
     @PutMapping("/admin/user/permission")
     public Result updateUserPermission(@RequestBody Map<String, Object> params) {
         try {
@@ -252,8 +258,9 @@ public class UserController {
     }
 
     /**
-     * 删除用户（仅管理员）
+     * 删除用户(仅管理员 - 需要用户管理权限)
      */
+    @PreAuthorize("hasAuthority('USER_MANAGE')")
     @DeleteMapping("/admin/user/{id}")
     public Result deleteUser(@PathVariable Long id) {
         try {

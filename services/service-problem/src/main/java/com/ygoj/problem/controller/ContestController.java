@@ -8,6 +8,7 @@ import com.ygoj.problem.service.ContestService;
 import com.ygoj.problem.service.ProblemService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -25,7 +26,7 @@ public class ContestController {
     private ProblemService problemService;
 
     /**
-     * 获取比赛列表（公开访问）
+     * 获取比赛列表(公开访问)
      */
     @GetMapping("/list")
     public Result list(@RequestParam(defaultValue = "1") Long page,
@@ -42,7 +43,7 @@ public class ContestController {
     }
 
     /**
-     * 获取比赛详情（公开访问）
+     * 获取比赛详情(公开访问)
      */
     @GetMapping("/{id}")
     public Result getContestById(@PathVariable Long id) {
@@ -60,8 +61,9 @@ public class ContestController {
     }
 
     /**
-     * 创建比赛（需要创建比赛权限）
+     * 创建比赛(需要创建比赛权限)
      */
+    @PreAuthorize("hasAuthority('CONTEST_CREATE')")
     @PostMapping("/add")
     public Result addContest(@RequestBody Contest contest) {
         try {
@@ -87,8 +89,9 @@ public class ContestController {
     }
 
     /**
-     * 编辑比赛（需要管理比赛权限）
+     * 编辑比赛(需要管理比赛权限)
      */
+    @PreAuthorize("hasAuthority('CONTEST_MANAGE')")
     @PutMapping("/edit")
     public Result editContest(@RequestBody Contest contest) {
         try {
@@ -108,8 +111,9 @@ public class ContestController {
     }
 
     /**
-     * 删除比赛（需要管理比赛权限）
+     * 删除比赛(需要管理比赛权限)
      */
+    @PreAuthorize("hasAuthority('CONTEST_MANAGE')")
     @DeleteMapping("/del/{id}")
     public Result delContest(@PathVariable Long id) {
         try {
@@ -124,8 +128,9 @@ public class ContestController {
     }
 
     /**
-     * 添加比赛题目（需要管理比赛权限）
+     * 添加比赛题目(需要管理比赛权限)
      */
+    @PreAuthorize("hasAuthority('CONTEST_MANAGE')")
     @PostMapping("/problem/add")
     public Result addContestProblem(@RequestBody ContestProblem contestProblem) {
         try {
@@ -146,8 +151,9 @@ public class ContestController {
     }
 
     /**
-     * 删除比赛题目（需要管理比赛权限）
+     * 删除比赛题目(需要管理比赛权限)
      */
+    @PreAuthorize("hasAuthority('CONTEST_MANAGE')")
     @DeleteMapping("/problem/del")
     public Result delContestProblem(@RequestParam Long contestId,
                                      @RequestParam Long problemId) {
@@ -163,8 +169,9 @@ public class ContestController {
     }
 
     /**
-     * 获取比赛的题目列表（需要参加比赛权限 + 时间验证）
+     * 获取比赛的题目列表(需要登录 + 时间验证)
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}/problems")
     public Result getContestProblems(@PathVariable Long id) {
         try {
@@ -178,8 +185,9 @@ public class ContestController {
     }
     
     /**
-     * 获取比赛中的题目详情（带时间验证，需要参加比赛权限）
+     * 获取比赛中的题目详情(需要登录 + 带时间验证)
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{contestId}/problem/{problemId}")
     public Result getContestProblemDetail(@PathVariable Long contestId, @PathVariable Long problemId) {
         try {

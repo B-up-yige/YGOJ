@@ -5,6 +5,7 @@ import com.ygoj.judger.sandbox.SandboxExecuteRequest;
 import com.ygoj.judger.service.JudgeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,8 +17,9 @@ public class JudgerController {
     JudgeService judgeService;
 
     /**
-     * 判题接口（内部服务调用）
+     * 判题接口(内部服务调用 - 需要登录)
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/judge")
     public Result judge(@RequestBody SandboxExecuteRequest sandboxExecuteRequest) {
         try {

@@ -8,6 +8,7 @@ import com.ygoj.problem.feign.FileSystemFeignClient;
 import com.ygoj.problem.service.ProblemService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,7 +24,7 @@ public class ProblemController {
     FileSystemFeignClient fileSystemFeignClient;
 
     /**
-     * 获取题目信息（公开访问）
+     * 获取题目信息(公开访问)
      *
      * @param id 题目id
      * @return {@link Result}
@@ -46,11 +47,12 @@ public class ProblemController {
     }
 
     /**
-     * 添加题目（需要创建题目权限）
+     * 添加题目(需要创建题目权限)
      *
      * @param probleminfo 题目信息
      * @return {@link Result}
      */
+    @PreAuthorize("hasAuthority('PROBLEM_CREATE')")
     @PostMapping("/add")
     public Result addProblem(@RequestBody Probleminfo probleminfo) {
         try {
@@ -74,11 +76,12 @@ public class ProblemController {
     }
 
     /**
-     * 编辑题目信息（需要编辑题目权限）
+     * 编辑题目信息(需要编辑题目权限)
      *
      * @param probleminfo 题目信息
      * @return {@link Result}
      */
+    @PreAuthorize("hasAuthority('PROBLEM_EDIT')")
     @PutMapping("/edit")
     public Result editProblem(@RequestBody Probleminfo probleminfo) {
         try {
@@ -98,11 +101,12 @@ public class ProblemController {
     }
 
     /**
-     * 删除题目（需要删除题目权限）
+     * 删除题目(需要删除题目权限)
      *
      * @param id 题目id
      * @return {@link Result}
      */
+    @PreAuthorize("hasAuthority('PROBLEM_DELETE')")
     @DeleteMapping("/del/{id}")
     public Result delProblemInfo(@PathVariable("id") Long id) {
         try {
@@ -117,7 +121,7 @@ public class ProblemController {
     }
 
     /**
-     * 获取题目列表（公开访问）
+     * 获取题目列表(公开访问)
      */
     @GetMapping("/list")
     public Result list(@RequestParam(required = false, defaultValue = "1") Long page,
@@ -143,8 +147,9 @@ public class ProblemController {
     }
 
     /**
-     * 添加测试用例（需要编辑题目权限）
+     * 添加测试用例(需要编辑题目权限)
      */
+    @PreAuthorize("hasAuthority('PROBLEM_EDIT')")
     @PostMapping("/addTestCase")
     public Result addTestCase(@RequestParam Long problemId,
                               @RequestParam MultipartFile input, @RequestParam MultipartFile output) {
@@ -198,8 +203,9 @@ public class ProblemController {
     }
 
     /**
-     * 删除测试用例（需要编辑题目权限）
+     * 删除测试用例(需要编辑题目权限)
      */
+    @PreAuthorize("hasAuthority('PROBLEM_EDIT')")
     @DeleteMapping("/delTestCase")
     public Result delTestCase(@RequestBody Testcase testcase) {
         try {
@@ -228,8 +234,9 @@ public class ProblemController {
     }
 
     /**
-     * 获取测试用例列表（需要查看题目权限）
+     * 获取测试用例列表(需要登录 - 题目作者或管理员可见)
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/getTestCase")
     public Result getTestCase(@RequestParam Long problemId) {
         try {
@@ -247,7 +254,7 @@ public class ProblemController {
     }
 
     /**
-     * 获取题目标签（需要查看题目权限）
+     * 获取题目标签(公开访问)
      */
     @GetMapping("/probleminfo/{id}/tag")
     public Result getTag(@PathVariable("id") Long id) {
@@ -266,8 +273,9 @@ public class ProblemController {
     }
 
     /**
-     * 添加题目标签（需要编辑题目权限）
+     * 添加题目标签(需要编辑题目权限)
      */
+    @PreAuthorize("hasAuthority('PROBLEM_EDIT')")
     @PostMapping("/probleminfo/{id}/addTag")
     public Result addTag(@PathVariable("id") Long id, @RequestBody String tagName) {
         log.info("添加题目标签请求, problemId: {}, tag: {}", id, tagName);
@@ -304,8 +312,9 @@ public class ProblemController {
     }
 
     /**
-     * 删除题目标签（需要编辑题目权限）
+     * 删除题目标签(需要编辑题目权限)
      */
+    @PreAuthorize("hasAuthority('PROBLEM_EDIT')")
     @DeleteMapping("/probleminfo/{id}/delTag")
     public Result delTag(@PathVariable("id") Long id, @RequestBody String tagName) {
         try {
