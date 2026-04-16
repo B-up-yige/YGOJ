@@ -44,27 +44,27 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // 公开接口 - 用户认证
                 .requestMatchers(
-                    "/api/user/login",
-                    "/api/user/register"
+                    "/user/login",
+                    "/user/register"
                 ).permitAll()
                 
                 // 公开接口 - 题目相关
                 .requestMatchers(
-                    "/api/problem/list",
-                    "/api/problem/probleminfo/**",
-                    "/api/problem/probleminfo/*/tag"
+                    "/problem/list",
+                    "/problem/probleminfo/**",
+                    "/problem/probleminfo/*/tag"
                 ).permitAll()
                 
                 // 公开接口 - 比赛相关
                 .requestMatchers(
-                    "/api/contest/list",
-                    "/api/contest/**"
+                    "/contest/list",
+                    "/contest/**"
                 ).permitAll()
                 
                 // 公开接口 - 题集相关
                 .requestMatchers(
-                    "/api/problemset/list",
-                    "/api/problemset/**"
+                    "/problemset/list",
+                    "/problemset/**"
                 ).permitAll()
                 
                 // 其他所有请求需要认证
