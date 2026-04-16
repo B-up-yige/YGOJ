@@ -112,20 +112,27 @@ public class AuthInterceptor implements HandlerInterceptor {
     private String extractToken(HttpServletRequest request) {
         // 优先从 Authorization header 获取
         String authHeader = request.getHeader("Authorization");
+        log.debug("Authorization header: {}", authHeader);
+        
         if (authHeader != null && !authHeader.isEmpty()) {
             // 支持 "Bearer <token>" 格式
             if (authHeader.startsWith("Bearer ")) {
-                return authHeader.substring(7);
+                String token = authHeader.substring(7);
+                log.debug("提取到Bearer Token: {}", token);
+                return token;
             }
+            log.debug("提取到直接Token: {}", authHeader);
             return authHeader;
         }
         
         // 兼容旧的 JWT header
         String jwtHeader = request.getHeader("JWT");
         if (jwtHeader != null && !jwtHeader.isEmpty() && !"NULL".equals(jwtHeader)) {
+            log.debug("从JWT header提取Token: {}", jwtHeader);
             return jwtHeader;
         }
         
+        log.debug("未找到任何Token");
         return null;
     }
 
