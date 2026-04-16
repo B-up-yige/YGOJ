@@ -5,9 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @EnableDiscoveryClient
-@SpringBootApplication(excludeName = {
-    "org.apache.shiro.spring.config.web.autoconfigure.ShiroWebAutoConfiguration"
-})
+@SpringBootApplication
 public class FileSystemMainApplication {
     public static void main(String[] args) {
         SpringApplication.run(FileSystemMainApplication.class, args);

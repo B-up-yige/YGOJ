@@ -1,15 +1,13 @@
 package com.ygoj.common.shiro;
 
-import jakarta.servlet.*;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authc.AuthenticationException;
-import org.apache.shiro.subject.Subject;
+import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
+import org.apache.shiro.authc.AuthenticationToken;
 import org.springframework.http.HttpStatus;
-
-import java.io.IOException;
 
 /**
  * JWT 认证过滤器
@@ -18,47 +16,48 @@ import java.io.IOException;
  * @date 2026/04/16
  */
 @Slf4j
-public class JwtFilter implements Filter {
+public class JwtFilter extends AuthenticatingFilter {
 
+    /**
+     * 创建 Token
+     */
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
+    protected AuthenticationToken createToken(ServletRequest request, ServletResponse response) {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
-        
-        // OPTIONS 请求直接放行（用于跨域预检）
-        if ("OPTIONS".equalsIgnoreCase(httpRequest.getMethod())) {
-            chain.doFilter(request, response);
-            return;
-        }
-        
-        // 提取 Token
         String token = extractToken(httpRequest);
         
         if (token != null && !token.isEmpty()) {
-            try {
-                // 创建 JWT Token 并登录
-                JwtToken jwtToken = new JwtToken(token);
-                Subject subject = SecurityUtils.getSubject();
-                subject.login(jwtToken);
-                log.debug("用户认证成功");
-            } catch (AuthenticationException e) {
-                log.error("认证失败: {}", e.getMessage());
-                httpResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
-                httpResponse.setContentType("application/json;charset=UTF-8");
-                httpResponse.getWriter().write("{\"code\":401,\"message\":\"认证失败: " + e.getMessage() + "\"}");
-                return;
-            }
-        } else {
-            // 没有 Token，返回 401
-            httpResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
-            httpResponse.setContentType("application/json;charset=UTF-8");
-            httpResponse.getWriter().write("{\"code\":401,\"message\":\"未授权，请先登录\"}");
-            return;
+            return new JwtToken(token);
+        }
+        return null;
+    }
+
+    /**
+     * 判断是否允许访问
+     */
+    @Override
+    protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
+        // OPTIONS 请求直接放行
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        if ("OPTIONS".equalsIgnoreCase(httpRequest.getMethod())) {
+            return true;
         }
         
-        // 继续过滤链
-        chain.doFilter(request, response);
+        // 检查是否有 Token
+        String token = extractToken(httpRequest);
+        return token != null && !token.isEmpty();
+    }
+
+    /**
+     * 当访问被拒绝时的处理
+     */
+    @Override
+    protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+        httpResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
+        httpResponse.setContentType("application/json;charset=UTF-8");
+        httpResponse.getWriter().write("{\"code\":401,\"message\":\"未授权，请先登录\"}");
+        return false;
     }
 
     /**
