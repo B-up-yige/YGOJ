@@ -766,7 +766,13 @@ public class RecordServiceImpl implements RecordService {
                 return Result.error(404, "提交记录不存在");
             }
             
-            // 2. 重置记录状态为waiting
+            // 2. 检查记录是否已在判题队列中（状态为waiting）
+            if ("waiting".equals(record.getStatus())) {
+                log.warn("重测失败: 记录已在判题队列中, recordId: {}", recordId);
+                return Result.error(400, "该记录已在判题队列中，请勿重复提交");
+            }
+            
+            // 3. 重置记录状态为waiting
             record.setStatus("waiting");
             record.setCompileTime(null);
             record.setCompileMemory(null);
@@ -775,7 +781,7 @@ public class RecordServiceImpl implements RecordService {
             recordMapper.updateById(record);
             log.info("记录状态已重置为waiting, recordId: {}", recordId);
             
-            // 3. 构建判题请求（复用addRecord中的逻辑）
+            // 4. 构建判题请求（复用addRecord中的逻辑）
             SandboxExecuteRequest sandboxExecuteRequest = new SandboxExecuteRequest();
             sandboxExecuteRequest.setRecordId(record.getId());
             sandboxExecuteRequest.setCode(record.getCode());
@@ -820,7 +826,7 @@ public class RecordServiceImpl implements RecordService {
             sandboxExecuteRequest.setTimeLimit(probleminfo.getTimeLimit());
             sandboxExecuteRequest.setMemoryLimit(probleminfo.getMemoryLimit());
 
-            // 4. 调用judger服务
+            // 5. 调用judger服务
             log.info("发送重测请求到judger服务, recordId: {}", record.getId());
             Result judge = judgerFeignClient.judge(sandboxExecuteRequest);
             log.info("重测请求发送成功, recordId: {}", record.getId());
