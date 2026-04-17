@@ -47,10 +47,13 @@ public class JwtUtils {
             }
             
             // 检查过期时间
-            Long createTime = (Long) jwt.getPayload("createTime");
-            if (createTime != null && System.currentTimeMillis() - createTime > EXPIRATION_TIME) {
-                log.warn("JWT 已过期");
-                return null;
+            Object createTimeObj = jwt.getPayload("createTime");
+            if (createTimeObj != null) {
+                Long createTime = Long.parseLong(createTimeObj.toString());
+                if (System.currentTimeMillis() - createTime > EXPIRATION_TIME) {
+                    log.warn("JWT 已过期");
+                    return null;
+                }
             }
             
             return jwt;
