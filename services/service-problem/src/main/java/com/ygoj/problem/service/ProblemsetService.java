@@ -7,14 +7,14 @@ import java.util.List;
 
 public interface ProblemsetService {
     /**
-     * 获取题集列表
+     * 获取题集列表（包含公开题集和指定用户创建的私有题集）
      */
-    List<Problemset> list(Long page, Long pageSize, String title);
+    List<Problemset> list(Long page, Long pageSize, String title, Long userId);
 
     /**
-     * 根据ID获取题集详情
+     * 根据ID获取题集详情（需要权限验证）
      */
-    Problemset getProblemsetById(Long id);
+    Problemset getProblemsetById(Long id, Long userId);
 
     /**
      * 创建题集

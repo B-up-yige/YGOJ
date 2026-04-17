@@ -1,19 +1,20 @@
 import request from '@/utils/request'
 
 // 获取题集列表
-export function getProblemsetList(page = 1, pageSize = 10, title = '') {
+export function getProblemsetList(page = 1, pageSize = 10, title = '', userId = null) {
   return request({
     url: '/problemset/list',
     method: 'get',
-    params: { page, pageSize, title }
+    params: { page, pageSize, title, userId }
   })
 }
 
 // 获取题集详情
-export function getProblemsetInfo(id) {
+export function getProblemsetInfo(id, userId = null) {
   return request({
     url: `/problemset/${id}`,
-    method: 'get'
+    method: 'get',
+    params: { userId }
   })
 }
 
@@ -27,37 +28,40 @@ export function addProblemset(data) {
 }
 
 // 编辑题集
-export function editProblemset(data) {
+export function editProblemset(data, userId = null) {
   return request({
     url: '/problemset/edit',
     method: 'put',
+    params: { userId },
     data
   })
 }
 
 // 删除题集
-export function delProblemset(id) {
+export function delProblemset(id, userId = null) {
   return request({
     url: `/problemset/del/${id}`,
-    method: 'delete'
+    method: 'delete',
+    params: { userId }
   })
 }
 
 // 添加题集题目
-export function addProblemsetProblem(data) {
+export function addProblemsetProblem(data, userId = null) {
   return request({
     url: '/problemset/problem/add',
     method: 'post',
+    params: { userId },
     data
   })
 }
 
 // 删除题集题目
-export function delProblemsetProblem(problemsetId, problemId) {
+export function delProblemsetProblem(problemsetId, problemId, userId = null) {
   return request({
     url: '/problemset/problem/del',
     method: 'delete',
-    params: { problemsetId, problemId }
+    params: { problemsetId, problemId, userId }
   })
 }
 

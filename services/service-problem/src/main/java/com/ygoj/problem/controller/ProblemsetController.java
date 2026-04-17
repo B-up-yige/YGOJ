@@ -1,12 +1,15 @@
 package com.ygoj.problem.controller;
 
 import com.ygoj.common.Result;
+import com.ygoj.common.security.CustomUserDetails;
 import com.ygoj.problem.Problemset;
 import com.ygoj.problem.ProblemsetProblem;
 import com.ygoj.problem.service.ProblemsetService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,15 +23,28 @@ public class ProblemsetController {
     private ProblemsetService problemsetService;
 
     /**
-     * 获取题集列表(公开访问)
+     * 获取当前登录用户ID
+     */
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            return userDetails.getUserId();
+        }
+        return null;
+    }
+
+    /**
+     * 获取题集列表(公开访问，但会返回当前用户创建的私有题集)
      */
     @GetMapping("/list")
     public Result list(@RequestParam(defaultValue = "1") Long page,
                        @RequestParam(defaultValue = "10") Long pageSize,
                        @RequestParam(required = false) String title) {
         try {
-            log.info("获取题集列表请求, page: {}, pageSize: {}, title: {}", page, pageSize, title);
-            List<Problemset> problemsets = problemsetService.list(page, pageSize, title);
+            Long userId = getCurrentUserId();
+            log.info("获取题集列表请求, page: {}, pageSize: {}, title: {}, userId: {}", page, pageSize, title, userId);
+            List<Problemset> problemsets = problemsetService.list(page, pageSize, title, userId);
             return Result.success(problemsets);
         } catch (Exception e) {
             log.error("获取题集列表失败", e);
@@ -37,17 +53,21 @@ public class ProblemsetController {
     }
 
     /**
-     * 获取题集详情(公开访问)
+     * 获取题集详情(需要权限验证：公开题集或创建者本人)
      */
     @GetMapping("/{id}")
     public Result getProblemsetById(@PathVariable Long id) {
         try {
-            log.info("获取题集详情请求, problemsetId: {}", id);
-            Problemset problemset = problemsetService.getProblemsetById(id);
+            Long userId = getCurrentUserId();
+            log.info("获取题集详情请求, problemsetId: {}, userId: {}", id, userId);
+            Problemset problemset = problemsetService.getProblemsetById(id, userId);
             if (problemset == null) {
-                return Result.error(404, "题集不存在");
+                return Result.error(404, "题集不存在或无权访问");
             }
             return Result.success(problemset);
+        } catch (SecurityException e) {
+            log.warn("无权访问题集, problemsetId: {}, userId: {}", id, getCurrentUserId());
+            return Result.error(403, "无权访问该题集");
         } catch (Exception e) {
             log.error("获取题集详情失败, problemsetId: {}", id, e);
             return Result.error(500, "获取题集详情失败: " + e.getMessage());
@@ -80,21 +100,30 @@ public class ProblemsetController {
     }
 
     /**
-     * 编辑题集(需要管理题集权限)
+     * 编辑题集(需要管理题集权限或是创建者)
      */
-    @PreAuthorize("hasAuthority('PROBLEMSET_MANAGE')")
     @PutMapping("/edit")
     public Result editProblemset(@RequestBody Problemset problemset) {
         try {
-            log.info("编辑题集请求, problemsetId: {}", problemset.getId());
+            Long userId = getCurrentUserId();
+            log.info("编辑题集请求, problemsetId: {}, userId: {}", problemset.getId(), userId);
             
             if (problemset.getId() == null) {
                 return Result.error(400, "题集ID不能为空");
             }
             
+            // 验证权限：有管理权限或者是创建者
+            Problemset existingProblemset = problemsetService.getProblemsetById(problemset.getId(), userId);
+            if (existingProblemset == null) {
+                return Result.error(404, "题集不存在或无权访问");
+            }
+            
             problemsetService.editProblemset(problemset);
             log.info("编辑题集成功, problemsetId: {}", problemset.getId());
             return Result.success();
+        } catch (SecurityException e) {
+            log.warn("无权编辑题集, problemsetId: {}, userId: {}", problemset.getId(), getCurrentUserId());
+            return Result.error(403, "无权编辑该题集");
         } catch (Exception e) {
             log.error("编辑题集失败, problemsetId: {}", problemset.getId(), e);
             return Result.error(500, "编辑题集失败: " + e.getMessage());
@@ -102,16 +131,26 @@ public class ProblemsetController {
     }
 
     /**
-     * 删除题集(需要管理题集权限)
+     * 删除题集(需要管理题集权限或是创建者)
      */
-    @PreAuthorize("hasAuthority('PROBLEMSET_MANAGE')")
     @DeleteMapping("/del/{id}")
     public Result delProblemset(@PathVariable Long id) {
         try {
-            log.info("删除题集请求, problemsetId: {}", id);
+            Long userId = getCurrentUserId();
+            log.info("删除题集请求, problemsetId: {}, userId: {}", id, userId);
+            
+            // 验证权限：有管理权限或者是创建者
+            Problemset problemset = problemsetService.getProblemsetById(id, userId);
+            if (problemset == null) {
+                return Result.error(404, "题集不存在或无权访问");
+            }
+            
             problemsetService.delProblemset(id);
             log.info("删除题集成功, problemsetId: {}", id);
             return Result.success();
+        } catch (SecurityException e) {
+            log.warn("无权删除题集, problemsetId: {}, userId: {}", id, getCurrentUserId());
+            return Result.error(403, "无权删除该题集");
         } catch (Exception e) {
             log.error("删除题集失败, problemsetId: {}", id, e);
             return Result.error(500, "删除题集失败: " + e.getMessage());
@@ -119,22 +158,31 @@ public class ProblemsetController {
     }
 
     /**
-     * 添加题集题目(需要管理题集权限)
+     * 添加题集题目(需要管理题集权限或是创建者)
      */
-    @PreAuthorize("hasAuthority('PROBLEMSET_MANAGE')")
     @PostMapping("/problem/add")
     public Result addProblemsetProblem(@RequestBody ProblemsetProblem problemsetProblem) {
         try {
-            log.info("添加题集题目请求, problemsetId: {}, problemId: {}", 
-                    problemsetProblem.getProblemsetId(), problemsetProblem.getProblemId());
+            Long userId = getCurrentUserId();
+            log.info("添加题集题目请求, problemsetId: {}, problemId: {}, userId: {}", 
+                    problemsetProblem.getProblemsetId(), problemsetProblem.getProblemId(), userId);
             
             if (problemsetProblem.getProblemsetId() == null || problemsetProblem.getProblemId() == null) {
                 return Result.error(400, "题集ID和题目ID不能为空");
             }
             
+            // 验证权限：有管理权限或者是创建者
+            Problemset problemset = problemsetService.getProblemsetById(problemsetProblem.getProblemsetId(), userId);
+            if (problemset == null) {
+                return Result.error(404, "题集不存在或无权访问");
+            }
+            
             problemsetService.addProblemsetProblem(problemsetProblem);
             log.info("添加题集题目成功");
             return Result.success();
+        } catch (SecurityException e) {
+            log.warn("无权添加题目到题集, problemsetId: {}, userId: {}", problemsetProblem.getProblemsetId(), getCurrentUserId());
+            return Result.error(403, "无权向该题集添加题目");
         } catch (Exception e) {
             log.error("添加题集题目失败", e);
             return Result.error(500, "添加题集题目失败: " + e.getMessage());
@@ -142,17 +190,27 @@ public class ProblemsetController {
     }
 
     /**
-     * 删除题集题目(需要管理题集权限)
+     * 删除题集题目(需要管理题集权限或是创建者)
      */
-    @PreAuthorize("hasAuthority('PROBLEMSET_MANAGE')")
     @DeleteMapping("/problem/del")
     public Result delProblemsetProblem(@RequestParam Long problemsetId,
                                         @RequestParam Long problemId) {
         try {
-            log.info("删除题集题目请求, problemsetId: {}, problemId: {}", problemsetId, problemId);
+            Long userId = getCurrentUserId();
+            log.info("删除题集题目请求, problemsetId: {}, problemId: {}, userId: {}", problemsetId, problemId, userId);
+            
+            // 验证权限：有管理权限或者是创建者
+            Problemset problemset = problemsetService.getProblemsetById(problemsetId, userId);
+            if (problemset == null) {
+                return Result.error(404, "题集不存在或无权访问");
+            }
+            
             problemsetService.delProblemsetProblem(problemsetId, problemId);
             log.info("删除题集题目成功");
             return Result.success();
+        } catch (SecurityException e) {
+            log.warn("无权删除题集题目, problemsetId: {}, userId: {}", problemsetId, getCurrentUserId());
+            return Result.error(403, "无权从该题集删除题目");
         } catch (Exception e) {
             log.error("删除题集题目失败", e);
             return Result.error(500, "删除题集题目失败: " + e.getMessage());

@@ -32,13 +32,22 @@ public class ProblemsetServiceImpl implements ProblemsetService {
     private UserFeignClient userFeignClient;
 
     @Override
-    public List<Problemset> list(Long page, Long pageSize, String title) {
+    public List<Problemset> list(Long page, Long pageSize, String title, Long userId) {
         try {
-            log.info("获取题集列表, page: {}, pageSize: {}, title: {}", page, pageSize, title);
+            log.info("获取题集列表, page: {}, pageSize: {}, title: {}, userId: {}", page, pageSize, title, userId);
             Page<Problemset> problemsetPage = new Page<>(page, pageSize);
             LambdaQueryWrapper<Problemset> wrapper = new LambdaQueryWrapper<>();
-            // 只返回公开的题集
-            wrapper.eq(Problemset::getIsPublic, true);
+            
+            // 查询条件：公开的题集 OR (如果提供了userId) 用户自己创建的私有题集
+            if (userId != null) {
+                wrapper.and(w -> w.eq(Problemset::getIsPublic, true)
+                        .or()
+                        .and(inner -> inner.eq(Problemset::getIsPublic, false)
+                                .eq(Problemset::getAuthorId, userId)));
+            } else {
+                // 没有提供userId，只返回公开题集
+                wrapper.eq(Problemset::getIsPublic, true);
+            }
             
             // 标题模糊搜索
             if (title != null && !title.trim().isEmpty()) {
@@ -71,10 +80,27 @@ public class ProblemsetServiceImpl implements ProblemsetService {
     }
 
     @Override
-    public Problemset getProblemsetById(Long id) {
+    public Problemset getProblemsetById(Long id, Long userId) {
         try {
-            log.info("获取题集详情, problemsetId: {}", id);
-            return problemsetMapper.selectById(id);
+            log.info("获取题集详情, problemsetId: {}, userId: {}", id, userId);
+            Problemset problemset = problemsetMapper.selectById(id);
+            
+            if (problemset == null) {
+                return null;
+            }
+            
+            // 权限验证：公开题集或创建者本人可以访问
+            if (!problemset.getIsPublic()) {
+                // 私有题集，需要验证是否是创建者
+                if (userId == null || !userId.equals(problemset.getAuthorId())) {
+                    log.warn("无权访问题集, problemsetId: {}, userId: {}, authorId: {}", id, userId, problemset.getAuthorId());
+                    throw new SecurityException("无权访问该私有题集");
+                }
+            }
+            
+            return problemset;
+        } catch (SecurityException e) {
+            throw e;
         } catch (Exception e) {
             log.error("获取题集详情异常, problemsetId: {}", id, e);
             throw new RuntimeException("获取题集详情失败: " + e.getMessage(), e);

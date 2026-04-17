@@ -61,7 +61,11 @@
             </template>
           </el-table-column>
           <el-table-column prop="time" label="耗时(ms)" width="120" />
-          <el-table-column prop="memory" label="内存(KB)" width="120" />
+          <el-table-column label="内存(MB)" width="120">
+            <template #default="scope">
+              {{ formatMemory(scope.row.memory) }}
+            </template>
+          </el-table-column>
         </el-table>
       </div>
 
@@ -155,6 +159,15 @@ const getStatusText = (status) => {
     'Compilation Error': '编译错误'
   }
   return textMap[status] || status
+}
+
+// 将字节转换为MB（保留两位小数）
+const formatMemory = (bytes) => {
+  if (bytes === null || bytes === undefined || bytes === 0) {
+    return '0.00'
+  }
+  const mb = bytes / (1024 * 1024)
+  return mb.toFixed(2)
 }
 
 const goBack = () => {

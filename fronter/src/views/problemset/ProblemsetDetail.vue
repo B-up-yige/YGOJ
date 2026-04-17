@@ -5,7 +5,12 @@
         <div class="card-header">
           <h2>{{ problemset.title }}</h2>
           <div>
-            <el-button @click="editProblemset" v-permission="PERMISSIONS.PERM_PROBLEMSET_MANAGE">编辑题集</el-button>
+            <el-button 
+              v-if="canEditOrDelete()"
+              @click="editProblemset"
+            >
+              编辑题集
+            </el-button>
             <el-button @click="goBack">返回</el-button>
           </div>
         </div>
@@ -26,7 +31,13 @@
       <div class="problems-section" style="margin-top: 30px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
           <h3 style="margin: 0;">题集题目</h3>
-          <el-button type="primary" @click="showAddProblemDialog" v-permission="PERMISSIONS.PERM_PROBLEMSET_MANAGE">添加题目</el-button>
+          <el-button 
+            v-if="canEditOrDelete()"
+            type="primary" 
+            @click="showAddProblemDialog"
+          >
+            添加题目
+          </el-button>
         </div>
         <el-table :data="problems" style="width: 100%">
           <el-table-column prop="problemId" label="题目ID" width="120" />
@@ -48,7 +59,12 @@
               <el-button link type="primary" @click="viewProblem(scope.row.problemId)">
                 查看题目
               </el-button>
-              <el-button link type="danger" @click="handleDeleteProblem(scope.row.problemId)" v-permission="PERMISSIONS.PERM_PROBLEMSET_MANAGE">
+              <el-button 
+                v-if="canEditOrDelete()"
+                link 
+                type="danger" 
+                @click="handleDeleteProblem(scope.row.problemId)"
+              >
                 删除
               </el-button>
             </template>
@@ -96,7 +112,8 @@ const adding = ref(false)
 const loadProblemset = async () => {
   loading.value = true
   try {
-    const res = await getProblemsetInfo(route.params.id)
+    const userId = userStore.userInfo?.id || localStorage.getItem('userId')
+    const res = await getProblemsetInfo(route.params.id, userId)
     problemset.value = res.data
     
     const problemsRes = await getProblemsetProblems(route.params.id)
@@ -108,7 +125,12 @@ const loadProblemset = async () => {
     await loadUserProgress()
   } catch (error) {
     console.error('加载题集详情失败:', error)
-    ElMessage.error('加载题集详情失败')
+    if (error.response && error.response.status === 403) {
+      ElMessage.error('无权访问该题集')
+      router.back()
+    } else {
+      ElMessage.error('加载题集详情失败')
+    }
   } finally {
     loading.value = false
   }
@@ -165,6 +187,20 @@ const viewProblem = (problemId) => {
   router.push(`/problem/${problemId}`)
 }
 
+// 检查是否可以编辑或删除题集（创建者或管理员）
+const canEditOrDelete = () => {
+  const currentUserId = userStore.userInfo?.id || localStorage.getItem('userId')
+  if (!currentUserId) return false
+  
+  // 如果是创建者，可以编辑删除
+  if (problemset.value.authorId === parseInt(currentUserId)) {
+    return true
+  }
+  
+  // 如果有管理权限，也可以编辑删除
+  return userStore.hasPermission(PERMISSIONS.PERM_PROBLEMSET_MANAGE)
+}
+
 const showAddProblemDialog = () => {
   addProblemForm.value = {
     problemsetId: parseInt(route.params.id),
@@ -181,7 +217,8 @@ const handleAddProblem = async () => {
 
   adding.value = true
   try {
-    await addProblemsetProblem(addProblemForm.value)
+    const userId = userStore.userInfo?.id || localStorage.getItem('userId')
+    await addProblemsetProblem(addProblemForm.value, userId)
     ElMessage.success('添加题目成功')
     addProblemDialogVisible.value = false
     // 重新加载题目列表
@@ -191,7 +228,11 @@ const handleAddProblem = async () => {
     }
   } catch (error) {
     console.error('添加题目失败:', error)
-    ElMessage.error('添加题目失败')
+    if (error.response && error.response.status === 403) {
+      ElMessage.error('无权向该题集添加题目')
+    } else {
+      ElMessage.error('添加题目失败')
+    }
   } finally {
     adding.value = false
   }
@@ -205,7 +246,8 @@ const handleDeleteProblem = async (problemId) => {
       type: 'warning'
     })
 
-    await delProblemsetProblem(parseInt(route.params.id), problemId)
+    const userId = userStore.userInfo?.id || localStorage.getItem('userId')
+    await delProblemsetProblem(parseInt(route.params.id), problemId, userId)
     ElMessage.success('删除成功')
     // 重新加载题目列表
     const problemsRes = await getProblemsetProblems(route.params.id)
@@ -215,7 +257,11 @@ const handleDeleteProblem = async (problemId) => {
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除题目失败:', error)
-      ElMessage.error('删除题目失败')
+      if (error.response && error.response.status === 403) {
+        ElMessage.error('无权从该题集删除题目')
+      } else {
+        ElMessage.error('删除题目失败')
+      }
     }
   }
 }

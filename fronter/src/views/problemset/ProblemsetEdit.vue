@@ -73,13 +73,18 @@ const loadProblemset = async () => {
   
   loading.value = true
   try {
-    const res = await getProblemsetInfo(route.params.id)
+    const userId = userStore.userInfo?.id || localStorage.getItem('userId')
+    const res = await getProblemsetInfo(route.params.id, userId)
     const data = res.data
     form.title = data.title
     form.description = data.description
     form.isPublic = data.isPublic
   } catch (error) {
     console.error('加载题集失败:', error)
+    if (error.response && error.response.status === 403) {
+      ElMessage.error('无权访问该题集')
+      router.back()
+    }
   } finally {
     loading.value = false
   }
@@ -93,11 +98,12 @@ const handleSubmit = async () => {
     
     submitting.value = true
     try {
-      form.authorId = userStore.userInfo?.id || 1
+      const userId = userStore.userInfo?.id || 1
+      form.authorId = userId
       
       if (isEdit.value) {
         form.id = route.params.id
-        await editProblemset(form)
+        await editProblemset(form, userId)
         ElMessage.success('更新成功')
       } else {
         await addProblemset(form)
@@ -106,7 +112,11 @@ const handleSubmit = async () => {
       router.push('/problemsets')
     } catch (error) {
       console.error('提交失败:', error)
-      ElMessage.error(isEdit.value ? '更新失败' : '创建失败')
+      if (error.response && error.response.status === 403) {
+        ElMessage.error('无权操作该题集')
+      } else {
+        ElMessage.error(isEdit.value ? '更新失败' : '创建失败')
+      }
     } finally {
       submitting.value = false
     }

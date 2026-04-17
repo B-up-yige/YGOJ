@@ -63,8 +63,22 @@
         <template #default="scope">
           <div class="action-buttons">
             <el-button size="small" @click="handleView(scope.row.id)">查看</el-button>
-            <el-button size="small" type="primary" @click="handleEdit(scope.row.id)" v-permission="PERMISSIONS.PERM_PROBLEMSET_MANAGE">编辑</el-button>
-            <el-button size="small" type="danger" @click="handleDelete(scope.row.id)" v-permission="PERMISSIONS.PERM_PROBLEMSET_MANAGE">删除</el-button>
+            <el-button 
+              v-if="canEditOrDelete(scope.row)"
+              size="small" 
+              type="primary" 
+              @click="handleEdit(scope.row.id)"
+            >
+              编辑
+            </el-button>
+            <el-button 
+              v-if="canEditOrDelete(scope.row)"
+              size="small" 
+              type="danger" 
+              @click="handleDelete(scope.row.id)"
+            >
+              删除
+            </el-button>
           </div>
         </template>
       </el-table-column>
@@ -91,6 +105,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Plus } from '@element-plus/icons-vue'
 import { getProblemsetList, delProblemset, getUserProblemsetProgress, getProblemsetProblems } from '@/api/problemset'
 import { PERMISSIONS } from '@/stores/user'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const loading = ref(false)
@@ -105,7 +120,7 @@ const searchTitle = ref('')
 const loadProblemsets = async () => {
   loading.value = true
   try {
-    const res = await getProblemsetList(currentPage.value, pageSize.value, searchTitle.value)
+    const res = await getProblemsetList(currentPage.value, pageSize.value, searchTitle.value, userId.value)
     if (res.data) {
       if (Array.isArray(res.data)) {
         problemsets.value = res.data
@@ -223,6 +238,21 @@ const handleEdit = (id) => {
   router.push(`/problemset/edit/${id}`)
 }
 
+// 检查是否可以编辑或删除题集（创建者或管理员）
+const canEditOrDelete = (problemset) => {
+  const currentUserId = userId.value
+  if (!currentUserId) return false
+  
+  // 如果是创建者，可以编辑删除
+  if (problemset.authorId === currentUserId) {
+    return true
+  }
+  
+  // 如果有管理权限，也可以编辑删除
+  const userStore = useUserStore()
+  return userStore.hasPermission(PERMISSIONS.PERM_PROBLEMSET_MANAGE)
+}
+
 const handleDelete = async (id) => {
   try {
     await ElMessageBox.confirm('确定要删除这个题集吗？', '提示', {
@@ -231,13 +261,17 @@ const handleDelete = async (id) => {
       type: 'warning'
     })
     
-    await delProblemset(id)
+    await delProblemset(id, userId.value)
     ElMessage.success('删除成功')
     loadProblemsets()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除题集失败:', error)
-      ElMessage.error('删除题集失败')
+      if (error.response && error.response.status === 403) {
+        ElMessage.error('无权删除该题集')
+      } else {
+        ElMessage.error('删除题集失败')
+      }
     }
   }
 }
