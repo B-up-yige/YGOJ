@@ -52,7 +52,11 @@
         </el-table-column>
         <el-table-column label="操作" fixed="right" min-width="250">
           <template #default="{ row }">
-            <el-button size="small" @click="showEditDialog(row)">
+            <el-button 
+              size="small" 
+              :disabled="row.role === 'ADMIN'"
+              @click="showEditDialog(row)"
+            >
               编辑权限
             </el-button>
             <el-button 
@@ -124,10 +128,10 @@
           <el-input-number 
             v-model="editForm.permission" 
             :min="0" 
-            :max="65535"
+            :max="32767"
             disabled
           />
-          <span class="tip">根据上方选择自动计算</span>
+          <span class="tip">根据上方选择自动计算（最大32767）</span>
         </el-form-item>
       </el-form>
 
@@ -162,25 +166,23 @@ const editForm = ref({
 
 const selectedPermissions = ref([])
 
-// 权限列表定义
+// 权限列表定义（15个权限位）
 const permissionList = [
   { bit: 0, name: '查看题目' },
   { bit: 1, name: '提交代码' },
   { bit: 2, name: '创建题目' },
   { bit: 3, name: '编辑题目' },
   { bit: 4, name: '删除题目' },
-  { bit: 5, name: '查看题解' },
-  { bit: 6, name: '创建题解' },
-  { bit: 7, name: '查看提交记录' },
-  { bit: 8, name: '查看排行榜' },
-  { bit: 9, name: '创建比赛' },
-  { bit: 10, name: '管理比赛' },
-  { bit: 11, name: '参加比赛' },
-  { bit: 12, name: '创建题集' },
-  { bit: 13, name: '管理题集' },
-  { bit: 14, name: '查看题集' },
-  { bit: 15, name: '管理用户' },
-  { bit: 16, name: '系统配置' }
+  { bit: 5, name: '查看提交记录' },
+  { bit: 6, name: '查看排行榜' },
+  { bit: 7, name: '创建比赛' },
+  { bit: 8, name: '管理比赛' },
+  { bit: 9, name: '参加比赛' },
+  { bit: 10, name: '创建题集' },
+  { bit: 11, name: '管理题集' },
+  { bit: 12, name: '查看题集' },
+  { bit: 13, name: '用户管理' },
+  { bit: 14, name: '系统配置' }
 ]
 
 // 监听选中权限变化，自动计算权限值
@@ -223,6 +225,12 @@ const loadUsers = async () => {
 
 // 显示编辑对话框
 const showEditDialog = (user) => {
+  // 禁止编辑管理员的权限
+  if (user.role === 'ADMIN') {
+    ElMessage.warning('管理员拥有所有权限，无法编辑')
+    return
+  }
+  
   editForm.value = {
     userId: user.id,
     username: user.username,
@@ -243,6 +251,12 @@ const showEditDialog = (user) => {
 
 // 更新用户权限
 const handleUpdatePermission = async () => {
+  // 禁止修改管理员权限
+  if (editForm.value.role === 'ADMIN') {
+    ElMessage.warning('不能修改管理员的权限')
+    return
+  }
+  
   try {
     const token = localStorage.getItem('token')
     const response = await axios.put('/api/user/admin/user/permission', {
