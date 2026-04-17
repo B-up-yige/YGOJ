@@ -67,7 +67,7 @@
 
       <div class="actions" style="margin-top: 30px; text-align: center;">
         <el-button type="primary" @click="viewProblem">查看题目</el-button>
-        <el-button type="warning" @click="handleRejudge">重测</el-button>
+        <el-button type="warning" @click="handleRejudge" v-permission="PERMISSIONS.PERM_SYSTEM_CONFIG">重测</el-button>
         <el-button @click="goBack">返回</el-button>
       </div>
     </el-card>
@@ -80,6 +80,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getRecordInfo, getRecordDetails, rejudge } from '@/api/record'
 import { CircleClose, Warning } from '@element-plus/icons-vue'
+import { PERMISSIONS } from '@/stores/user'
 
 const route = useRoute()
 const router = useRouter()

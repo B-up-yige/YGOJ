@@ -74,7 +74,7 @@
       <el-table-column label="操作" width="200" fixed="right">
         <template #default="scope">
           <el-button link type="primary" @click="handleView(scope.row.id)">详情</el-button>
-          <el-button link type="warning" @click="handleRejudge(scope.row.id)">重测</el-button>
+          <el-button link type="warning" @click="handleRejudge(scope.row.id)" v-permission="PERMISSIONS.PERM_SYSTEM_CONFIG">重测</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -120,6 +120,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Document, User } from '@element-plus/icons-vue'
 import { getRecordList, getContestRecordList, rejudge } from '@/api/record'
+import { PERMISSIONS } from '@/stores/user'
 
 const router = useRouter()
 const route = useRoute()
