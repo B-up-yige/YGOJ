@@ -38,23 +38,39 @@
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="状态" width="100">
+          <template #default="{ row }">
+            <el-tag :type="row.isBanned === 1 ? 'danger' : 'success'">
+              {{ row.isBanned === 1 ? '已拉黑' : '正常' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="权限值" width="120">
           <template #default="{ row }">
             <span>{{ row.permission }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" fixed="right" min-width="200">
+        <el-table-column label="操作" fixed="right" min-width="250">
           <template #default="{ row }">
             <el-button size="small" @click="showEditDialog(row)">
               编辑权限
             </el-button>
             <el-button 
+              v-if="row.isBanned !== 1"
               size="small" 
-              type="danger"
+              type="warning"
               :disabled="row.role === 'ADMIN'"
-              @click="handleDeleteUser(row)"
+              @click="handleBanUser(row, true)"
             >
-              删除
+              拉黑
+            </el-button>
+            <el-button 
+              v-else
+              size="small" 
+              type="success"
+              @click="handleBanUser(row, false)"
+            >
+              解禁
             </el-button>
           </template>
         </el-table-column>
@@ -252,36 +268,39 @@ const handleUpdatePermission = async () => {
   }
 }
 
-// 删除用户
-const handleDeleteUser = async (user) => {
+// 拉黑/解禁用户
+const handleBanUser = async (user, isBanned) => {
   try {
+    const action = isBanned ? '拉黑' : '解禁'
     await ElMessageBox.confirm(
-      `确定要删除用户 "${user.username}" 吗？此操作不可恢复！`,
-      '警告',
+      `确定要${action}用户 "${user.username}" 吗？`,
+      '提示',
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning'
+        type: isBanned ? 'warning' : 'info'
       }
     )
     
     const token = localStorage.getItem('token')
-    const response = await axios.delete(`/api/user/admin/user/${user.id}`, {
+    const response = await axios.put(`/api/user/admin/user/ban/${user.id}`, {
+      isBanned: isBanned ? 1 : 0
+    }, {
       headers: {
         'Authorization': token
       }
     })
     
     if (response.data.code === 200) {
-      ElMessage.success('用户删除成功')
+      ElMessage.success(`用户${action}成功`)
       loadUsers()
     } else {
-      ElMessage.error(response.data.message || '删除用户失败')
+      ElMessage.error(response.data.message || `${action}用户失败`)
     }
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('删除用户失败:', error)
-      ElMessage.error('删除用户失败')
+      console.error('操作失败:', error)
+      ElMessage.error('操作失败')
     }
   }
 }

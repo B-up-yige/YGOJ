@@ -27,7 +27,7 @@ public interface UserService {
     Result updateUserPermission(Long userId, String role, Long permission);
     
     /**
-     * 删除用户
+     * 拉黑/解禁用户
      */
-    Result deleteUser(Long userId);
+    Result banUser(Long userId, Integer isBanned);
 }

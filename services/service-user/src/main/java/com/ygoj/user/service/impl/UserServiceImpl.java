@@ -132,6 +132,12 @@ public class UserServiceImpl implements UserService {
             //登陆成功后处理
             //在redis中创建token和对应的jwt缓存
             if(userinfo != null){
+                // 检查用户是否被拉黑
+                if (userinfo.getIsBanned() != null && userinfo.getIsBanned() == 1) {
+                    log.warn("用户已被拉黑，禁止登录, userId: {}", userinfo.getId());
+                    return null;
+                }
+                
                 log.info("登录验证成功, userId: {}", userinfo.getId());
                 String token = System.currentTimeMillis() + UUID.randomUUID().toString();
                 
@@ -324,29 +330,33 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * 删除用户
+     * 拉黑/解禁用户
      */
     @Override
-    public Result deleteUser(Long userId) {
+    public Result banUser(Long userId, Integer isBanned) {
         try {
-            log.info("删除用户, userId: {}", userId);
+            log.info("拉黑/解禁用户, userId: {}, isBanned: {}", userId, isBanned);
             
             Userinfo user = userinfoMapper.selectById(userId);
             if (user == null) {
                 return Result.error(404, "用户不存在");
             }
             
-            // 不允许删除管理员账号
+            // 不允许拉黑管理员账号
             if ("ADMIN".equals(user.getRole())) {
-                return Result.error(403, "不能删除管理员账号");
+                return Result.error(403, "不能拉黑管理员账号");
             }
             
-            userinfoMapper.deleteById(userId);
-            log.info("用户删除成功, userId: {}", userId);
-            return Result.success("用户删除成功");
+            // 更新拉黑状态
+            user.setIsBanned(isBanned != null ? isBanned : 0);
+            userinfoMapper.updateById(user);
+            
+            String action = (isBanned != null && isBanned == 1) ? "拉黑" : "解禁";
+            log.info("用户{}成功, userId: {}", action, userId);
+            return Result.success("用户" + action + "成功");
         } catch (Exception e) {
-            log.error("删除用户异常, userId: {}", userId, e);
-            return Result.error(500, "删除用户失败: " + e.getMessage());
+            log.error("拉黑/解禁用户异常, userId: {}", userId, e);
+            return Result.error(500, "操作失败: " + e.getMessage());
         }
     }
 }

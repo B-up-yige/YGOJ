@@ -26,4 +26,9 @@ public class Userinfo {
      * 例如: 1=查看题目, 2=提交代码, 4=创建题目, 8=管理比赛等
      */
     Long permission;
+    
+    /**
+     * 是否被拉黑: 0-正常, 1-已拉黑
+     */
+    Integer isBanned;
 }

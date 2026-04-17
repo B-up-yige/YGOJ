@@ -258,22 +258,25 @@ public class UserController {
     }
 
     /**
-     * 删除用户(仅管理员 - 需要用户管理权限)
+     * 拉黑/解禁用户(仅管理员 - 需要用户管理权限)
      */
     @PreAuthorize("hasAuthority('USER_MANAGE')")
-    @DeleteMapping("/admin/user/{id}")
-    public Result deleteUser(@PathVariable Long id) {
+    @PutMapping("/admin/user/ban/{id}")
+    public Result banUser(@PathVariable Long id, @RequestBody Map<String, Object> params) {
         try {
-            log.info("管理员删除用户请求, userId: {}", id);
+            log.info("管理员拉黑/解禁用户请求, userId: {}", id);
             
             if (id == null) {
                 return Result.error(400, "用户ID不能为空");
             }
             
-            return userService.deleteUser(id);
+            Integer isBanned = params.get("isBanned") != null ? 
+                Integer.valueOf(params.get("isBanned").toString()) : 0;
+            
+            return userService.banUser(id, isBanned);
         } catch (Exception e) {
-            log.error("删除用户失败, userId: {}", id, e);
-            return Result.error(500, "删除用户失败: " + e.getMessage());
+            log.error("拉黑/解禁用户失败, userId: {}", id, e);
+            return Result.error(500, "操作失败: " + e.getMessage());
         }
     }
 }
