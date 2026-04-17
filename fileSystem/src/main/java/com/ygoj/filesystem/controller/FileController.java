@@ -46,12 +46,11 @@ public class FileController {
     }
     
     /**
-     * 下载文件(内部服务调用 - 需要登录)
+     * 下载文件(公开接口 - 通过 fileId 的随机性保证安全)
      *
      * @param fileId 文件 id
      * @return {@link ResponseEntity}<{byte[]}>}
      */
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/file/download/{fileId}")
     public ResponseEntity<byte[]> downloadFile(@PathVariable String fileId) {
         log.info("文件下载请求, fileId: {}", fileId);
