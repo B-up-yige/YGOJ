@@ -2,7 +2,7 @@
   <div class="problemset-list">
     <div class="header">
       <h2>题集列表</h2>
-      <el-button type="primary" @click="handleCreate" v-permission="PERMISSIONS.PERM_PROBLEMSET_CREATE">
+      <el-button type="primary" @click="handleCreate" v-if="userId">
         <el-icon><Plus /></el-icon>
         创建题集
       </el-button>
@@ -120,7 +120,7 @@ const searchTitle = ref('')
 const loadProblemsets = async () => {
   loading.value = true
   try {
-    const res = await getProblemsetList(currentPage.value, pageSize.value, searchTitle.value, userId.value)
+    const res = await getProblemsetList(currentPage.value, pageSize.value, searchTitle.value)
     if (res.data) {
       if (Array.isArray(res.data)) {
         problemsets.value = res.data

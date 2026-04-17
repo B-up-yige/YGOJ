@@ -42,8 +42,7 @@ public class ProblemsetServiceImpl implements ProblemsetService {
             if (userId != null) {
                 wrapper.and(w -> w.eq(Problemset::getIsPublic, true)
                         .or()
-                        .and(inner -> inner.eq(Problemset::getIsPublic, false)
-                                .eq(Problemset::getAuthorId, userId)));
+                        .and(w1 -> w1.eq(Problemset::getAuthorId, userId)));
             } else {
                 // 没有提供userId，只返回公开题集
                 wrapper.eq(Problemset::getIsPublic, true);

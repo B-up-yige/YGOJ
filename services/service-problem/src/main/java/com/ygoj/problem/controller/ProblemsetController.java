@@ -75,9 +75,9 @@ public class ProblemsetController {
     }
 
     /**
-     * 创建题集(需要创建题集权限)
+     * 创建题集(需要登录)
      */
-    @PreAuthorize("hasAuthority('PROBLEMSET_CREATE')")
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/add")
     public Result addProblemset(@RequestBody Problemset problemset) {
         try {
