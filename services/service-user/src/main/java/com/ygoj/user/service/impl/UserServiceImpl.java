@@ -45,11 +45,30 @@ public class UserServiceImpl implements UserService {
                 throw new IllegalArgumentException("用户信息不能为空");
             }
             
+            // 设置默认角色为 USER
+            if (userinfo.getRole() == null || userinfo.getRole().trim().isEmpty()) {
+                userinfo.setRole("USER");
+            }
+            
+            // 设置默认权限值: 5731
+            // 包含权限: 查看题目(0), 提交代码(1), 查看提交记录(5), 查看排行榜(6), 
+            //          参加比赛(9), 创建题集(10), 查看题集(12)
+            // 计算: 2^0 + 2^1 + 2^5 + 2^6 + 2^9 + 2^10 + 2^12 = 1 + 2 + 32 + 64 + 512 + 1024 + 4096 = 5731
+            if (userinfo.getPermission() == null) {
+                userinfo.setPermission(5731L);
+            }
+            
+            // 设置默认为未拉黑状态
+            if (userinfo.getIsBanned() == null) {
+                userinfo.setIsBanned(0);
+            }
+            
             //密码MD5加密存储
             userinfo.setPassword(DigestUtil.md5Hex(userinfo.getPassword()));
 
             userinfoMapper.insert(userinfo);
-            log.info("用户注册成功, userId: {}", userinfo.getId());
+            log.info("用户注册成功, userId: {}, role: {}, permission: {}", 
+                userinfo.getId(), userinfo.getRole(), userinfo.getPermission());
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {

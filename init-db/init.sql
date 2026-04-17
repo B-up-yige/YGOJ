@@ -52,10 +52,26 @@ CREATE TABLE `userinfo`  (
 -- ----------------------------
 -- 默认管理员账号: admin / Admin@123456
 -- 密码使用MD5加密: MD5("Admin@123456") = "0f2797f2182804d0cc7f0b85d254c146"
--- 权限值说明: 65535 = 所有权限位都设置为1 (二进制: 11111111111111111)
+-- 权限值说明: 32767 = 所有权限位都设置为1 (二进制: 111111111111111, 共15个权限位)
+-- 权限位对应关系:
+--   位0: PERM_PROBLEM_VIEW (查看题目)
+--   位1: PERM_PROBLEM_SUBMIT (提交代码)
+--   位2: PERM_PROBLEM_CREATE (创建题目)
+--   位3: PERM_PROBLEM_EDIT (编辑题目)
+--   位4: PERM_PROBLEM_DELETE (删除题目)
+--   位5: PERM_RECORD_VIEW (查看提交记录)
+--   位6: PERM_RANKING_VIEW (查看排行榜)
+--   位7: PERM_CONTEST_CREATE (创建比赛)
+--   位8: PERM_CONTEST_MANAGE (管理比赛)
+--   位9: PERM_CONTEST_JOIN (参加比赛)
+--   位10: PERM_PROBLEMSET_CREATE (创建题集)
+--   位11: PERM_PROBLEMSET_MANAGE (管理题集)
+--   位12: PERM_PROBLEMSET_VIEW (查看题集)
+--   位13: PERM_USER_MANAGE (用户管理)
+--   位14: PERM_SYSTEM_CONFIG (系统配置/重测)
 INSERT INTO `userinfo` (`username`, `nickname`, `password`, `email`, `role`, `permission`) 
-VALUES ('admin', '系统管理员', '0f2797f2182804d0cc7f0b85d254c146', 'admin@ygoj.com', 'ADMIN', 65535)
-ON DUPLICATE KEY UPDATE `role` = 'ADMIN', `permission` = 65535;
+VALUES ('admin', '系统管理员', '0f2797f2182804d0cc7f0b85d254c146', 'admin@ygoj.com', 'ADMIN', 32767)
+ON DUPLICATE KEY UPDATE `role` = 'ADMIN', `permission` = 32767;
 
 SET FOREIGN_KEY_CHECKS = 1;
 

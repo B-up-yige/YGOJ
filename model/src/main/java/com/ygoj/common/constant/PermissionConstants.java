@@ -39,41 +39,35 @@ public class PermissionConstants {
     /** 删除题目 */
     public static final int PERM_PROBLEM_DELETE = 4;
     
-    /** 查看题解 */
-    public static final int PERM_SOLUTION_VIEW = 5;
-    
-    /** 发布题解 */
-    public static final int PERM_SOLUTION_CREATE = 6;
-    
     /** 查看提交记录 */
-    public static final int PERM_RECORD_VIEW = 7;
+    public static final int PERM_RECORD_VIEW = 5;
     
     /** 查看排行榜 */
-    public static final int PERM_RANKING_VIEW = 8;
+    public static final int PERM_RANKING_VIEW = 6;
     
     /** 创建比赛 */
-    public static final int PERM_CONTEST_CREATE = 9;
+    public static final int PERM_CONTEST_CREATE = 7;
     
     /** 管理比赛 */
-    public static final int PERM_CONTEST_MANAGE = 10;
+    public static final int PERM_CONTEST_MANAGE = 8;
     
     /** 参加比赛 */
-    public static final int PERM_CONTEST_JOIN = 11;
+    public static final int PERM_CONTEST_JOIN = 9;
     
     /** 创建题集 */
-    public static final int PERM_PROBLEMSET_CREATE = 12;
+    public static final int PERM_PROBLEMSET_CREATE = 10;
     
     /** 管理题集 */
-    public static final int PERM_PROBLEMSET_MANAGE = 13;
+    public static final int PERM_PROBLEMSET_MANAGE = 11;
     
     /** 查看题集 */
-    public static final int PERM_PROBLEMSET_VIEW = 14;
+    public static final int PERM_PROBLEMSET_VIEW = 12;
     
     /** 用户管理 */
-    public static final int PERM_USER_MANAGE = 15;
+    public static final int PERM_USER_MANAGE = 13;
     
-    /** 系统设置 */
-    public static final int PERM_SYSTEM_CONFIG = 16;
+    /** 系统配置（重测等） */
+    public static final int PERM_SYSTEM_CONFIG = 14;
     
     // ==================== 自定义权限常量 ====================
     

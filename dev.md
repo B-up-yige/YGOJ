@@ -18,11 +18,11 @@
 
 ### 后端框架
 - **Spring Cloud** - 微服务框架
+- **Spring Security** - 安全认证与授权框架
 - **Nacos 2.4.3** - 服务注册与配置中心
 - **Sentinel 1.8.6** - 流量控制与熔断降级
 - **Seata 2.1.0** - 分布式事务
 - **Spring Cloud Gateway** - API 网关
-- **Apache Shiro** - 权限认证框架
 - **JWT** - 无状态认证
 
 ### 数据存储
@@ -33,6 +33,8 @@
 ### 前端
 - **Vue 3** - 前端框架
 - **Vite** - 构建工具
+- **Element Plus** - UI 组件库
+- **Pinia** - 状态管理
 
 ---
 
@@ -40,106 +42,90 @@
 
 ### 概述
 
-YGOJ 采用 **Apache Shiro** 权限框架，基于 JWT + Realm 实现无状态认证和授权，支持：
+YGOJ 采用 **Spring Security** 权限框架，基于 JWT + RBAC（角色访问控制）实现无状态认证和授权，支持：
 
-1. **角色权限（ROLE）**：基于用户角色的粗粒度控制（USER, ADMIN, CONTEST_ADMIN等）
-2. **细粒度权限（Permission）**：基于字符串标识的权限控制（problem:create, contest:manage等）
-3. **组合逻辑**：支持 AND/OR 逻辑组合多个角色或权限
+1. **角色权限（ROLE）**：基于用户角色的粗粒度控制（USER, ADMIN等）
+2. **细粒度权限（Permission）**：基于位运算的权限控制，共15个权限位
+3. **方法级鉴权**：使用 `@PreAuthorize` 注解进行接口权限控制
+4. **前端权限指令**：使用 `v-permission` 指令控制按钮显示
 
 ### 核心组件
 
-- **Shiro 注解**：`@RequiresRoles`, `@RequiresPermissions` 等内置注解
-- **JwtRealm**：JWT 认证和授权实现，从 Redis 获取用户信息
-- **JwtFilter**：JWT Token 提取和验证过滤器
-- **ShiroUtils**：权限检查工具类，提供便捷的静态方法
-- **ShiroConfig**：Shiro 核心配置类
+- **Spring Security 注解**：`@PreAuthorize` 用于方法级权限控制
+- **JwtAuthenticationFilter**：JWT Token 提取和验证过滤器
+- **CustomUserDetails**：自定义用户详情，包含用户ID、角色、权限信息
+- **PermissionConstants**：权限常量定义（后端）
+- **PERMISSIONS**：权限常量定义（前端）
+- **v-permission 指令**：Vue 自定义指令，控制元素显示/隐藏
 
 ### 使用示例
 
-#### 1. 需要登录才能访问
+#### 1. 后端 - 需要登录才能访问
 ```java
-import org.apache.shiro.authz.annotation.RequiresAuthentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 
-@RequiresAuthentication
+@PreAuthorize("isAuthenticated()")
 @GetMapping("/user/profile")
 public Result getUserProfile() {
-    ShiroUser user = ShiroUtils.getCurrentUser();
-    return Result.success(user);
-}
-```
-
-#### 2. 需要指定角色
-```java
-import org.apache.shiro.authz.annotation.RequiresRoles;
-
-@RequiresRoles("ADMIN")
-@PostMapping("/admin/delete-user")
-public Result deleteUser(@RequestParam Long userId) {
-    // 只有管理员可以删除用户
+    // 已登录用户可以访问
     return Result.success();
 }
 ```
 
-#### 3. 需要指定权限
+#### 2. 后端 - 需要指定权限
 ```java
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-
-@RequiresPermissions("problem:create")
+@PreAuthorize("hasAuthority('PROBLEM_CREATE')")
 @PostMapping("/problem/create")
 public Result createProblem(@RequestBody Problem problem) {
-    // 只有拥有 problem:create 权限的用户可以创建题目
+    // 只有拥有 PROBLEM_CREATE 权限的用户可以创建题目
     return Result.success();
 }
 ```
 
-#### 4. 多角色检查（OR 逻辑）
+#### 3. 后端 - 需要管理员权限
 ```java
-@RequiresRoles(value = {"ADMIN", "CONTEST_ADMIN"}, logical = Logical.OR)
-@PostMapping("/contest/manage")
-public Result manageContest() {
-    // ADMIN 或 CONTEST_ADMIN 都可以访问
+@PreAuthorize("hasAuthority('ADMIN')")
+@PostMapping("/admin/rejudge")
+public Result rejudge(@RequestParam Long recordId) {
+    // 只有管理员可以重测
     return Result.success();
 }
 ```
 
-#### 5. 多权限检查（AND 逻辑）
-```java
-@RequiresPermissions(value = {"problem:edit", "problem:delete"}, logical = Logical.AND)
-@DeleteMapping("/problem/delete/{id}")
-public Result deleteProblem(@PathVariable Long id) {
-    // 需要同时拥有编辑和删除权限
-    return Result.success();
-}
+#### 4. 前端 - 使用 v-permission 指令
+```vue
+<template>
+  <!-- 检查单个权限 -->
+  <el-button v-permission="PERMISSIONS.PERM_PROBLEM_CREATE">
+    创建题目
+  </el-button>
+  
+  <!-- 检查角色 -->
+  <el-button v-permission="'ADMIN'">
+    管理员功能
+  </el-button>
+</template>
+
+<script setup>
+import { PERMISSIONS } from '@/stores/user'
+</script>
 ```
 
-#### 6. 代码中动态检查权限
-```java
-import com.ygoj.common.shiro.ShiroUtils;
+#### 5. 前端 - 在 script 中使用工具函数
+```vue
+<script setup>
+import { computed } from 'vue'
+import { useUserStore, PERMISSIONS } from '@/stores/user'
 
-@GetMapping("/check")
-public Result checkPermission() {
-    // 检查是否已认证
-    if (!ShiroUtils.isAuthenticated()) {
-        return Result.error("请先登录");
-    }
-    
-    // 检查角色
-    if (!ShiroUtils.hasRole("ADMIN")) {
-        return Result.error("需要管理员权限");
-    }
-    
-    // 检查权限
-    if (!ShiroUtils.hasPermission("problem:create")) {
-        return Result.error("没有创建题目的权限");
-    }
-    
-    // 获取当前用户信息
-    ShiroUser user = ShiroUtils.getCurrentUser();
-    Long userId = ShiroUtils.getCurrentUserId();
-    String username = ShiroUtils.getCurrentUsername();
-    
-    return Result.success(user);
-}
+const userStore = useUserStore()
+
+// 使用计算属性
+const canCreateProblem = computed(() => 
+  userStore.hasPermission(PERMISSIONS.PERM_PROBLEM_CREATE)
+)
+
+const isAdmin = computed(() => userStore.isAdmin)
+</script>
 ```
 
 ### 权限映射说明
@@ -147,35 +133,30 @@ public Result checkPermission() {
 **角色列表：**
 - `USER` - 普通用户
 - `ADMIN` - 系统管理员（拥有所有角色和权限）
-- `CONTEST_ADMIN` - 比赛管理员
-- `PROBLEM_ADMIN` - 题目管理员
 
-**权限列表（由位运算自动转换）：**
+**权限列表（基于位运算，共15个权限位）：**
 
-| 权限字符串 | 说明 | 对应位 |
-|-----------|------|--------|
-| problem:view | 查看题目 | 0 |
-| problem:submit | 提交代码 | 1 |
-| problem:create | 创建题目 | 2 |
-| problem:edit | 编辑题目 | 3 |
-| problem:delete | 删除题目 | 4 |
-| solution:view | 查看题解 | 5 |
-| solution:create | 发布题解 | 6 |
-| record:view | 查看提交记录 | 7 |
-| ranking:view | 查看排行榜 | 8 |
-| contest:create | 创建比赛 | 9 |
-| contest:manage | 管理比赛 | 10 |
-| contest:join | 参加比赛 | 11 |
-| problemset:create | 创建题集 | 12 |
-| problemset:manage | 管理题集 | 13 |
-| problemset:view | 查看题集 | 14 |
-| user:manage | 用户管理 | 15 |
-| system:config | 系统设置 | 16 |
+| 权限常量 | 权限字符串 | 说明 | 位索引 |
+|---------|-----------|------|--------|
+| PERM_PROBLEM_VIEW | problem:view | 查看题目 | 0 |
+| PERM_PROBLEM_SUBMIT | problem:submit | 提交代码 | 1 |
+| PERM_PROBLEM_CREATE | problem:create | 创建题目 | 2 |
+| PERM_PROBLEM_EDIT | problem:edit | 编辑题目 | 3 |
+| PERM_PROBLEM_DELETE | problem:delete | 删除题目 | 4 |
+| PERM_RECORD_VIEW | record:view | 查看提交记录 | 5 |
+| PERM_RANKING_VIEW | ranking:view | 查看排行榜 | 6 |
+| PERM_CONTEST_CREATE | contest:create | 创建比赛 | 7 |
+| PERM_CONTEST_MANAGE | contest:manage | 管理比赛 | 8 |
+| PERM_CONTEST_JOIN | contest:join | 参加比赛 | 9 |
+| PERM_PROBLEMSET_CREATE | problemset:create | 创建题集 | 10 |
+| PERM_PROBLEMSET_MANAGE | problemset:manage | 管理题集 | 11 |
+| PERM_PROBLEMSET_VIEW | problemset:view | 查看题集 | 12 |
+| PERM_USER_MANAGE | user:manage | 用户管理 | 13 |
+| PERM_SYSTEM_CONFIG | system:config | 系统配置（重测等） | 14 |
 
-**角色继承关系：**
-- `ADMIN` → 拥有 `USER`, `CONTEST_ADMIN`, `PROBLEM_ADMIN` 所有角色
-- `CONTEST_ADMIN` → 拥有 `USER` 角色
-- `PROBLEM_ADMIN` → 拥有 `USER` 角色
+**注意：** 
+- 已移除不存在的权限：`PERM_SOLUTION_VIEW`, `PERM_SOLUTION_CREATE`
+- 权限位索引从 0 到 14，共 15 个权限
 
 ### 数据库配置
 
@@ -190,9 +171,9 @@ permission BIGINT DEFAULT 3
 ```
 
 **权限值说明：**
-- 数据库中存储位运算值（如 3 = 第0位和第1位）
-- Shiro Realm 会自动将其转换为权限字符串（如 "problem:view", "problem:submit"）
-- 前端和后端代码中使用权限字符串进行判断
+- 数据库中存储位运算值（如 7 = 第0、1、2位）
+- JwtAuthenticationFilter 会自动将其转换为权限字符串（如 "problem:view", "problem:submit", "problem:create"）
+- 前端和后端代码中使用权限常量进行判断
 
 **初始管理员账号：**
 
@@ -201,7 +182,7 @@ permission BIGINT DEFAULT 3
 - **用户名**: `admin`
 - **密码**: `Admin@123456`
 - **角色**: `ADMIN`
-- **权限值**: `65535` (拥有所有权限)
+- **权限值**: `32767` (拥有所有15个权限，二进制: 111111111111111)
 - **邮箱**: `admin@ygoj.com`
 
 使用该账号登录后，可以访问「系统管理」页面管理其他用户的权限。
@@ -211,11 +192,13 @@ permission BIGINT DEFAULT 3
 -- 设置普通用户（查看题目 + 提交代码）
 UPDATE userinfo SET role = 'USER', permission = 3 WHERE id = ?;
 
--- 设置题目管理员（题目相关所有权限）
-UPDATE userinfo SET role = 'PROBLEM_ADMIN', permission = 63 WHERE id = ?;
+-- 设置题目管理员（题目相关所有权限: 位0-4）
+-- 二进制: 11111 = 31
+UPDATE userinfo SET role = 'USER', permission = 31 WHERE id = ?;
 
--- 设置超级管理员（所有权限）
-UPDATE userinfo SET role = 'ADMIN', permission = 131071 WHERE id = ?;
+-- 设置超级管理员（所有15个权限）
+-- 二进制: 111111111111111 = 32767
+UPDATE userinfo SET role = 'ADMIN', permission = 32767 WHERE id = ?;
 ```
 
 > **注意**：修改用户权限后，用户需要重新登录才能生效。
@@ -232,6 +215,8 @@ UPDATE userinfo SET role = 'ADMIN', permission = 131071 WHERE id = ?;
   "permission": 3
 }
 ```
+
+Token 会被存储在 Redis 中，有效期为 7 天。
 
 ### 前端调用
 
@@ -263,25 +248,41 @@ axios.get('/api/problem/1', {
 }
 ```
 
-### Shiro 内置注解
-
-| 注解 | 说明 | 示例 |
-|------|------|------|
-| `@RequiresAuthentication` | 需要认证 | 登录用户可访问 |
-| `@RequiresRoles("ADMIN")` | 需要指定角色 | 仅管理员可访问 |
-| `@RequiresPermissions("problem:create")` | 需要指定权限 | 有创建题目权限可访问 |
-| `@RequiresUser` | 需要用户（记住我或认证） | 登录或记住我可访问 |
-| `@RequiresGuest` | 需要游客（未认证） | 仅未登录用户可访问 |
 
 ### 注意事项
 
+**后端开发：**
 1. **新用户注册后需要在数据库中手动设置 role 和 permission**
 2. **修改用户权限后，用户需要重新登录才能生效**
-3. Token 默认有效期为 7 天
+3. Token 默认有效期为 7 天，存储在 Redis 中
 4. 推荐使用 `Authorization: Bearer <token>` 格式传递 Token
-5. 公开接口（如登录、注册、题目列表）在 `ShiroConfig` 中配置为 `anon`
-6. Shiro 会自动处理权限验证失败，返回统一的错误响应
-7. 所有服务的 WebConfig 中原有拦截器已禁用，由 Shiro 统一接管权限控制
+5. 公开接口（如登录、注册、题目列表）在 SecurityConfig 中配置为 permitAll
+6. Spring Security 会自动处理权限验证失败，返回统一的错误响应
+7. 所有服务的 WebConfig 中原有拦截器已禁用，由 Spring Security 统一接管权限控制
+8. 使用 `@PreAuthorize` 注解进行方法级权限控制
+9. 权限常量定义在 `PermissionConstants.java` 中
+
+**前端开发：**
+1. 权限常量定义在 `stores/user.js` 的 `PERMISSIONS` 对象中
+2. 使用 `v-permission` 指令控制按钮显示/隐藏
+3. 使用 `useUserStore().hasPermission()` 检查权限
+4. 使用 `useUserStore().isAdmin` 检查是否为管理员
+5. 权限位索引必须与后端保持一致（0-14）
+6. 用户登录后，权限信息会自动存储在 Pinia store 和 localStorage 中
+7. 前端文档详见 `fronter/PERMISSION_USAGE.md`
+
+**数据库配置：**
+1. 管理员默认权限值为 32767（2^15 - 1）
+2. **新用户注册默认权限值为 5731**，包含以下权限：
+   - 查看题目 (位0)
+   - 提交代码 (位1)
+   - 查看提交记录 (位5)
+   - 查看排行榜 (位6)
+   - 参加比赛 (位9)
+   - 创建题集 (位10)
+   - 查看题集 (位12)
+3. 权限值计算公式：将需要的权限位设置为1，然后转换为十进制
+4. 示例：拥有位0、2、3的权限 = 2^0 + 2^2 + 2^3 = 1 + 4 + 8 = 13
 
 ---
 

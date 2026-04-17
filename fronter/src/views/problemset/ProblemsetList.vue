@@ -2,7 +2,7 @@
   <div class="problemset-list">
     <div class="header">
       <h2>题集列表</h2>
-      <el-button type="primary" @click="handleCreate" v-if="userId">
+      <el-button type="primary" @click="handleCreate" v-permission="PERMISSIONS.PERM_PROBLEMSET_CREATE">
         <el-icon><Plus /></el-icon>
         创建题集
       </el-button>
