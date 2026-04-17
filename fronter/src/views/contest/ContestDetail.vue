@@ -4,7 +4,10 @@
       <template #header>
         <div class="card-header">
           <h2>{{ contest.title }}</h2>
-          <el-button @click="goBack">返回</el-button>
+          <div>
+            <el-button @click="editContest" v-permission="PERMISSIONS.PERM_CONTEST_MANAGE">编辑比赛</el-button>
+            <el-button @click="goBack">返回</el-button>
+          </div>
         </div>
       </template>
 
@@ -38,7 +41,7 @@
       <div class="problems-section" style="margin-top: 30px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
           <h3 style="margin: 0;">比赛题目</h3>
-          <el-button type="primary" @click="showAddProblemDialog">添加题目</el-button>
+          <el-button type="primary" @click="showAddProblemDialog" v-permission="PERMISSIONS.PERM_CONTEST_MANAGE">添加题目</el-button>
         </div>
         <el-table :data="problems" style="width: 100%">
           <el-table-column prop="problemLabel" label="题号" width="100" />
@@ -61,7 +64,7 @@
               >
                 {{ canSubmit ? '做题' : (now < new Date(contest.startTime) ? '未开始' : '已结束') }}
               </el-button>
-              <el-button link type="danger" @click="handleDeleteProblem(scope.row.problemId)">
+              <el-button link type="danger" @click="handleDeleteProblem(scope.row.problemId)" v-permission="PERMISSIONS.PERM_CONTEST_MANAGE">
                 删除
               </el-button>
             </template>
@@ -93,7 +96,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getContestInfo, getContestProblems, addContestProblem, delContestProblem, getUserContestProgress } from '@/api/contest'
-import { useUserStore } from '@/stores/user'
+import { useUserStore, PERMISSIONS } from '@/stores/user'
 
 const route = useRoute()
 const router = useRouter()
@@ -296,6 +299,10 @@ const handleDeleteProblem = async (problemId) => {
 
 const goBack = () => {
   router.back()
+}
+
+const editContest = () => {
+  router.push(`/contest/edit/${route.params.id}`)
 }
 
 onMounted(() => {

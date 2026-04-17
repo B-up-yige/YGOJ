@@ -2,7 +2,7 @@
   <div class="problemset-list">
     <div class="header">
       <h2>题集列表</h2>
-      <el-button type="primary" @click="handleCreate">
+      <el-button type="primary" @click="handleCreate" v-permission="PERMISSIONS.PERM_PROBLEMSET_CREATE">
         <el-icon><Plus /></el-icon>
         创建题集
       </el-button>
@@ -63,8 +63,8 @@
         <template #default="scope">
           <div class="action-buttons">
             <el-button size="small" @click="handleView(scope.row.id)">查看</el-button>
-            <el-button size="small" type="primary" @click="handleEdit(scope.row.id)">编辑</el-button>
-            <el-button size="small" type="danger" @click="handleDelete(scope.row.id)">删除</el-button>
+            <el-button size="small" type="primary" @click="handleEdit(scope.row.id)" v-permission="PERMISSIONS.PERM_PROBLEMSET_MANAGE">编辑</el-button>
+            <el-button size="small" type="danger" @click="handleDelete(scope.row.id)" v-permission="PERMISSIONS.PERM_PROBLEMSET_MANAGE">删除</el-button>
           </div>
         </template>
       </el-table-column>
@@ -90,6 +90,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Plus } from '@element-plus/icons-vue'
 import { getProblemsetList, delProblemset, getUserProblemsetProgress, getProblemsetProblems } from '@/api/problemset'
+import { PERMISSIONS } from '@/stores/user'
 
 const router = useRouter()
 const loading = ref(false)

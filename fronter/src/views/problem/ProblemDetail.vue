@@ -39,6 +39,7 @@
       <div class="actions">
         <el-button type="primary" @click="showSubmitDialog">提交代码</el-button>
         <el-button type="success" @click="viewRecords">查看记录</el-button>
+        <el-button type="warning" @click="editProblem" v-permission="PERMISSIONS.PERM_PROBLEM_EDIT">编辑题目</el-button>
       </div>
 
       <!-- 未登录提示 -->
@@ -95,7 +96,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getProblemInfo, getProblemTags } from '@/api/problem'
 import { submitCode } from '@/api/record'
-import { useUserStore } from '@/stores/user'
+import { useUserStore, PERMISSIONS } from '@/stores/user'
 
 const route = useRoute()
 const router = useRouter()
@@ -193,6 +194,10 @@ const handleSubmitCode = async () => {
 
 const viewRecords = () => {
   router.push('/records')
+}
+
+const editProblem = () => {
+  router.push(`/problem/edit/${route.params.id}`)
 }
 
 onMounted(() => {
