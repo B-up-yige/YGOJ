@@ -236,11 +236,20 @@ public class UserServiceImpl implements UserService {
                 throw new IllegalArgumentException("Token不能为空");
             }
             
-            // 使用 JwtUtils 解析 token
-            Long userId = jwtUtils.getUserIdFromToken(token);
+            // 从 Redis 中获取 JWT token
+            Object jwtValue = redisTemplate.opsForValue().get(token);
+            if (jwtValue == null) {
+                log.warn("Token在Redis中不存在或已过期");
+                return null;
+            }
+            
+            String jwt = jwtValue.toString();
+            
+            // 使用 JwtUtils 解析 JWT token
+            Long userId = jwtUtils.getUserIdFromToken(jwt);
             
             if (userId == null) {
-                log.warn("Token无效或已过期");
+                log.warn("JWT Token无效或已过期");
                 return null;
             }
             
