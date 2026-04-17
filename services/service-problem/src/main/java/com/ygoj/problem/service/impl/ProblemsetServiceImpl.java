@@ -40,9 +40,8 @@ public class ProblemsetServiceImpl implements ProblemsetService {
             
             // 查询条件：公开的题集 OR (如果提供了userId) 用户自己创建的私有题集
             if (userId != null) {
-                wrapper.and(w -> w.eq(Problemset::getIsPublic, true)
-                        .or()
-                        .and(w1 -> w1.eq(Problemset::getAuthorId, userId)));
+                wrapper.or(w -> w.eq(Problemset::getIsPublic, true)
+                        .or(w1 -> w1.eq(Problemset::getAuthorId, userId)));
             } else {
                 // 没有提供userId，只返回公开题集
                 wrapper.eq(Problemset::getIsPublic, true);
