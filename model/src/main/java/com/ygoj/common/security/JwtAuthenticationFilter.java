@@ -1,5 +1,6 @@
 package com.ygoj.common.security;
 
+import com.ygoj.common.constant.PermissionConstants;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -57,14 +60,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         Long userId = jwtUtils.getUserIdFromToken(jwtToken);
                         String username = jwtUtils.getUsernameFromToken(jwtToken);
                         String role = jwtUtils.getRoleFromToken(jwtToken);
+                        Long permission = jwtUtils.getPermissionFromToken(jwtToken);
                         
                         if (userId != null && username != null) {
+                            // 将权限值转换为 GrantedAuthority 列表
+                            List<SimpleGrantedAuthority> authorities = convertPermissionToAuthorities(role, permission);
+                            
                             // 创建认证对象
                             CustomUserDetails userDetails = new CustomUserDetails(
                                 userId, 
                                 username, 
                                 role,
-                                Collections.emptyList()
+                                authorities
                             );
                             
                             UsernamePasswordAuthenticationToken authentication = 
@@ -81,7 +88,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             // 设置到 SecurityContext
                             SecurityContextHolder.getContext().setAuthentication(authentication);
                             
-                            log.debug("用户认证成功: userId={}, username={}", userId, username);
+                            log.debug("用户认证成功: userId={}, username={}, role={}, authorities={}", 
+                                userId, username, role, authorities.size());
                         }
                     } else {
                         log.warn("JWT 验证失败");
@@ -117,5 +125,77 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         
         return null;
+    }
+    
+    /**
+     * 将权限值转换为 GrantedAuthority 列表
+     */
+    private List<SimpleGrantedAuthority> convertPermissionToAuthorities(String role, Long permission) {
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        
+        // 添加角色
+        if (role != null && !role.isEmpty()) {
+            authorities.add(new SimpleGrantedAuthority(role));
+            
+            // 如果是管理员，添加所有自定义权限
+            if (PermissionConstants.ROLE_ADMIN.equals(role)) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_CREATE));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_EDIT));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_DELETE));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_VIEW));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_CREATE));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_MANAGE));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_JOIN));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEMSET_CREATE));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEMSET_MANAGE));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_USER_MANAGE));
+                authorities.add(new SimpleGrantedAuthority("PROBLEM_CREATE"));
+                authorities.add(new SimpleGrantedAuthority("PROBLEM_EDIT"));
+                authorities.add(new SimpleGrantedAuthority("PROBLEM_DELETE"));
+                authorities.add(new SimpleGrantedAuthority("USER_MANAGE"));
+                return authorities;
+            }
+        }
+        
+        // 根据位运算权限值添加对应的权限
+        if (permission != null) {
+            // 检查每一位权限
+            if ((permission & (1L << PermissionConstants.PERM_PROBLEM_CREATE)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_CREATE));
+                authorities.add(new SimpleGrantedAuthority("PROBLEM_CREATE"));
+            }
+            if ((permission & (1L << PermissionConstants.PERM_PROBLEM_EDIT)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_EDIT));
+                authorities.add(new SimpleGrantedAuthority("PROBLEM_EDIT"));
+            }
+            if ((permission & (1L << PermissionConstants.PERM_PROBLEM_DELETE)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_DELETE));
+                authorities.add(new SimpleGrantedAuthority("PROBLEM_DELETE"));
+            }
+            if ((permission & (1L << PermissionConstants.PERM_PROBLEM_VIEW)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_VIEW));
+            }
+            if ((permission & (1L << PermissionConstants.PERM_CONTEST_CREATE)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_CREATE));
+            }
+            if ((permission & (1L << PermissionConstants.PERM_CONTEST_MANAGE)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_MANAGE));
+            }
+            if ((permission & (1L << PermissionConstants.PERM_CONTEST_JOIN)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_JOIN));
+            }
+            if ((permission & (1L << PermissionConstants.PERM_PROBLEMSET_CREATE)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEMSET_CREATE));
+            }
+            if ((permission & (1L << PermissionConstants.PERM_PROBLEMSET_MANAGE)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEMSET_MANAGE));
+            }
+            if ((permission & (1L << PermissionConstants.PERM_USER_MANAGE)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_USER_MANAGE));
+                authorities.add(new SimpleGrantedAuthority("USER_MANAGE"));
+            }
+        }
+        
+        return authorities;
     }
 }
