@@ -7,6 +7,11 @@ spring:
             config:
                 import-check:
                     enabled: false
+    data:
+        redis:
+            host: 192.168.61.135
+            port: 6379
+            database: 0
     servlet:
         multipart:
             max-file-size: 100MB

@@ -318,12 +318,17 @@ services:
     environment:
       SPRING_OPTS: >-
         -Dspring.cloud.nacos.server-addr=nacos:8848
+        -Dspring.data.redis.host=redis
+        -Dspring.data.redis.port=6379
+        -Dspring.data.redis.database=0
         -Dfilesystem.root.path=/app/file
       TZ: Asia/Shanghai
     volumes:
       - file-data:/app/app/file
     depends_on:
       nacos:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - ygoj-network
