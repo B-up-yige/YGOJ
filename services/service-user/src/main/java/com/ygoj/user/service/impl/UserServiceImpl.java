@@ -154,7 +154,9 @@ public class UserServiceImpl implements UserService {
                 // 检查用户是否被拉黑
                 if (userinfo.getIsBanned() != null && userinfo.getIsBanned() == 1) {
                     log.warn("用户已被拉黑，禁止登录, userId: {}", userinfo.getId());
-                    return null;
+                    // 返回特殊标记，让Controller层返回明确的错误信息
+                    userinfo.setPassword("BANNED");
+                    return userinfo;
                 }
                 
                 log.info("登录验证成功, userId: {}", userinfo.getId());

@@ -207,7 +207,7 @@ const handleLogout = async () => {
     // await logout()
     userStore.logout()
     ElMessage.success('已退出登录')
-    router.push('/login')
+    router.push('/')
   } catch (error) {
     console.error('退出登录失败:', error)
   }

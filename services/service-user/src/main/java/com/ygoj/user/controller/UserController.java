@@ -120,6 +120,13 @@ public class UserController {
                 log.warn("登录失败, loginStr: {}", loginStr);
                 return Result.error(400, "账号或密码错误");
             }
+            
+            // 检查是否是被拉黑的特殊标记
+            if ("BANNED".equals(userinfo.getPassword())) {
+                log.warn("用户已被拉黑，禁止登录, userId: {}", userinfo.getId());
+                return Result.error(403, "你的账号已被拉黑");
+            }
+            
             log.info("用户登录成功, userId: {}", userinfo.getId());
             return Result.success(userinfo.getPassword());
         } catch (Exception e) {

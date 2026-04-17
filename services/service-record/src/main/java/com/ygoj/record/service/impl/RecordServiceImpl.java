@@ -791,7 +791,13 @@ public class RecordServiceImpl implements RecordService {
                 return Result.error(400, "该记录已在判题队列中，请勿重复提交");
             }
             
-            // 3. 重置记录状态为waiting
+            // 3. 删除原有的测试点详情记录
+            LambdaQueryWrapper<RecordDetail> detailWrapper = new LambdaQueryWrapper<>();
+            detailWrapper.eq(RecordDetail::getRecordId, recordId);
+            int deletedCount = recordDetailMapper.delete(detailWrapper);
+            log.info("已删除原有测试点详情记录, recordId: {}, 删除数量: {}", recordId, deletedCount);
+            
+            // 4. 重置记录状态为waiting
             record.setStatus("waiting");
             record.setCompileTime(null);
             record.setCompileMemory(null);
@@ -845,7 +851,7 @@ public class RecordServiceImpl implements RecordService {
             sandboxExecuteRequest.setTimeLimit(probleminfo.getTimeLimit());
             sandboxExecuteRequest.setMemoryLimit(probleminfo.getMemoryLimit());
 
-            // 5. 调用judger服务
+            // 6. 调用judger服务
             log.info("发送重测请求到judger服务, recordId: {}", record.getId());
             Result judge = judgerFeignClient.judge(sandboxExecuteRequest);
             log.info("重测请求发送成功, recordId: {}", record.getId());
