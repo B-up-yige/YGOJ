@@ -199,7 +199,12 @@ const loadProblem = async () => {
     await loadTags()
   } catch (error) {
     console.error('加载题目失败:', error)
-    ElMessage.error('加载题目失败')
+    if (error.response && error.response.status === 404) {
+      ElMessage.error('题目不存在')
+      router.push(`/contest/${contestId}`)
+    } else {
+      ElMessage.error('加载题目失败')
+    }
   } finally {
     loading.value = false
   }

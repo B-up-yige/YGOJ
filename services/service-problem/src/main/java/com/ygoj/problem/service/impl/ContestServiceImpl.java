@@ -6,9 +6,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ygoj.common.Result;
 import com.ygoj.problem.Contest;
 import com.ygoj.problem.ContestProblem;
+import com.ygoj.problem.Probleminfo;
 import com.ygoj.problem.feign.UserFeignClient;
 import com.ygoj.problem.mapper.ContestMapper;
 import com.ygoj.problem.mapper.ContestProblemMapper;
+import com.ygoj.problem.mapper.ProbleminfoMapper;
 import com.ygoj.problem.service.ContestService;
 import com.ygoj.user.Userinfo;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,9 @@ public class ContestServiceImpl implements ContestService {
     
     @Autowired
     private ContestProblemMapper contestProblemMapper;
+    
+    @Autowired
+    private ProbleminfoMapper probleminfoMapper;
     
     @Autowired
     private UserFeignClient userFeignClient;
@@ -138,6 +143,15 @@ public class ContestServiceImpl implements ContestService {
             log.info("添加比赛题目, contestId: {}, problemId: {}", 
                     contestProblem.getContestId(), contestProblem.getProblemId());
             
+            // 验证题目是否存在
+            if (contestProblem.getProblemId() != null) {
+                Probleminfo problem = probleminfoMapper.selectById(contestProblem.getProblemId());
+                if (problem == null) {
+                    log.warn("添加比赛题目失败: 题目不存在, problemId: {}", contestProblem.getProblemId());
+                    throw new IllegalArgumentException("题目不存在");
+                }
+            }
+            
             // 自动设置 problemOrder 为当前最大值 + 1
             LambdaQueryWrapper<ContestProblem> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(ContestProblem::getContestId, contestProblem.getContestId())
@@ -153,6 +167,8 @@ public class ContestServiceImpl implements ContestService {
             
             contestProblemMapper.insert(contestProblem);
             log.info("添加比赛题目成功, problemOrder: {}", nextOrder);
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
             log.error("添加比赛题目异常", e);
             throw new RuntimeException("添加比赛题目失败: " + e.getMessage(), e);

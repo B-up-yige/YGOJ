@@ -128,6 +128,9 @@ const loadProblemset = async () => {
     if (error.response && error.response.status === 403) {
       ElMessage.error('无权访问该题集')
       router.back()
+    } else if (error.response && error.response.status === 404) {
+      ElMessage.error('题集不存在')
+      router.replace('/problemsets')
     } else {
       ElMessage.error('加载题集详情失败')
     }
@@ -231,7 +234,8 @@ const handleAddProblem = async () => {
     if (error.response && error.response.status === 403) {
       ElMessage.error('无权向该题集添加题目')
     } else {
-      ElMessage.error('添加题目失败')
+      const errorMsg = error.response?.data?.message || '添加题目失败'
+      ElMessage.error(errorMsg)
     }
   } finally {
     adding.value = false

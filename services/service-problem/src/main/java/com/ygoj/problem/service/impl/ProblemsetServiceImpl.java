@@ -6,9 +6,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ygoj.common.Result;
 import com.ygoj.problem.Problemset;
 import com.ygoj.problem.ProblemsetProblem;
+import com.ygoj.problem.Probleminfo;
 import com.ygoj.problem.feign.UserFeignClient;
 import com.ygoj.problem.mapper.ProblemsetMapper;
 import com.ygoj.problem.mapper.ProblemsetProblemMapper;
+import com.ygoj.problem.mapper.ProbleminfoMapper;
 import com.ygoj.problem.service.ProblemsetService;
 import com.ygoj.user.Userinfo;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,9 @@ public class ProblemsetServiceImpl implements ProblemsetService {
     
     @Autowired
     private ProblemsetProblemMapper problemsetProblemMapper;
+    
+    @Autowired
+    private ProbleminfoMapper probleminfoMapper;
     
     @Autowired
     private UserFeignClient userFeignClient;
@@ -157,9 +162,21 @@ public class ProblemsetServiceImpl implements ProblemsetService {
         try {
             log.info("添加题集题目, problemsetId: {}, problemId: {}", 
                     problemsetProblem.getProblemsetId(), problemsetProblem.getProblemId());
+            
+            // 验证题目是否存在
+            if (problemsetProblem.getProblemId() != null) {
+                Probleminfo problem = probleminfoMapper.selectById(problemsetProblem.getProblemId());
+                if (problem == null) {
+                    log.warn("添加题集题目失败: 题目不存在, problemId: {}", problemsetProblem.getProblemId());
+                    throw new IllegalArgumentException("题目不存在");
+                }
+            }
+            
             problemsetProblem.setAddedAt(LocalDateTime.now());
             problemsetProblemMapper.insert(problemsetProblem);
             log.info("添加题集题目成功");
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
             log.error("添加题集题目异常", e);
             throw new RuntimeException("添加题集题目失败: " + e.getMessage(), e);

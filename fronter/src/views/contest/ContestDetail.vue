@@ -136,7 +136,12 @@ const loadContest = async () => {
     await loadUserProgress()
   } catch (error) {
     console.error('加载比赛详情失败:', error)
-    ElMessage.error('加载比赛详情失败')
+    if (error.response && error.response.status === 404) {
+      ElMessage.error('比赛不存在')
+      router.replace('/contests')
+    } else {
+      ElMessage.error('加载比赛详情失败')
+    }
   } finally {
     loading.value = false
   }
@@ -268,7 +273,8 @@ const handleAddProblem = async () => {
     }
   } catch (error) {
     console.error('添加题目失败:', error)
-    ElMessage.error('添加题目失败')
+    const errorMsg = error.response?.data?.message || '添加题目失败'
+    ElMessage.error(errorMsg)
   } finally {
     adding.value = false
   }

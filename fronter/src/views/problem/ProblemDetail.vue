@@ -134,6 +134,12 @@ const loadProblem = async () => {
     await loadTags()
   } catch (error) {
     console.error('加载题目失败:', error)
+    if (error.response && error.response.status === 404) {
+      ElMessage.error('题目不存在')
+      router.replace('/problems')
+    } else {
+      ElMessage.error('加载题目失败')
+    }
   } finally {
     loading.value = false
   }
