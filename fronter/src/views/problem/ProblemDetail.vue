@@ -139,7 +139,10 @@ const loadProblem = async () => {
     await loadTags()
   } catch (error) {
     console.error('加载题目失败:', error)
-    if (error.response && (error.response.status === 404 || error.response.status === 403)) {
+    // 检查是否是资源不存在的错误
+    const errorMsg = error.message || ''
+    if (errorMsg.includes('不存在') || errorMsg.includes('404') || 
+        (error.response && (error.response.status === 404 || error.response.status === 403))) {
       notFound.value = true
     } else {
       ElMessage.error('加载题目失败')

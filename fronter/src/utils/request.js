@@ -75,8 +75,8 @@ request.interceptors.response.use(
         break
         
       case RESPONSE_CODE.NOT_FOUND:
-        // 404 资源不存在
-        ElMessage.error(errorMsg)
+        // 404 资源不存在 - 不显示消息，让页面自己处理
+        // ElMessage.error(errorMsg)
         break
         
       case RESPONSE_CODE.SERVER_ERROR:

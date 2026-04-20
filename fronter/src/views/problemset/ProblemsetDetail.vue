@@ -130,7 +130,10 @@ const loadProblemset = async () => {
     await loadUserProgress()
   } catch (error) {
     console.error('加载题集详情失败:', error)
-    if (error.response && (error.response.status === 403 || error.response.status === 404)) {
+    // 检查是否是资源不存在或无权限的错误
+    const errorMsg = error.message || ''
+    if (errorMsg.includes('不存在') || errorMsg.includes('404') || errorMsg.includes('无权') ||
+        (error.response && (error.response.status === 403 || error.response.status === 404))) {
       notFound.value = true
     } else {
       ElMessage.error('加载题集详情失败')
