@@ -286,4 +286,61 @@ public class UserController {
             return Result.error(500, "操作失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 更新用户信息（昵称、邮箱）(需要登录)
+     */
+    @PreAuthorize("isAuthenticated()")
+    @PutMapping("/userinfo")
+    public Result updateUserInfo(@RequestBody Map<String, Object> params) {
+        try {
+            // 从 SecurityContext 获取当前用户 ID
+            Long userId = com.ygoj.common.security.SecurityUtils.getCurrentUserId();
+            if (userId == null) {
+                return Result.error(401, "未登录或登录已过期");
+            }
+            
+            String nickname = (String) params.get("nickname");
+            String email = (String) params.get("email");
+            
+            log.info("更新用户信息请求, userId: {}, nickname: {}, email: {}", userId, nickname, email);
+            
+            return userService.updateUserInfo(userId, nickname, email);
+        } catch (Exception e) {
+            log.error("更新用户信息失败", e);
+            return Result.error(500, "更新用户信息失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 修改密码（需要登录）
+     */
+    @PreAuthorize("isAuthenticated()")
+    @PutMapping("/password")
+    public Result changePassword(@RequestBody Map<String, Object> params) {
+        try {
+            // 从 SecurityContext 获取当前用户 ID
+            Long userId = com.ygoj.common.security.SecurityUtils.getCurrentUserId();
+            if (userId == null) {
+                return Result.error(401, "未登录或登录已过期");
+            }
+            
+            String oldPassword = (String) params.get("oldPassword");
+            String newPassword = (String) params.get("newPassword");
+            
+            log.info("修改密码请求, userId: {}", userId);
+            
+            if (oldPassword == null || oldPassword.trim().isEmpty()) {
+                return Result.error(400, "原密码不能为空");
+            }
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                return Result.error(400, "新密码不能为空");
+            }
+            
+            return userService.changePassword(userId, oldPassword, newPassword);
+        } catch (Exception e) {
+            log.error("修改密码失败", e);
+            return Result.error(500, "修改密码失败: " + e.getMessage());
+        }
+    }
 }

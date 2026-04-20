@@ -30,4 +30,14 @@ public interface UserService {
      * 拉黑/解禁用户
      */
     Result banUser(Long userId, Integer isBanned);
+    
+    /**
+     * 更新用户信息（昵称、邮箱）
+     */
+    Result updateUserInfo(Long userId, String nickname, String email);
+    
+    /**
+     * 修改密码
+     */
+    Result changePassword(Long userId, String oldPassword, String newPassword);
 }

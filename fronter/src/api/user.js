@@ -43,3 +43,21 @@ export function getUserIdByToken(token) {
   })
 }
 
+// 更新用户信息
+export function updateUserInfo(data) {
+  return request({
+    url: '/user/userinfo',
+    method: 'put',
+    data
+  })
+}
+
+// 修改密码
+export function changePassword(data) {
+  return request({
+    url: '/user/password',
+    method: 'put',
+    data
+  })
+}
+

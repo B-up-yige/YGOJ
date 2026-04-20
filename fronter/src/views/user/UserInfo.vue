@@ -25,6 +25,10 @@
             <el-icon><Edit /></el-icon>
             编辑资料
           </el-button>
+          <el-button type="warning" @click="showPasswordDialog" size="large">
+            <el-icon><Lock /></el-icon>
+            修改密码
+          </el-button>
         </div>
       </div>
     </el-card>
@@ -220,14 +224,48 @@
         <el-button type="primary" @click="handleUpdate" :loading="updating">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 修改密码对话框 -->
+    <el-dialog v-model="passwordDialogVisible" title="修改密码" width="500px">
+      <el-form :model="passwordForm" :rules="passwordRules" ref="passwordFormRef" label-width="100px">
+        <el-form-item label="原密码" prop="oldPassword">
+          <el-input 
+            v-model="passwordForm.oldPassword" 
+            type="password" 
+            placeholder="请输入原密码"
+            show-password
+          />
+        </el-form-item>
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input 
+            v-model="passwordForm.newPassword" 
+            type="password" 
+            placeholder="请输入新密码（字母、数字和特殊符号）"
+            show-password
+          />
+        </el-form-item>
+        <el-form-item label="确认密码" prop="confirmPassword">
+          <el-input 
+            v-model="passwordForm.confirmPassword" 
+            type="password" 
+            placeholder="请再次输入新密码"
+            show-password
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="passwordDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleChangePassword" :loading="changingPassword">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { UserFilled, Edit, User, Message, Document, CircleCheck, TrendCharts, Medal, PieChart, CollectionTag } from '@element-plus/icons-vue'
-import { getUserinfo } from '@/api/user'
+import { UserFilled, Edit, User, Message, Document, CircleCheck, TrendCharts, Medal, PieChart, CollectionTag, Lock } from '@element-plus/icons-vue'
+import { getUserinfo, updateUserInfo, changePassword } from '@/api/user'
 import { getUserStatistics, getUserLearningCurve, getUserStatsByTag } from '@/api/record'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
@@ -238,8 +276,11 @@ const router = useRouter()
 const userStore = useUserStore()
 const loading = ref(false)
 const editDialogVisible = ref(false)
+const passwordDialogVisible = ref(false)
 const editFormRef = ref(null)
+const passwordFormRef = ref(null)
 const updating = ref(false)
+const changingPassword = ref(false)
 const chartRef = ref(null)
 const tagChartRef = ref(null)
 const learningCurveDays = ref(30)
@@ -261,6 +302,13 @@ const user = ref({
 const editForm = ref({
   nickname: '',
   email: ''
+})
+
+// 修改密码表单数据
+const passwordForm = ref({
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: ''
 })
 
 // 表单验证规则
@@ -290,6 +338,49 @@ const editRules = {
   ],
   email: [
     { validator: validateEmail, trigger: 'blur' }
+  ]
+}
+
+// 修改密码验证规则
+const validateOldPassword = (rule, value, callback) => {
+  if (!value) {
+    callback(new Error('请输入原密码'))
+  } else {
+    callback()
+  }
+}
+
+const validateNewPassword = (rule, value, callback) => {
+  if (!value) {
+    callback(new Error('请输入新密码'))
+  } else if (value.length < 6) {
+    callback(new Error('密码长度不能少于6位'))
+  } else if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{}|;:'",.<>/?]+$/.test(value)) {
+    callback(new Error('密码只能由字母、数字和特殊符号组成'))
+  } else {
+    callback()
+  }
+}
+
+const validateConfirmPassword = (rule, value, callback) => {
+  if (!value) {
+    callback(new Error('请再次输入新密码'))
+  } else if (value !== passwordForm.value.newPassword) {
+    callback(new Error('两次输入的密码不一致'))
+  } else {
+    callback()
+  }
+}
+
+const passwordRules = {
+  oldPassword: [
+    { validator: validateOldPassword, trigger: 'blur' }
+  ],
+  newPassword: [
+    { validator: validateNewPassword, trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { validator: validateConfirmPassword, trigger: 'blur' }
   ]
 }
 
@@ -580,7 +671,84 @@ const getErrorPercentage = (count) => {
 
 // 显示编辑对话框
 const showEditDialog = () => {
-  ElMessage.info('编辑功能暂未实现')
+  editForm.value.nickname = user.value.nickname
+  editForm.value.email = user.value.email
+  editDialogVisible.value = true
+}
+
+// 更新用户信息
+const handleUpdate = async () => {
+  if (!editFormRef.value) return
+  
+  await editFormRef.value.validate(async (valid) => {
+    if (valid) {
+      updating.value = true
+      try {
+        const res = await updateUserInfo({
+          nickname: editForm.value.nickname,
+          email: editForm.value.email
+        })
+        
+        if (res.code === 200) {
+          ElMessage.success('个人信息更新成功')
+          editDialogVisible.value = false
+          // 重新加载用户信息
+          await loadUser()
+        } else {
+          ElMessage.error(res.message || '更新失败')
+        }
+      } catch (error) {
+        console.error('更新用户信息失败:', error)
+        ElMessage.error('更新失败')
+      } finally {
+        updating.value = false
+      }
+    }
+  })
+}
+
+// 显示修改密码对话框
+const showPasswordDialog = () => {
+  passwordForm.value = {
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  }
+  passwordDialogVisible.value = true
+}
+
+// 修改密码
+const handleChangePassword = async () => {
+  if (!passwordFormRef.value) return
+  
+  await passwordFormRef.value.validate(async (valid) => {
+    if (valid) {
+      changingPassword.value = true
+      try {
+        const res = await changePassword({
+          oldPassword: passwordForm.value.oldPassword,
+          newPassword: passwordForm.value.newPassword
+        })
+        
+        if (res.code === 200) {
+          ElMessage.success('密码修改成功，请重新登录')
+          passwordDialogVisible.value = false
+          // 退出登录
+          setTimeout(() => {
+            userStore.logout()
+            router.push('/login')
+          }, 1500)
+        } else {
+          ElMessage.error(res.message || '修改失败')
+        }
+      } catch (error) {
+        console.error('修改密码失败:', error)
+        ElMessage.error('修改失败')
+      } finally {
+        changingPassword.value = false
+      }
+    }
+  })
 }
 
 const goBack = () => {
@@ -671,6 +839,11 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
+}
+
+.profile-right {
+  display: flex;
+  gap: var(--spacing-md);
 }
 
 .profile-right .el-button {

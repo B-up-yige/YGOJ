@@ -380,4 +380,90 @@ public class UserServiceImpl implements UserService {
             return Result.error(500, "操作失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 更新用户信息（昵称、邮箱）
+     */
+    @Override
+    public Result updateUserInfo(Long userId, String nickname, String email) {
+        try {
+            log.info("更新用户信息, userId: {}, nickname: {}, email: {}", userId, nickname, email);
+            
+            Userinfo user = userinfoMapper.selectById(userId);
+            if (user == null) {
+                return Result.error(404, "用户不存在");
+            }
+            
+            // 验证昵称长度
+            if (nickname != null && !nickname.trim().isEmpty()) {
+                int len = nickname.length();
+                if (len < 3 || len > 20) {
+                    return Result.error(400, "昵称长度必须在3-20位之间");
+                }
+                user.setNickname(nickname);
+            }
+            
+            // 验证邮箱格式
+            if (email != null && !email.trim().isEmpty()) {
+                if (!cn.hutool.core.lang.Validator.isEmail(email)) {
+                    return Result.error(400, "邮箱格式不合法");
+                }
+                
+                // 检查邮箱是否已被其他用户使用
+                LambdaQueryWrapper<Userinfo> wrapper = new LambdaQueryWrapper<>();
+                wrapper.eq(Userinfo::getEmail, email)
+                       .ne(Userinfo::getId, userId);
+                Userinfo existingUser = userinfoMapper.selectOne(wrapper);
+                if (existingUser != null) {
+                    return Result.error(400, "邮箱已被使用");
+                }
+                
+                user.setEmail(email);
+            }
+            
+            userinfoMapper.updateById(user);
+            log.info("用户信息更新成功, userId: {}", userId);
+            return Result.success("用户信息更新成功");
+        } catch (Exception e) {
+            log.error("更新用户信息异常, userId: {}", userId, e);
+            return Result.error(500, "更新用户信息失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 修改密码
+     */
+    @Override
+    public Result changePassword(Long userId, String oldPassword, String newPassword) {
+        try {
+            log.info("修改密码请求, userId: {}", userId);
+            
+            Userinfo user = userinfoMapper.selectById(userId);
+            if (user == null) {
+                return Result.error(404, "用户不存在");
+            }
+            
+            // 验证旧密码
+            String encryptedOldPassword = DigestUtil.md5Hex(oldPassword);
+            if (!encryptedOldPassword.equals(user.getPassword())) {
+                return Result.error(400, "原密码错误");
+            }
+            
+            // 验证新密码格式
+            if (!cn.hutool.core.lang.Validator.isMatchRegex("^[a-zA-Z0-9!@#$%^&*()_+\\-=\\[\\]{}|;:'\",.<>/?]+$", newPassword)) {
+                return Result.error(400, "密码只能由字母、数字和特殊符号组成");
+            }
+            
+            // 加密新密码
+            String encryptedNewPassword = DigestUtil.md5Hex(newPassword);
+            user.setPassword(encryptedNewPassword);
+            userinfoMapper.updateById(user);
+            
+            log.info("密码修改成功, userId: {}", userId);
+            return Result.success("密码修改成功");
+        } catch (Exception e) {
+            log.error("修改密码异常, userId: {}", userId, e);
+            return Result.error(500, "修改密码失败: " + e.getMessage());
+        }
+    }
 }
