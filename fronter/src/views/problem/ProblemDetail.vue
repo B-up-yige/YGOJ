@@ -8,7 +8,24 @@
       <div class="problem-header">
         <div class="problem-title-section">
           <h1 class="problem-title">{{ problem.title }}</h1>
-          <div class="problem-id">题目 {{ problem.id }}</div>
+          <div class="problem-meta">
+            <span class="problem-id">题目 {{ problem.id }}</span>
+            <span class="meta-separator">•</span>
+            <el-tag type="info" size="small">用户 {{ problem.authorId }}</el-tag>
+            <template v-if="tags.length > 0">
+              <span class="meta-separator">•</span>
+              <div class="header-tags">
+                <el-tag
+                  v-for="tag in tags"
+                  :key="tag"
+                  size="small"
+                  class="header-tag-item"
+                >
+                  {{ tag }}
+                </el-tag>
+              </div>
+            </template>
+          </div>
         </div>
         <div class="problem-limits">
           <div class="limit-item">
@@ -71,14 +88,6 @@
         </div>
 
         <el-divider v-if="tags.length > 0" />
-
-        <!-- 作者信息 -->
-        <div class="problem-section">
-          <h2 class="section-title">作者</h2>
-          <div class="section-content">
-            <el-tag type="info">用户 {{ problem.authorId }}</el-tag>
-          </div>
-        </div>
       </el-card>
 
       <!-- 侧边操作栏 -->
@@ -311,6 +320,29 @@ onMounted(() => {
   font-weight: 500;
 }
 
+.problem-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.meta-separator {
+  color: var(--color-text-secondary);
+  opacity: 0.5;
+}
+
+.header-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.header-tag-item {
+  cursor: default;
+}
+
 .problem-limits {
   display: flex;
   gap: 30px;
@@ -398,6 +430,7 @@ onMounted(() => {
   gap: 6px;
   height: auto;
   padding: 16px 12px;
+  box-shadow: none !important;
 }
 
 .sidebar-btn .el-icon {
