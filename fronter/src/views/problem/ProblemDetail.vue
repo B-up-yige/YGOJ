@@ -103,7 +103,6 @@
         </div>
       </div>
     </el-card>
-    </el-card>
 
     <!-- 提交代码对话框 -->
     <el-dialog v-model="submitDialogVisible" title="提交代码" width="60%">
