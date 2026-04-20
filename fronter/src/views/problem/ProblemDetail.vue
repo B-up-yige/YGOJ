@@ -8,23 +8,24 @@
       <div class="problem-header">
         <div class="problem-title-section">
           <h1 class="problem-title">{{ problem.title }}</h1>
-          <div class="problem-meta">
-            <span class="problem-id">题目 {{ problem.id }}</span>
-            <span class="meta-separator">•</span>
+          <div class="problem-author">
+            <span class="author-label">作者：</span>
             <el-tag type="info" size="small">用户 {{ problem.authorId }}</el-tag>
-            <template v-if="tags.length > 0">
-              <span class="meta-separator">•</span>
-              <div class="header-tags">
-                <el-tag
-                  v-for="tag in tags"
-                  :key="tag"
-                  size="small"
-                  class="header-tag-item"
-                >
-                  {{ tag }}
-                </el-tag>
-              </div>
-            </template>
+          </div>
+          <div class="problem-tags-line" v-if="tags.length > 0">
+            <div class="header-tags">
+              <el-tag
+                v-for="tag in tags"
+                :key="tag"
+                size="small"
+                class="header-tag-item"
+              >
+                {{ tag }}
+              </el-tag>
+            </div>
+          </div>
+          <div class="problem-id-line">
+            <span class="problem-id">题目 {{ problem.id }}</span>
           </div>
         </div>
         <div class="problem-limits">
@@ -70,24 +71,6 @@
             <p>{{ problem.description || '暂无描述' }}</p>
           </div>
         </div>
-
-        <el-divider />
-
-        <!-- 标签区域 -->
-        <div class="problem-section" v-if="tags.length > 0">
-          <h2 class="section-title">标签</h2>
-          <div class="tags-container">
-            <el-tag
-              v-for="tag in tags"
-              :key="tag"
-              class="tag-item"
-            >
-              {{ tag }}
-            </el-tag>
-          </div>
-        </div>
-
-        <el-divider v-if="tags.length > 0" />
       </el-card>
 
       <!-- 侧边操作栏 -->
@@ -320,17 +303,31 @@ onMounted(() => {
   font-weight: 500;
 }
 
-.problem-meta {
+.problem-author {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-top: 8px;
-  flex-wrap: wrap;
 }
 
-.meta-separator {
+.author-label {
+  font-size: 14px;
   color: var(--color-text-secondary);
-  opacity: 0.5;
+  font-weight: 500;
+}
+
+.problem-tags-line {
+  margin-top: 8px;
+}
+
+.problem-id-line {
+  margin-top: 6px;
+}
+
+.problem-id {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  opacity: 0.7;
 }
 
 .header-tags {
@@ -430,7 +427,20 @@ onMounted(() => {
   gap: 6px;
   height: auto;
   padding: 16px 12px;
+}
+
+/* 强制移除侧边栏按钮的所有阴影 */
+.sidebar :deep(.el-button) {
   box-shadow: none !important;
+}
+
+.sidebar :deep(.el-button--primary) {
+  box-shadow: none !important;
+}
+
+.sidebar :deep(.el-button:hover) {
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 .sidebar-btn .el-icon {
