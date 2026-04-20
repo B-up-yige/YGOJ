@@ -1,5 +1,8 @@
 <template>
-  <div class="contest-detail" v-loading="loading">
+  <div v-if="notFound" class="not-found-container">
+    <NotFound />
+  </div>
+  <div v-else class="contest-detail" v-loading="loading">
     <el-card>
       <template #header>
         <div class="card-header">
@@ -97,11 +100,13 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getContestInfo, getContestProblems, addContestProblem, delContestProblem, getUserContestProgress } from '@/api/contest'
 import { useUserStore, PERMISSIONS } from '@/stores/user'
+import NotFound from '@/views/NotFound.vue'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const loading = ref(false)
+const notFound = ref(false)
 const contest = ref({})
 const problems = ref([])
 const userProgress = ref({}) // 用户过题情况
@@ -136,9 +141,8 @@ const loadContest = async () => {
     await loadUserProgress()
   } catch (error) {
     console.error('加载比赛详情失败:', error)
-    if (error.response && error.response.status === 404) {
-      ElMessage.error('比赛不存在')
-      router.replace('/contests')
+    if (error.response && (error.response.status === 404 || error.response.status === 403)) {
+      notFound.value = true
     } else {
       ElMessage.error('加载比赛详情失败')
     }
@@ -317,6 +321,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.not-found-container {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .contest-detail {
   padding: 20px;
 }

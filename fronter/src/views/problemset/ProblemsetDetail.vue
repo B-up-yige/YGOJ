@@ -1,5 +1,8 @@
 <template>
-  <div class="problemset-detail" v-loading="loading">
+  <div v-if="notFound" class="not-found-container">
+    <NotFound />
+  </div>
+  <div v-else class="problemset-detail" v-loading="loading">
     <el-card>
       <template #header>
         <div class="card-header">
@@ -94,11 +97,13 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getProblemsetInfo, getProblemsetProblems, addProblemsetProblem, delProblemsetProblem, getUserProblemsetProgress } from '@/api/problemset'
 import { useUserStore, PERMISSIONS } from '@/stores/user'
+import NotFound from '@/views/NotFound.vue'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const loading = ref(false)
+const notFound = ref(false)
 const problemset = ref({})
 const problems = ref([])
 const userProgress = ref({}) // 用户过题情况
@@ -125,12 +130,8 @@ const loadProblemset = async () => {
     await loadUserProgress()
   } catch (error) {
     console.error('加载题集详情失败:', error)
-    if (error.response && error.response.status === 403) {
-      ElMessage.error('无权访问该题集')
-      router.back()
-    } else if (error.response && error.response.status === 404) {
-      ElMessage.error('题集不存在')
-      router.replace('/problemsets')
+    if (error.response && (error.response.status === 403 || error.response.status === 404)) {
+      notFound.value = true
     } else {
       ElMessage.error('加载题集详情失败')
     }
@@ -284,6 +285,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.not-found-container {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .problemset-detail {
   padding: 20px;
 }

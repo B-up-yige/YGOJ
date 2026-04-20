@@ -1,5 +1,8 @@
 <template>
-  <div class="record-detail">
+  <div v-if="notFound" class="not-found-container">
+    <NotFound />
+  </div>
+  <div v-else class="record-detail">
     <el-card v-loading="loading">
       <template #header>
         <div class="card-header">
@@ -85,10 +88,12 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { getRecordInfo, getRecordDetails, rejudge } from '@/api/record'
 import { CircleClose, Warning } from '@element-plus/icons-vue'
 import { PERMISSIONS } from '@/stores/user'
+import NotFound from '@/views/NotFound.vue'
 
 const route = useRoute()
 const router = useRouter()
 const loading = ref(false)
+const notFound = ref(false)
 const record = ref({
   id: route.params.id,
   userId: '',
@@ -111,6 +116,9 @@ const loadRecord = async () => {
     details.value = detailRes.data || []
   } catch (error) {
     console.error('加载记录详情失败:', error)
+    if (error.response && (error.response.status === 404 || error.response.status === 403)) {
+      notFound.value = true
+    }
   } finally {
     loading.value = false
   }
@@ -206,6 +214,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.not-found-container {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .record-detail {
   padding: 20px;
 }

@@ -1,5 +1,8 @@
 <template>
-  <div class="contest-problem-detail" v-loading="loading">
+  <div v-if="notFound" class="not-found-container">
+    <NotFound />
+  </div>
+  <div v-else class="contest-problem-detail" v-loading="loading">
     <el-card>
       <template #header>
         <div class="card-header">
@@ -97,6 +100,7 @@ import { getProblemInfo, getProblemTags } from '@/api/problem'
 import { getContestInfo } from '@/api/contest'
 import { submitCode } from '@/api/record'
 import { useUserStore } from '@/stores/user'
+import NotFound from '@/views/NotFound.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -104,6 +108,7 @@ const userStore = useUserStore()
 const loading = ref(false)
 const submitting = ref(false)
 const submitDialogVisible = ref(false)
+const notFound = ref(false)
 
 const contestId = route.params.contestId
 const problemLabel = route.params.problemLabel
@@ -146,8 +151,7 @@ const loadContest = async () => {
     const targetProblem = problems.find(p => p.problemLabel === problemLabel)
     
     if (!targetProblem) {
-      ElMessage.error('题目不存在于该比赛中')
-      router.back()
+      notFound.value = true
       return
     }
     
@@ -155,7 +159,11 @@ const loadContest = async () => {
     await loadProblem()
   } catch (error) {
     console.error('加载比赛信息失败:', error)
-    ElMessage.error('加载比赛信息失败')
+    if (error.response && (error.response.status === 404 || error.response.status === 403)) {
+      notFound.value = true
+    } else {
+      ElMessage.error('加载比赛信息失败')
+    }
   }
 }
 
@@ -199,9 +207,8 @@ const loadProblem = async () => {
     await loadTags()
   } catch (error) {
     console.error('加载题目失败:', error)
-    if (error.response && error.response.status === 404) {
-      ElMessage.error('题目不存在')
-      router.push(`/contest/${contestId}`)
+    if (error.response && (error.response.status === 404 || error.response.status === 403)) {
+      notFound.value = true
     } else {
       ElMessage.error('加载题目失败')
     }
@@ -277,6 +284,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.not-found-container {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .contest-problem-detail {
   padding: 20px;
 }

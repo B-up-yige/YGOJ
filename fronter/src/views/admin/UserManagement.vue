@@ -1,5 +1,8 @@
 <template>
-  <div class="user-management">
+  <div v-if="forbidden" class="forbidden-container">
+    <Forbidden />
+  </div>
+  <div v-else class="user-management">
     <el-card class="header-card">
       <h2>用户权限管理</h2>
       <p class="subtitle">管理系统用户及其权限配置</p>
@@ -148,13 +151,18 @@ import { ref, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import axios from 'axios'
+import { useUserStore, PERMISSIONS } from '@/stores/user'
+import Forbidden from '@/views/Forbidden.vue'
 
 const users = ref([])
 const loading = ref(false)
+const forbidden = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const searchKeyword = ref('')
+
+const userStore = useUserStore()
 
 const editDialogVisible = ref(false)
 const editForm = ref({
@@ -196,6 +204,12 @@ watch(selectedPermissions, (newVal) => {
 
 // 获取用户列表
 const loadUsers = async () => {
+  // 检查权限
+  if (!userStore.hasPermission(PERMISSIONS.PERM_USER_MANAGE)) {
+    forbidden.value = true
+    return
+  }
+  
   loading.value = true
   try {
     const token = localStorage.getItem('token')
@@ -217,7 +231,12 @@ const loadUsers = async () => {
     }
   } catch (error) {
     console.error('加载用户列表失败:', error)
-    ElMessage.error('加载用户列表失败')
+    // 如果是403错误，显示403页面
+    if (error.response && error.response.status === 403) {
+      forbidden.value = true
+    } else {
+      ElMessage.error('加载用户列表失败')
+    }
   } finally {
     loading.value = false
   }
@@ -347,6 +366,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.forbidden-container {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .user-management {
   padding: 20px;
 }

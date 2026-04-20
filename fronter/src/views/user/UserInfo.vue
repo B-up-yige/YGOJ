@@ -1,5 +1,8 @@
 <template>
-  <div class="user-info">
+  <div v-if="notFound" class="not-found-container">
+    <NotFound />
+  </div>
+  <div v-else class="user-info">
     <!-- 顶部个人信息卡片 -->
     <el-card class="profile-card" v-loading="loading" shadow="hover">
       <div class="profile-header">
@@ -270,11 +273,13 @@ import { getUserStatistics, getUserLearningCurve, getUserStatsByTag } from '@/ap
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
+import NotFound from '@/views/NotFound.vue'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const loading = ref(false)
+const notFound = ref(false)
 const editDialogVisible = ref(false)
 const passwordDialogVisible = ref(false)
 const editFormRef = ref(null)
@@ -404,6 +409,9 @@ const loadUser = async () => {
     user.value = res.data
   } catch (error) {
     console.error('加载用户信息失败:', error)
+    if (error.response && (error.response.status === 404 || error.response.status === 403)) {
+      notFound.value = true
+    }
   } finally {
     loading.value = false
   }
@@ -774,6 +782,13 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.not-found-container {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .user-info {
   padding: var(--spacing-2xl);
   max-width: 1400px;

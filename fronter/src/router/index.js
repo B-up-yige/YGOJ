@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore, PERMISSIONS } from '@/stores/user'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -123,6 +124,18 @@ const router = createRouter({
           name: 'UserManagement',
           component: () => import('@/views/admin/UserManagement.vue'),
           meta: { requiresAdmin: true }
+        },
+        // 403页面
+        {
+          path: '/forbidden',
+          name: 'Forbidden',
+          component: () => import('@/views/Forbidden.vue')
+        },
+        // 404页面
+        {
+          path: '/:pathMatch(.*)*',
+          name: 'NotFound',
+          component: () => import('@/views/NotFound.vue')
         }
       ]
     }
@@ -131,6 +144,24 @@ const router = createRouter({
 
 // 路由守卫 - 允许未登录访问，但提交等操作需要登录
 router.beforeEach((to, from, next) => {
+  const userStore = useUserStore()
+  
+  // 检查是否需要管理员权限
+  if (to.meta.requiresAdmin) {
+    if (!userStore.token) {
+      // 未登录，跳转到登录页
+      next('/login')
+      return
+    }
+    
+    // 检查是否有用户管理权限
+    if (!userStore.hasPermission(PERMISSIONS.PERM_USER_MANAGE)) {
+      // 没有权限，跳转到403页面
+      next({ name: 'Forbidden' })
+      return
+    }
+  }
+  
   // 所有页面都允许访问，登录检查在具体操作中处理
   next()
 })

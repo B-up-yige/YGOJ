@@ -1,5 +1,8 @@
 <template>
-  <div class="problem-detail">
+  <div v-if="notFound" class="not-found-container">
+    <NotFound />
+  </div>
+  <div v-else class="problem-detail">
     <el-card v-loading="loading">
       <template #header>
         <div class="card-header">
@@ -97,6 +100,7 @@ import { ElMessage } from 'element-plus'
 import { getProblemInfo, getProblemTags } from '@/api/problem'
 import { submitCode } from '@/api/record'
 import { useUserStore, PERMISSIONS } from '@/stores/user'
+import NotFound from '@/views/NotFound.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -104,6 +108,7 @@ const userStore = useUserStore()
 const loading = ref(false)
 const submitting = ref(false)
 const submitDialogVisible = ref(false)
+const notFound = ref(false)
 
 // 计算是否已登录
 const isLoggedIn = computed(() => !!userStore.token)
@@ -134,9 +139,8 @@ const loadProblem = async () => {
     await loadTags()
   } catch (error) {
     console.error('加载题目失败:', error)
-    if (error.response && error.response.status === 404) {
-      ElMessage.error('题目不存在')
-      router.replace('/problems')
+    if (error.response && (error.response.status === 404 || error.response.status === 403)) {
+      notFound.value = true
     } else {
       ElMessage.error('加载题目失败')
     }
@@ -212,6 +216,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.not-found-container {
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .problem-detail {
   padding: 20px;
 }
