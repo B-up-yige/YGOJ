@@ -300,12 +300,12 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 2px solid var(--color-border);
 }
 
 .header h2 {
   margin: 0;
-  color: #303133;
+  color: var(--color-text-primary);
   font-size: 24px;
   font-weight: 600;
 }
@@ -316,9 +316,9 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 20px;
   padding: 16px;
-  background-color: #fff;
+  background-color: var(--color-surface);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .pagination {
@@ -326,7 +326,7 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   padding: 16px 0;
-  border-top: 1px solid #e4e7ed;
+  border-top: 1px solid var(--color-border);
 }
 
 .progress-info {
@@ -338,11 +338,11 @@ onMounted(() => {
 .progress-text {
   font-size: 12px;
   font-weight: 600;
-  color: #606266;
+  color: var(--color-text-secondary);
 }
 
 .no-data {
-  color: #909399;
+  color: var(--color-text-tertiary);
   font-size: 14px;
 }
 

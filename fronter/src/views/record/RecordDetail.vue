@@ -244,11 +244,11 @@ onMounted(() => {
 
 .code-section h3 {
   margin-bottom: 10px;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .code-section pre {
-  background-color: #f6f8fa;
+  background-color: var(--color-bg);
   padding: 15px;
   border-radius: 5px;
   overflow-x: auto;
@@ -257,8 +257,16 @@ onMounted(() => {
   line-height: 1.5;
 }
 
+[data-theme='dark'] .code-section pre {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
 .code-section code {
-  color: #24292e;
+  color: var(--color-text-primary);
+}
+
+[data-theme='dark'] .code-section code {
+  color: #e0e0e0;
 }
 
 .compile-section {
@@ -284,21 +292,37 @@ onMounted(() => {
 }
 
 .compile-error {
-  background-color: #fef0f0;
+  background-color: rgba(245, 108, 108, 0.1);
   border-left: 4px solid #f56c6c;
+}
+
+[data-theme='dark'] .compile-error {
+  background-color: rgba(245, 108, 108, 0.15);
 }
 
 .compile-error code {
   color: #f56c6c;
 }
 
+[data-theme='dark'] .compile-error code {
+  color: #f87171;
+}
+
 .compile-warning {
-  background-color: #fdf6ec;
+  background-color: rgba(230, 162, 60, 0.1);
   border-left: 4px solid #e6a23c;
+}
+
+[data-theme='dark'] .compile-warning {
+  background-color: rgba(230, 162, 60, 0.15);
 }
 
 .compile-warning code {
   color: #e6a23c;
+}
+
+[data-theme='dark'] .compile-warning code {
+  color: #fbbf24;
 }
 
 .testcase-section {
@@ -307,6 +331,6 @@ onMounted(() => {
 
 .testcase-section h3 {
   margin-bottom: 10px;
-  color: #333;
+  color: var(--color-text-primary);
 }
 </style>

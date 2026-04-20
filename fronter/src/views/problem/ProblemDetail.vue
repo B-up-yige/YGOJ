@@ -238,10 +238,13 @@ onMounted(() => {
 
 .card-header h2 {
   margin: 0;
-  color: #fff;
-  text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+  color: var(--color-text-primary);
   font-size: 28px;
   font-weight: bold;
+}
+
+[data-theme='dark'] .card-header h2 {
+  text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
 }
 
 .section {
@@ -250,9 +253,12 @@ onMounted(() => {
 
 .section h3 {
   margin-bottom: 10px;
-  color: #fff;
-  text-shadow: 0 0 8px rgba(102, 126, 234, 0.4);
+  color: var(--color-text-primary);
   font-size: 20px;
+}
+
+[data-theme='dark'] .section h3 {
+  text-shadow: 0 0 8px rgba(102, 126, 234, 0.4);
 }
 
 .tags-section {
@@ -261,9 +267,12 @@ onMounted(() => {
 
 .tags-section h3 {
   margin-bottom: 10px;
-  color: #fff;
-  text-shadow: 0 0 8px rgba(102, 126, 234, 0.4);
+  color: var(--color-text-primary);
   font-size: 20px;
+}
+
+[data-theme='dark'] .tags-section h3 {
+  text-shadow: 0 0 8px rgba(102, 126, 234, 0.4);
 }
 
 .tags-container {
