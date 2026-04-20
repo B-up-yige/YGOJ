@@ -427,20 +427,26 @@ onMounted(() => {
   gap: 6px;
   height: auto;
   padding: 16px 12px;
+  margin: 0 !important;
+  border: 1px solid var(--color-border) !important;
 }
 
-/* 强制移除侧边栏按钮的所有阴影 */
+/* 统一所有按钮的边框和背景 */
 .sidebar :deep(.el-button) {
-  box-shadow: none !important;
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text-primary) !important;
 }
 
 .sidebar :deep(.el-button--primary) {
-  box-shadow: none !important;
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text-primary) !important;
 }
 
 .sidebar :deep(.el-button:hover) {
-  box-shadow: none !important;
-  transform: none !important;
+  background: rgba(102, 126, 234, 0.1) !important;
+  border-color: #667eea !important;
 }
 
 .sidebar-btn .el-icon {
