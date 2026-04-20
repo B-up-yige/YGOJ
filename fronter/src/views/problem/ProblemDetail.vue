@@ -279,9 +279,15 @@ onMounted(() => {
 
 /* Element Plus 卡片科技风格 */
 :deep(.el-card) {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-surface);
   backdrop-filter: blur(10px);
   border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-border);
+}
+
+[data-theme='dark'] :deep(.el-card) {
+  background: rgba(255, 255, 255, 0.05);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -296,11 +302,19 @@ onMounted(() => {
 }
 
 :deep(.el-descriptions__label) {
-  color: #fff;
+  color: var(--color-text-primary);
   background: rgba(102, 126, 234, 0.1);
 }
 
+[data-theme='dark'] :deep(.el-descriptions__label) {
+  color: #fff;
+}
+
 :deep(.el-descriptions__content) {
+  color: var(--color-text-secondary);
+}
+
+[data-theme='dark'] :deep(.el-descriptions__content) {
   color: #e0e0e0;
 }
 
@@ -331,18 +345,32 @@ onMounted(() => {
 
 /* 对话框样式 */
 :deep(.el-dialog) {
-  background: linear-gradient(135deg, rgba(15, 12, 41, 0.95) 0%, rgba(48, 43, 99, 0.95) 100%);
+  background: var(--color-surface);
   backdrop-filter: blur(10px);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme='dark'] :deep(.el-dialog) {
+  background: linear-gradient(135deg, rgba(15, 12, 41, 0.95) 0%, rgba(48, 43, 99, 0.95) 100%);
   border: 1px solid rgba(102, 126, 234, 0.3);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 :deep(.el-dialog__title) {
+  color: var(--color-text-primary);
+}
+
+[data-theme='dark'] :deep(.el-dialog__title) {
   color: #fff;
   text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
 }
 
 :deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: var(--color-text-secondary);
+}
+
+[data-theme='dark'] :deep(.el-dialog__headerbtn .el-dialog__close) {
   color: #e0e0e0;
 }
 
@@ -352,14 +380,24 @@ onMounted(() => {
 
 /* 表单样式 */
 :deep(.el-form-item__label) {
+  color: var(--color-text-primary);
+}
+
+[data-theme='dark'] :deep(.el-form-item__label) {
   color: #e0e0e0;
 }
 
 :deep(.el-textarea__inner) {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+[data-theme='dark'] :deep(.el-textarea__inner) {
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(102, 126, 234, 0.3);
   color: #e0e0e0;
-  font-family: 'Consolas', 'Monaco', monospace;
 }
 
 :deep(.el-textarea__inner:focus) {
@@ -369,16 +407,29 @@ onMounted(() => {
 
 /* 警告框样式 */
 :deep(.el-alert) {
-  background: rgba(102, 126, 234, 0.1);
-  border: 1px solid rgba(102, 126, 234, 0.3);
+  background: rgba(102, 126, 234, 0.05);
+  border: 1px solid rgba(102, 126, 234, 0.2);
   backdrop-filter: blur(10px);
 }
 
+[data-theme='dark'] :deep(.el-alert) {
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
 :deep(.el-alert__title) {
+  color: var(--color-text-primary);
+}
+
+[data-theme='dark'] :deep(.el-alert__title) {
   color: #fff;
 }
 
 :deep(.el-alert__description) {
+  color: var(--color-text-secondary);
+}
+
+[data-theme='dark'] :deep(.el-alert__description) {
   color: #e0e0e0;
 }
 </style>

@@ -115,9 +115,13 @@ const handleLogin = async () => {
   align-items: center;
   min-height: calc(100vh - 60px);
   padding: var(--spacing-2xl);
-  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   position: relative;
   overflow: hidden;
+}
+
+[data-theme='dark'] .login-container {
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
 }
 
 .login-container::before {
@@ -141,28 +145,43 @@ const handleLogin = async () => {
 .login-card {
   width: 450px;
   padding: 40px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   position: relative;
   z-index: 1;
+}
+
+[data-theme='dark'] .login-card {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .login-title {
   text-align: center;
   margin-bottom: 30px;
-  color: #fff;
+  color: #333;
   font-size: 32px;
   font-weight: bold;
-  text-shadow: 0 0 20px rgba(102, 126, 234, 0.6);
+  text-shadow: none;
   letter-spacing: 2px;
+}
+
+[data-theme='dark'] .login-title {
+  color: #fff;
+  text-shadow: 0 0 20px rgba(102, 126, 234, 0.6);
 }
 
 .link-text {
   text-align: center;
   width: 100%;
+  color: #666;
+}
+
+[data-theme='dark'] .link-text {
   color: #d0d0d0;
 }
 
@@ -180,15 +199,24 @@ const handleLogin = async () => {
 
 /* Element Plus 表单科技风格 */
 :deep(.el-form-item__label) {
-  color: #e0e0e0;
+  color: #333;
   font-weight: 500;
 }
 
+[data-theme='dark'] :deep(.el-form-item__label) {
+  color: #e0e0e0;
+}
+
 :deep(.el-input__wrapper) {
-  background: rgba(0, 0, 0, 0.3);
-  box-shadow: 0 0 0 1px rgba(102, 126, 234, 0.3) inset;
+  background: #fff;
+  box-shadow: 0 0 0 1px #dcdfe6 inset;
   border-radius: 8px;
   transition: all 0.3s ease;
+}
+
+[data-theme='dark'] :deep(.el-input__wrapper) {
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 1px rgba(102, 126, 234, 0.3) inset;
 }
 
 :deep(.el-input__wrapper:hover) {
@@ -200,6 +228,10 @@ const handleLogin = async () => {
 }
 
 :deep(.el-input__inner) {
+  color: #333;
+}
+
+[data-theme='dark'] :deep(.el-input__inner) {
   color: #e0e0e0;
 }
 

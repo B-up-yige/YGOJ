@@ -329,9 +329,22 @@ onMounted(() => {
   gap: 10px;
   margin-bottom: 20px;
   padding: 16px;
-  background-color: #fff;
+  background-color: var(--color-surface);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Search Bar */
+.search-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background-color: var(--color-surface);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
 }
 
 /* Element Plus 表格样式优化 */
@@ -348,6 +361,18 @@ onMounted(() => {
   font-weight: 600;
 }
 
+[data-theme='dark'] :deep(.el-table th) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='dark'] :deep(.el-table th) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='dark'] :deep(.el-table th) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
 :deep(.el-table td) {
   padding: 12px 0;
 }
@@ -360,17 +385,17 @@ onMounted(() => {
 
 /* 对话框样式 */
 :deep(.el-dialog__header) {
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid var(--color-border);
   padding-bottom: 16px;
 }
 
 :deep(.el-dialog__title) {
-  color: #303133;
+  color: var(--color-text-primary);
   font-weight: 600;
 }
 
 :deep(.el-dialog__footer) {
-  border-top: 1px solid #e4e7ed;
+  border-top: 1px solid var(--color-border);
   padding-top: 16px;
 }
 </style>
