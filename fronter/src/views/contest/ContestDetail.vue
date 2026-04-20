@@ -3,78 +3,121 @@
     <NotFound />
   </div>
   <div v-else class="contest-detail" v-loading="loading">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <h2>{{ contest.title }}</h2>
-          <div>
-            <el-button @click="editContest" v-permission="PERMISSIONS.PERM_CONTEST_MANAGE">编辑比赛</el-button>
-            <el-button @click="goBack">返回</el-button>
+    <!-- 比赛头部信息 -->
+    <el-card class="contest-header-card">
+      <div class="contest-header">
+        <div class="contest-title-section">
+          <h1 class="contest-title">{{ contest.title }}</h1>
+          <div class="contest-meta">
+            <span class="meta-item">
+              <el-icon><User /></el-icon>
+              <span>作者：用户 {{ contest.authorId }}</span>
+            </span>
+            <span class="meta-separator">•</span>
+            <span class="meta-item">
+              <el-tag :type="getStatusType(contest.status)" size="small">
+                {{ getStatusText(contest.status) }}
+              </el-tag>
+            </span>
+          </div>
+          <div class="contest-time-info">
+            <div class="time-item">
+              <el-icon><Clock /></el-icon>
+              <span class="time-label">开始时间</span>
+              <span class="time-value">{{ formatDateTime(contest.startTime) }}</span>
+            </div>
+            <div class="time-item">
+              <el-icon><Clock /></el-icon>
+              <span class="time-label">结束时间</span>
+              <span class="time-value">{{ formatDateTime(contest.endTime) }}</span>
+            </div>
           </div>
         </div>
-      </template>
-
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="比赛状态">
-          <el-tag :type="getStatusType(contest.status)">
-            {{ getStatusText(contest.status) }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="创建者ID">{{ contest.authorId }}</el-descriptions-item>
-        <el-descriptions-item label="开始时间" :span="2">
-          {{ formatDateTime(contest.startTime) }}
-        </el-descriptions-item>
-        <el-descriptions-item label="结束时间" :span="2">
-          {{ formatDateTime(contest.endTime) }}
-        </el-descriptions-item>
-        <el-descriptions-item label="比赛描述" :span="2">
-          <div style="white-space: pre-wrap;">{{ contest.description || '暂无描述' }}</div>
-        </el-descriptions-item>
-      </el-descriptions>
-
-      <!-- 比赛时间提示 -->
-      <el-alert
-        v-if="!canSubmit"
-        :title="timeAlertMessage"
-        :type="alertType"
-        show-icon
-        style="margin-top: 20px;"
-      />
-
-      <div class="problems-section" style="margin-top: 30px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <h3 style="margin: 0;">比赛题目</h3>
-          <el-button type="primary" @click="showAddProblemDialog" v-permission="PERMISSIONS.PERM_CONTEST_MANAGE">添加题目</el-button>
-        </div>
-        <el-table :data="problems" style="width: 100%">
-          <el-table-column prop="problemLabel" label="题号" width="100" />
-          <el-table-column prop="problemId" label="题目ID" width="120" />
-          <el-table-column label="我的状态" width="150">
-            <template #default="scope">
-              <el-tag v-if="userProgress[scope.row.problemId]" :type="getStatusTagType(userProgress[scope.row.problemId])">
-                {{ getStatusText(userProgress[scope.row.problemId]) }}
-              </el-tag>
-              <span v-else style="color: var(--color-text-tertiary);">未提交</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="200">
-            <template #default="scope">
-              <el-button 
-                link 
-                type="primary" 
-                @click="viewProblem(scope.row.problemId, scope.row.problemLabel)"
-                :disabled="!canSubmit"
-              >
-                {{ canSubmit ? '做题' : (now < new Date(contest.startTime) ? '未开始' : '已结束') }}
-              </el-button>
-              <el-button link type="danger" @click="handleDeleteProblem(scope.row.problemId)" v-permission="PERMISSIONS.PERM_CONTEST_MANAGE">
-                删除
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
       </div>
     </el-card>
+
+    <!-- 主体内容区域 -->
+    <div class="main-content">
+      <!-- 比赛内容 -->
+      <el-card class="contest-content-card">
+        <!-- 比赛时间提示 -->
+        <el-alert
+          v-if="!canSubmit"
+          :title="timeAlertMessage"
+          :type="alertType"
+          show-icon
+          style="margin-bottom: 20px;"
+        />
+
+        <!-- 比赛描述 -->
+        <div class="contest-section">
+          <h2 class="section-title">比赛描述</h2>
+          <div class="section-content">
+            <p>{{ contest.description || '暂无描述' }}</p>
+          </div>
+        </div>
+
+        <el-divider />
+
+        <!-- 比赛题目 -->
+        <div class="contest-section">
+          <div class="section-header">
+            <h2 class="section-title">比赛题目</h2>
+            <el-button 
+              type="primary" 
+              @click="showAddProblemDialog" 
+              v-permission="PERMISSIONS.PERM_CONTEST_MANAGE"
+            >
+              添加题目
+            </el-button>
+          </div>
+          <el-table :data="problems" style="width: 100%">
+            <el-table-column prop="problemLabel" label="题号" width="100" />
+            <el-table-column prop="problemId" label="题目ID" width="120" />
+            <el-table-column label="我的状态" width="150">
+              <template #default="scope">
+                <el-tag v-if="userProgress[scope.row.problemId]" :type="getStatusTagType(userProgress[scope.row.problemId])">
+                  {{ getStatusText(userProgress[scope.row.problemId]) }}
+                </el-tag>
+                <span v-else style="color: var(--color-text-tertiary);">未提交</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="200">
+              <template #default="scope">
+                <el-button 
+                  link 
+                  type="primary" 
+                  @click="viewProblem(scope.row.problemId, scope.row.problemLabel)"
+                  :disabled="!canSubmit"
+                >
+                  {{ canSubmit ? '做题' : (now < new Date(contest.startTime) ? '未开始' : '已结束') }}
+                </el-button>
+                <el-button 
+                  link 
+                  type="danger" 
+                  @click="handleDeleteProblem(scope.row.problemId)" 
+                  v-permission="PERMISSIONS.PERM_CONTEST_MANAGE"
+                >
+                  删除
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </el-card>
+
+      <!-- 侧边操作栏 -->
+      <div class="sidebar">
+        <el-button size="large" @click="editContest" v-permission="PERMISSIONS.PERM_CONTEST_MANAGE" class="sidebar-btn">
+          <el-icon><Edit /></el-icon>
+          <span>编辑比赛</span>
+        </el-button>
+        <el-button size="large" @click="goBack" class="sidebar-btn">
+          <el-icon><Back /></el-icon>
+          <span>返回</span>
+        </el-button>
+      </div>
+    </div>
 
     <!-- 添加题目对话框 -->
     <el-dialog v-model="addProblemDialogVisible" title="添加题目" width="500px">
@@ -98,6 +141,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { User, Clock, Edit, Back } from '@element-plus/icons-vue'
 import { getContestInfo, getContestProblems, addContestProblem, delContestProblem, getUserContestProgress } from '@/api/contest'
 import { useUserStore, PERMISSIONS } from '@/stores/user'
 import NotFound from '@/views/NotFound.vue'
@@ -332,20 +376,279 @@ onMounted(() => {
 }
 
 .contest-detail {
+  max-width: 1400px;
+  margin: 0 auto;
   padding: 20px;
 }
 
-.card-header {
+/* 比赛头部卡片 */
+.contest-header-card {
+  margin-bottom: 20px;
+}
+
+.contest-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.contest-title-section {
+  flex: 1;
+}
+
+.contest-title {
+  margin: 0 0 12px 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.3;
+}
+
+[data-theme='dark'] .contest-title {
+  text-shadow: 0 0 15px rgba(102, 126, 234, 0.6);
+}
+
+.contest-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.meta-item .el-icon {
+  font-size: 16px;
+  color: #667eea;
+}
+
+.meta-separator {
+  color: var(--color-text-secondary);
+  opacity: 0.5;
+}
+
+.contest-time-info {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.time-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 6px;
+  border-left: 3px solid #667eea;
+}
+
+[data-theme='dark'] .time-item {
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.time-item .el-icon {
+  font-size: 18px;
+  color: #667eea;
+}
+
+.time-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.time-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* 主体内容区域 */
+.main-content {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* 比赛内容卡片 */
+.contest-content-card {
+  flex: 1;
+  min-width: 0;
+}
+
+.contest-section {
+  margin: 24px 0;
+}
+
+.section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 16px;
 }
 
-.card-header h2 {
+.section-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+}
+
+[data-theme='dark'] .section-title {
+  text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+.section-content {
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+  font-size: 15px;
+  white-space: pre-wrap;
+}
+
+.section-content p {
   margin: 0;
 }
 
-.problems-section h3 {
-  margin-bottom: 15px;
+/* 侧边操作栏 */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 160px;
+  position: sticky;
+  top: 20px;
+}
+
+.sidebar-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: auto;
+  padding: 16px 12px;
+  margin: 0 !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+/* 统一所有按钮的边框和背景 */
+.sidebar :deep(.el-button) {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.sidebar :deep(.el-button--primary) {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.sidebar :deep(.el-button:hover) {
+  background: rgba(102, 126, 234, 0.1) !important;
+  border-color: #667eea !important;
+}
+
+.sidebar-btn .el-icon {
+  font-size: 24px;
+}
+
+.sidebar-btn span {
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Element Plus 卡片科技风格 */
+:deep(.el-card) {
+  background: var(--color-surface);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--color-border);
+  transition: all 0.3s ease;
+}
+
+:deep(.el-card:hover) {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme='dark'] :deep(.el-card) {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] :deep(.el-card:hover) {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+:deep(.el-divider) {
+  margin: 24px 0;
+  border-color: rgba(102, 126, 234, 0.2);
+}
+
+[data-theme='dark'] :deep(.el-divider) {
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+
+  .contest-content-card {
+    order: 1;
+  }
+
+  .sidebar {
+    order: 2;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    position: static;
+  }
+
+  .sidebar-btn {
+    flex: 1;
+    min-width: calc(50% - 6px);
+    padding: 12px 8px;
+  }
+
+  .sidebar-btn .el-icon {
+    font-size: 20px;
+  }
+
+  .sidebar-btn span {
+    font-size: 12px;
+  }
+
+  .contest-time-info {
+    gap: 10px;
+  }
+
+  .time-item {
+    padding: 6px 12px;
+  }
+
+  .time-label {
+    font-size: 11px;
+  }
+
+  .time-value {
+    font-size: 12px;
+  }
 }
 </style>
