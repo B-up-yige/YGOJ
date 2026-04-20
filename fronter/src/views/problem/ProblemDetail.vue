@@ -2,66 +2,107 @@
   <div v-if="notFound" class="not-found-container">
     <NotFound />
   </div>
-  <div v-else class="problem-detail">
-    <el-card v-loading="loading">
-      <template #header>
-        <div class="card-header">
-          <h2>{{ problem.title }}</h2>
-          <el-button @click="goBack">返回</el-button>
+  <div v-else class="problem-detail" v-loading="loading">
+    <!-- 题目头部信息 -->
+    <el-card class="problem-header-card">
+      <div class="problem-header">
+        <div class="problem-title-section">
+          <h1 class="problem-title">{{ problem.title }}</h1>
+          <div class="problem-id">Problem {{ problem.id }}</div>
+        </div>
+        <div class="problem-limits">
+          <div class="limit-item">
+            <el-icon><Timer /></el-icon>
+            <span class="limit-label">Time limit</span>
+            <span class="limit-value">{{ problem.timeLimit }} ms</span>
+          </div>
+          <div class="limit-item">
+            <el-icon><Coin /></el-icon>
+            <span class="limit-label">Memory limit</span>
+            <span class="limit-value">{{ problem.memoryLimit }} MB</span>
+          </div>
+        </div>
+      </div>
+    </el-card>
+
+    <!-- 操作按钮区域 -->
+    <div class="action-bar">
+      <el-button type="primary" size="large" @click="showSubmitDialog">
+        <el-icon><Upload /></el-icon>
+        Submit Code
+      </el-button>
+      <el-button size="large" @click="viewRecords">
+        <el-icon><List /></el-icon>
+        Submissions
+      </el-button>
+      <el-button 
+        type="warning" 
+        size="large" 
+        @click="editProblem" 
+        v-permission="PERMISSIONS.PERM_PROBLEM_EDIT"
+      >
+        <el-icon><Edit /></el-icon>
+        Edit Problem
+      </el-button>
+      <el-button size="large" @click="goBack">
+        <el-icon><Back /></el-icon>
+        Back
+      </el-button>
+    </div>
+
+    <!-- 未登录提示 -->
+    <el-alert
+      v-if="!isLoggedIn"
+      type="info"
+      :closable="false"
+      class="login-alert"
+    >
+      <template #default>
+        <div class="alert-content">
+          <el-icon><InfoFilled /></el-icon>
+          <span>You need to be logged in to submit code.</span>
+          <el-button type="primary" size="small" @click="router.push('/login')">Login</el-button>
+          <el-button size="small" @click="router.push('/register')">Register</el-button>
         </div>
       </template>
+    </el-alert>
 
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="题目 ID">{{ problem.id }}</el-descriptions-item>
-        <el-descriptions-item label="作者 ID">{{ problem.authorId }}</el-descriptions-item>
-        <el-descriptions-item label="时间限制">{{ problem.timeLimit }} ms</el-descriptions-item>
-        <el-descriptions-item label="内存限制">{{ problem.memoryLimit }} MB</el-descriptions-item>
-      </el-descriptions>
+    <!-- 题目主要内容 -->
+    <el-card class="problem-content-card">
+      <!-- 题目描述 -->
+      <div class="problem-section">
+        <h2 class="section-title">Description</h2>
+        <div class="section-content">
+          <p>{{ problem.description || 'No description available.' }}</p>
+        </div>
+      </div>
+
+      <el-divider />
 
       <!-- 标签区域 -->
-      <div class="tags-section" v-if="tags.length > 0">
-        <h3>标签</h3>
+      <div class="problem-section" v-if="tags.length > 0">
+        <h2 class="section-title">Tags</h2>
         <div class="tags-container">
           <el-tag
             v-for="tag in tags"
             :key="tag"
-            style="margin-right: 8px; margin-bottom: 8px;"
+            class="tag-item"
           >
             {{ tag }}
           </el-tag>
         </div>
       </div>
 
-      <el-divider />
+      <el-divider v-if="tags.length > 0" />
 
-      <div class="section">
-        <h3>题目描述</h3>
-        <p>{{ problem.description || '暂无描述' }}</p>
+      <!-- 作者信息 -->
+      <div class="problem-section">
+        <h2 class="section-title">Author</h2>
+        <div class="section-content">
+          <el-tag type="info">User {{ problem.authorId }}</el-tag>
+        </div>
       </div>
-
-      <div class="actions">
-        <el-button type="primary" @click="showSubmitDialog">提交代码</el-button>
-        <el-button type="success" @click="viewRecords">查看记录</el-button>
-        <el-button type="warning" @click="editProblem" v-permission="PERMISSIONS.PERM_PROBLEM_EDIT">编辑题目</el-button>
-      </div>
-
-      <!-- 未登录提示 -->
-      <el-alert
-        v-if="!isLoggedIn"
-        title="提示"
-        description="您需要登录后才能提交代码。请先登录或注册账号。"
-        type="info"
-        :closable="false"
-        style="margin-top: 20px;"
-      >
-        <template #default>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span>您需要登录后才能提交代码。</span>
-            <el-button type="primary" size="small" @click="router.push('/login')">立即登录</el-button>
-            <el-button size="small" @click="router.push('/register')">注册账号</el-button>
-          </div>
-        </template>
-      </el-alert>
+    </el-card>
     </el-card>
 
     <!-- 提交代码对话框 -->
@@ -97,6 +138,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Timer, Coin, Upload, List, Edit, Back, InfoFilled } from '@element-plus/icons-vue'
 import { getProblemInfo, getProblemTags } from '@/api/problem'
 import { submitCode } from '@/api/record'
 import { useUserStore, PERMISSIONS } from '@/stores/user'
@@ -227,78 +269,187 @@ onMounted(() => {
 }
 
 .problem-detail {
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 20px;
 }
 
-.card-header {
+/* 题目头部卡片 */
+.problem-header-card {
+  margin-bottom: 20px;
+}
+
+.problem-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
-.card-header h2 {
-  margin: 0;
+.problem-title-section {
+  flex: 1;
+}
+
+.problem-title {
+  margin: 0 0 8px 0;
+  font-size: 32px;
+  font-weight: 700;
   color: var(--color-text-primary);
-  font-size: 28px;
-  font-weight: bold;
 }
 
-[data-theme='dark'] .card-header h2 {
+[data-theme='dark'] .problem-title {
+  text-shadow: 0 0 15px rgba(102, 126, 234, 0.6);
+}
+
+.problem-id {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.problem-limits {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+.limit-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(102, 126, 234, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+[data-theme='dark'] .limit-item {
+  background: rgba(102, 126, 234, 0.15);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.limit-item .el-icon {
+  font-size: 20px;
+  color: #667eea;
+}
+
+.limit-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.limit-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* 操作按钮栏 */
+.action-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.action-bar .el-button {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* 登录提示 */
+.login-alert {
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.alert-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.alert-content .el-icon {
+  font-size: 18px;
+  color: #667eea;
+}
+
+/* 题目内容卡片 */
+.problem-content-card {
+  margin-bottom: 20px;
+}
+
+.problem-section {
+  margin: 24px 0;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+}
+
+[data-theme='dark'] .section-title {
   text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
 }
 
-.section {
-  margin: 20px 0;
+.section-content {
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+  font-size: 15px;
 }
 
-.section h3 {
-  margin-bottom: 10px;
-  color: var(--color-text-primary);
-  font-size: 20px;
+.section-content p {
+  margin: 0;
 }
 
-[data-theme='dark'] .section h3 {
-  text-shadow: 0 0 8px rgba(102, 126, 234, 0.4);
-}
-
-.tags-section {
-  margin: 20px 0;
-}
-
-.tags-section h3 {
-  margin-bottom: 10px;
-  color: var(--color-text-primary);
-  font-size: 20px;
-}
-
-[data-theme='dark'] .tags-section h3 {
-  text-shadow: 0 0 8px rgba(102, 126, 234, 0.4);
-}
-
+/* 标签容器 */
 .tags-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
-.actions {
-  margin-top: 30px;
-  text-align: center;
+.tag-item {
+  cursor: default;
+  transition: all 0.3s ease;
+}
+
+.tag-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 /* Element Plus 卡片科技风格 */
 :deep(.el-card) {
   background: var(--color-surface);
   backdrop-filter: blur(10px);
-  border-radius: 15px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--color-border);
+  transition: all 0.3s ease;
+}
+
+:deep(.el-card:hover) {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
 [data-theme='dark'] :deep(.el-card) {
   background: rgba(255, 255, 255, 0.05);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] :deep(.el-card:hover) {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  border-color: rgba(102, 126, 234, 0.3);
 }
 
 :deep(.el-card__header) {
@@ -306,25 +457,13 @@ onMounted(() => {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-:deep(.el-descriptions) {
-  --el-descriptions-table-border-color: rgba(255, 255, 255, 0.1);
+:deep(.el-divider) {
+  margin: 24px 0;
+  border-color: rgba(102, 126, 234, 0.2);
 }
 
-:deep(.el-descriptions__label) {
-  color: var(--color-text-primary);
-  background: rgba(102, 126, 234, 0.1);
-}
-
-[data-theme='dark'] :deep(.el-descriptions__label) {
-  color: #fff;
-}
-
-:deep(.el-descriptions__content) {
-  color: var(--color-text-secondary);
-}
-
-[data-theme='dark'] :deep(.el-descriptions__content) {
-  color: #e0e0e0;
+[data-theme='dark'] :deep(.el-divider) {
+  border-color: rgba(102, 126, 234, 0.3);
 }
 
 /* 按钮科技风格 */
@@ -333,6 +472,7 @@ onMounted(() => {
   border: none;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
   transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 :deep(.el-button--primary:hover) {
@@ -340,16 +480,13 @@ onMounted(() => {
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
-:deep(.el-button--success) {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  border: none;
-  box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4);
+:deep(.el-button) {
   transition: all 0.3s ease;
+  font-weight: 500;
 }
 
-:deep(.el-button--success:hover) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(56, 239, 125, 0.6);
+:deep(.el-button:hover) {
+  transform: translateY(-1px);
 }
 
 /* 对话框样式 */
