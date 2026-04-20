@@ -251,6 +251,15 @@ const handleRegister = async () => {
   color: #e0e0e0;
 }
 
+/* 占位符文本颜色 */
+:deep(.el-input__inner::placeholder) {
+  color: #a8abb2;
+}
+
+[data-theme='dark'] :deep(.el-input__inner::placeholder) {
+  color: #6b7280;
+}
+
 :deep(.el-button--primary) {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;

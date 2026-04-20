@@ -21,12 +21,12 @@
 
         <el-form-item label="时间限制" prop="timeLimit">
           <el-input-number v-model="form.timeLimit" :min="100" :step="100" style="width: 100%" />
-          <span style="margin-left: 10px; color: #999;">(毫秒)</span>
+          <span style="margin-left: 10px; color: var(--color-text-tertiary);">(毫秒)</span>
         </el-form-item>
 
         <el-form-item label="内存限制" prop="memoryLimit">
           <el-input-number v-model="form.memoryLimit" :min="64" :step="64" style="width: 100%" />
-          <span style="margin-left: 10px; color: #999;">(MB)</span>
+          <span style="margin-left: 10px; color: var(--color-text-tertiary);">(MB)</span>
         </el-form-item>
 
         <!-- 标签管理 -->
@@ -66,9 +66,9 @@
       </el-form>
 
       <!-- 测试用例管理入口 -->
-      <div v-if="isEdit" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+      <div v-if="isEdit" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--color-border);">
         <h3>测试用例管理</h3>
-        <p style="color: #666; margin-bottom: 15px;">题目信息保存后，可以添加或编辑测试用例</p>
+        <p style="color: var(--color-text-secondary); margin-bottom: 15px;">题目信息保存后，可以添加或编辑测试用例</p>
         <el-button type="warning" @click="goToTestCaseEdit">
           <el-icon><Setting /></el-icon>
           管理测试用例
@@ -241,7 +241,7 @@ onMounted(() => {
 
 .problem-edit h3 {
   margin: 0 0 15px 0;
-  color: #333;
+  color: var(--color-text-primary);
   font-size: 16px;
 }
 

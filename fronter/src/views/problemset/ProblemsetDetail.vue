@@ -49,7 +49,7 @@
               <el-tag v-if="userProgress[scope.row.problemId]" :type="getStatusTagType(userProgress[scope.row.problemId])">
                 {{ getStatusText(userProgress[scope.row.problemId]) }}
               </el-tag>
-              <span v-else style="color: #909399;">未提交</span>
+              <span v-else style="color: var(--color-text-tertiary);">未提交</span>
             </template>
           </el-table-column>
           <el-table-column label="添加时间">
