@@ -25,10 +25,10 @@
       </div>
     </el-card>
 
-    <!-- 主体内容区域：侧边栏 + 题目内容 -->
+    <!-- 主体内容区域：题目内容 + 侧边栏 -->
     <div class="main-content">
-      <!-- 侧边操作栏 -->
-      <div class="sidebar">
+      <!-- 题目主要内容 -->
+      <el-card class="problem-content-card">
         <el-button type="primary" size="large" @click="showSubmitDialog" class="sidebar-btn">
           <el-icon><Upload /></el-icon>
           <span>提交代码</span>
@@ -106,7 +106,9 @@
           </div>
         </div>
       </el-card>
-    </div>
+
+      <!-- 侧边操作栏 -->
+      <div class="sidebar">
 
     <!-- 提交代码对话框 -->
     <el-dialog v-model="submitDialogVisible" title="提交代码" width="60%">
@@ -355,6 +357,30 @@ onMounted(() => {
   align-items: flex-start;
 }
 
+/* 题目内容卡片 */
+.problem-content-card {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 登录提示 */
+.login-alert {
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.alert-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.alert-content .el-icon {
+  font-size: 18px;
+  color: #667eea;
+}
+
 /* 侧边操作栏 */
 .sidebar {
   display: flex;
@@ -370,6 +396,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   height: auto;
   padding: 16px 12px;
@@ -381,32 +408,7 @@ onMounted(() => {
 
 .sidebar-btn span {
   font-size: 13px;
-}
-
-/* 题目内容卡片 */
-.problem-content-card {
-  flex: 1;
-  min-width: 0;
-}
-
-/* 登录提示 */
-.login-alert {
-  margin-bottom: 20px;
-  border-radius: 8px;
-}
-
-
-
-.alert-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.alert-content .el-icon {
-  font-size: 18px;
-  color: #667eea;
+  text-align: center;
 }
 
 /* 响应式布局 */
@@ -415,7 +417,12 @@ onMounted(() => {
     flex-direction: column;
   }
 
+  .problem-content-card {
+    order: 1;
+  }
+
   .sidebar {
+    order: 2;
     flex-direction: row;
     flex-wrap: wrap;
     width: 100%;
@@ -451,11 +458,6 @@ onMounted(() => {
   .limit-value {
     font-size: 14px;
   }
-}
-
-/* 题目内容卡片 */
-.problem-content-card {
-  margin-bottom: 20px;
 }
 
 .problem-section {
