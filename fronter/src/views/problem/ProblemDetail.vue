@@ -29,32 +29,6 @@
     <div class="main-content">
       <!-- 题目主要内容 -->
       <el-card class="problem-content-card">
-        <el-button type="primary" size="large" @click="showSubmitDialog" class="sidebar-btn">
-          <el-icon><Upload /></el-icon>
-          <span>提交代码</span>
-        </el-button>
-        <el-button size="large" @click="viewRecords" class="sidebar-btn">
-          <el-icon><List /></el-icon>
-          <span>查看记录</span>
-        </el-button>
-        <el-button 
-          type="warning" 
-          size="large" 
-          @click="editProblem" 
-          v-permission="PERMISSIONS.PERM_PROBLEM_EDIT"
-          class="sidebar-btn"
-        >
-          <el-icon><Edit /></el-icon>
-          <span>编辑题目</span>
-        </el-button>
-        <el-button size="large" @click="goBack" class="sidebar-btn">
-          <el-icon><Back /></el-icon>
-          <span>返回</span>
-        </el-button>
-      </div>
-
-      <!-- 题目主要内容 -->
-      <el-card class="problem-content-card">
         <!-- 未登录提示 -->
         <el-alert
           v-if="!isLoggedIn"
@@ -109,6 +83,30 @@
 
       <!-- 侧边操作栏 -->
       <div class="sidebar">
+        <el-button type="primary" size="large" @click="showSubmitDialog" class="sidebar-btn">
+          <el-icon><Upload /></el-icon>
+          <span>提交代码</span>
+        </el-button>
+        <el-button size="large" @click="viewRecords" class="sidebar-btn">
+          <el-icon><List /></el-icon>
+          <span>查看记录</span>
+        </el-button>
+        <el-button 
+          type="warning" 
+          size="large" 
+          @click="editProblem" 
+          v-permission="PERMISSIONS.PERM_PROBLEM_EDIT"
+          class="sidebar-btn"
+        >
+          <el-icon><Edit /></el-icon>
+          <span>编辑题目</span>
+        </el-button>
+        <el-button size="large" @click="goBack" class="sidebar-btn">
+          <el-icon><Back /></el-icon>
+          <span>返回</span>
+        </el-button>
+      </div>
+    </div>
 
     <!-- 提交代码对话框 -->
     <el-dialog v-model="submitDialogVisible" title="提交代码" width="60%">
