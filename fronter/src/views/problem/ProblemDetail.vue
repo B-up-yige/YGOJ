@@ -8,101 +8,105 @@
       <div class="problem-header">
         <div class="problem-title-section">
           <h1 class="problem-title">{{ problem.title }}</h1>
-          <div class="problem-id">Problem {{ problem.id }}</div>
+          <div class="problem-id">题目 {{ problem.id }}</div>
         </div>
         <div class="problem-limits">
           <div class="limit-item">
             <el-icon><Timer /></el-icon>
-            <span class="limit-label">Time limit</span>
+            <span class="limit-label">时间限制</span>
             <span class="limit-value">{{ problem.timeLimit }} ms</span>
           </div>
           <div class="limit-item">
             <el-icon><Coin /></el-icon>
-            <span class="limit-label">Memory limit</span>
+            <span class="limit-label">内存限制</span>
             <span class="limit-value">{{ problem.memoryLimit }} MB</span>
           </div>
         </div>
       </div>
     </el-card>
 
-    <!-- 操作按钮区域 -->
-    <div class="action-bar">
-      <el-button type="primary" size="large" @click="showSubmitDialog">
-        <el-icon><Upload /></el-icon>
-        Submit Code
-      </el-button>
-      <el-button size="large" @click="viewRecords">
-        <el-icon><List /></el-icon>
-        Submissions
-      </el-button>
-      <el-button 
-        type="warning" 
-        size="large" 
-        @click="editProblem" 
-        v-permission="PERMISSIONS.PERM_PROBLEM_EDIT"
-      >
-        <el-icon><Edit /></el-icon>
-        Edit Problem
-      </el-button>
-      <el-button size="large" @click="goBack">
-        <el-icon><Back /></el-icon>
-        Back
-      </el-button>
+    <!-- 主体内容区域：侧边栏 + 题目内容 -->
+    <div class="main-content">
+      <!-- 侧边操作栏 -->
+      <div class="sidebar">
+        <el-button type="primary" size="large" @click="showSubmitDialog" class="sidebar-btn">
+          <el-icon><Upload /></el-icon>
+          <span>提交代码</span>
+        </el-button>
+        <el-button size="large" @click="viewRecords" class="sidebar-btn">
+          <el-icon><List /></el-icon>
+          <span>查看记录</span>
+        </el-button>
+        <el-button 
+          type="warning" 
+          size="large" 
+          @click="editProblem" 
+          v-permission="PERMISSIONS.PERM_PROBLEM_EDIT"
+          class="sidebar-btn"
+        >
+          <el-icon><Edit /></el-icon>
+          <span>编辑题目</span>
+        </el-button>
+        <el-button size="large" @click="goBack" class="sidebar-btn">
+          <el-icon><Back /></el-icon>
+          <span>返回</span>
+        </el-button>
+      </div>
+
+      <!-- 题目主要内容 -->
+      <el-card class="problem-content-card">
+        <!-- 未登录提示 -->
+        <el-alert
+          v-if="!isLoggedIn"
+          type="info"
+          :closable="false"
+          class="login-alert"
+        >
+          <template #default>
+            <div class="alert-content">
+              <el-icon><InfoFilled /></el-icon>
+              <span>您需要登录后才能提交代码。</span>
+              <el-button type="primary" size="small" @click="router.push('/login')">立即登录</el-button>
+              <el-button size="small" @click="router.push('/register')">注册账号</el-button>
+            </div>
+          </template>
+        </el-alert>
+
+        <!-- 题目描述 -->
+        <div class="problem-section">
+          <h2 class="section-title">题目描述</h2>
+          <div class="section-content">
+            <p>{{ problem.description || '暂无描述' }}</p>
+          </div>
+        </div>
+
+        <el-divider />
+
+        <!-- 标签区域 -->
+        <div class="problem-section" v-if="tags.length > 0">
+          <h2 class="section-title">标签</h2>
+          <div class="tags-container">
+            <el-tag
+              v-for="tag in tags"
+              :key="tag"
+              class="tag-item"
+            >
+              {{ tag }}
+            </el-tag>
+          </div>
+        </div>
+
+        <el-divider v-if="tags.length > 0" />
+
+        <!-- 作者信息 -->
+        <div class="problem-section">
+          <h2 class="section-title">作者</h2>
+          <div class="section-content">
+            <el-tag type="info">用户 {{ problem.authorId }}</el-tag>
+          </div>
+        </div>
+      </el-card>
     </div>
-
-    <!-- 未登录提示 -->
-    <el-alert
-      v-if="!isLoggedIn"
-      type="info"
-      :closable="false"
-      class="login-alert"
-    >
-      <template #default>
-        <div class="alert-content">
-          <el-icon><InfoFilled /></el-icon>
-          <span>You need to be logged in to submit code.</span>
-          <el-button type="primary" size="small" @click="router.push('/login')">Login</el-button>
-          <el-button size="small" @click="router.push('/register')">Register</el-button>
-        </div>
-      </template>
-    </el-alert>
-
-    <!-- 题目主要内容 -->
-    <el-card class="problem-content-card">
-      <!-- 题目描述 -->
-      <div class="problem-section">
-        <h2 class="section-title">Description</h2>
-        <div class="section-content">
-          <p>{{ problem.description || 'No description available.' }}</p>
-        </div>
-      </div>
-
-      <el-divider />
-
-      <!-- 标签区域 -->
-      <div class="problem-section" v-if="tags.length > 0">
-        <h2 class="section-title">Tags</h2>
-        <div class="tags-container">
-          <el-tag
-            v-for="tag in tags"
-            :key="tag"
-            class="tag-item"
-          >
-            {{ tag }}
-          </el-tag>
-        </div>
-      </div>
-
-      <el-divider v-if="tags.length > 0" />
-
-      <!-- 作者信息 -->
-      <div class="problem-section">
-        <h2 class="section-title">Author</h2>
-        <div class="section-content">
-          <el-tag type="info">User {{ problem.authorId }}</el-tag>
-        </div>
-      </div>
-    </el-card>
 
     <!-- 提交代码对话框 -->
     <el-dialog v-model="submitDialogVisible" title="提交代码" width="60%">
@@ -268,7 +272,7 @@ onMounted(() => {
 }
 
 .problem-detail {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -336,8 +340,6 @@ onMounted(() => {
 .limit-label {
   font-size: 12px;
   color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .limit-value {
@@ -346,17 +348,45 @@ onMounted(() => {
   color: var(--color-text-primary);
 }
 
-/* 操作按钮栏 */
-.action-bar {
+/* 主体内容区域 */
+.main-content {
   display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
 }
 
-.action-bar .el-button {
+/* 侧边操作栏 */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 160px;
+  position: sticky;
+  top: 20px;
+}
+
+.sidebar-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: auto;
+  padding: 16px 12px;
+}
+
+.sidebar-btn .el-icon {
+  font-size: 24px;
+}
+
+.sidebar-btn span {
+  font-size: 13px;
+}
+
+/* 题目内容卡片 */
+.problem-content-card {
   flex: 1;
-  min-width: 120px;
+  min-width: 0;
 }
 
 /* 登录提示 */
@@ -364,6 +394,8 @@ onMounted(() => {
   margin-bottom: 20px;
   border-radius: 8px;
 }
+
+
 
 .alert-content {
   display: flex;
@@ -375,6 +407,50 @@ onMounted(() => {
 .alert-content .el-icon {
   font-size: 18px;
   color: #667eea;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    position: static;
+  }
+
+  .sidebar-btn {
+    flex: 1;
+    min-width: calc(50% - 6px);
+    padding: 12px 8px;
+  }
+
+  .sidebar-btn .el-icon {
+    font-size: 20px;
+  }
+
+  .sidebar-btn span {
+    font-size: 12px;
+  }
+
+  .problem-limits {
+    gap: 15px;
+  }
+
+  .limit-item {
+    padding: 6px 12px;
+  }
+
+  .limit-label {
+    font-size: 11px;
+  }
+
+  .limit-value {
+    font-size: 14px;
+  }
 }
 
 /* 题目内容卡片 */
