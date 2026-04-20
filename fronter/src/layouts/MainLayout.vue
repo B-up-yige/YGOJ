@@ -77,7 +77,9 @@
     </el-header>
 
     <el-main class="main-content">
-      <router-view />
+      <router-view v-slot="{ Component }">
+        <component :is="Component" />
+      </router-view>
     </el-main>
   </el-container>
 </template>
@@ -466,6 +468,12 @@ onMounted(() => {
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-2xl);
+}
+
+/* 登录和注册页面不需要padding */
+.main-content:has(.login-container),
+.main-content:has(.register-container) {
+  padding: 0;
 }
 
 /* Responsive */

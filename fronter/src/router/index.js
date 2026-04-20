@@ -5,16 +5,6 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/login',
-      name: 'Login',
-      component: () => import('@/views/Login.vue')
-    },
-    {
-      path: '/register',
-      name: 'Register',
-      component: () => import('@/views/Register.vue')
-    },
-    {
       path: '/',
       name: 'Layout',
       component: () => import('@/layouts/MainLayout.vue'),
@@ -24,6 +14,16 @@ const router = createRouter({
           path: '/home',
           name: 'Home',
           component: () => import('@/views/Home.vue')
+        },
+        {
+          path: '/login',
+          name: 'Login',
+          component: () => import('@/views/Login.vue')
+        },
+        {
+          path: '/register',
+          name: 'Register',
+          component: () => import('@/views/Register.vue')
         },
         {
           path: '/problems',
@@ -160,6 +160,12 @@ router.beforeEach((to, from, next) => {
       next({ name: 'Forbidden' })
       return
     }
+  }
+  
+  // 如果已登录且访问登录/注册页，重定向到首页
+  if (userStore.token && (to.name === 'Login' || to.name === 'Register')) {
+    next('/')
+    return
   }
   
   // 所有页面都允许访问，登录检查在具体操作中处理
