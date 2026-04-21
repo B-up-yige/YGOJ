@@ -320,8 +320,9 @@ const handleSubmitCode = async () => {
     await submitCode(data)
     ElMessage.success('提交成功')
     submitDialogVisible.value = false
-    // 跳转到比赛提交记录页面
-    router.push(`/contest/${contestId}/records`)
+    // 跳转到比赛提交记录页面，默认筛选我的提交和当前题目
+    const userId = userStore.userInfo?.id || localStorage.getItem('userId')
+    router.push(`/contest/${contestId}/records?userId=${userId}&problemId=${problemId.value}`)
   } catch (error) {
     console.error('提交失败:', error)
   } finally {

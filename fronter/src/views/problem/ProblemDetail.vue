@@ -231,8 +231,9 @@ const handleSubmitCode = async () => {
     await submitCode(data)
     ElMessage.success('提交成功')
     submitDialogVisible.value = false
-    // 跳转到记录页面查看结果
-    router.push('/records')
+    // 跳转到记录页面，默认筛选我的提交和当前题目
+    const userId = userStore.userInfo?.id || localStorage.getItem('userId')
+    router.push(`/records?userId=${userId}&problemId=${route.params.id}`)
   } catch (error) {
     // request.js 已经处理了错误提示，这里只需要记录日志
     console.error('提交失败:', error)
