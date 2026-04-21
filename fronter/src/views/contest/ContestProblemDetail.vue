@@ -3,65 +3,111 @@
     <NotFound />
   </div>
   <div v-else class="contest-problem-detail" v-loading="loading">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <div>
-            <h2>{{ problemLabel }}. {{ problem.title }}</h2>
-            <p class="contest-info">比赛：{{ contestTitle }}</p>
+    <!-- 题目头部信息 -->
+    <el-card class="problem-header-card">
+      <div class="problem-header">
+        <div class="problem-title-section">
+          <h1 class="problem-title">{{ problemLabel }}. {{ problem.title }}</h1>
+          <div class="contest-info-line">
+            <el-icon><Trophy /></el-icon>
+            <span>比赛：{{ contestTitle }}</span>
           </div>
-          <el-button @click="goBack">返回比赛</el-button>
+          <div class="problem-author">
+            <span class="author-label">作者：</span>
+            <el-tag type="info" size="small">用户 {{ problem.authorId }}</el-tag>
+          </div>
+          <div class="problem-tags-line" v-if="tags.length > 0">
+            <div class="header-tags">
+              <el-tag
+                v-for="tag in tags"
+                :key="tag"
+                size="small"
+                class="header-tag-item"
+              >
+                {{ tag }}
+              </el-tag>
+            </div>
+          </div>
+          <div class="problem-id-line">
+            <span class="problem-id">题目 {{ problem.id }}</span>
+          </div>
         </div>
-      </template>
-
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="题目 ID">{{ problem.id }}</el-descriptions-item>
-        <el-descriptions-item label="作者 ID">{{ problem.authorId }}</el-descriptions-item>
-        <el-descriptions-item label="时间限制">{{ problem.timeLimit }} ms</el-descriptions-item>
-        <el-descriptions-item label="内存限制">{{ problem.memoryLimit }} MB</el-descriptions-item>
-      </el-descriptions>
-
-      <!-- 标签区域 -->
-      <div class="tags-section" v-if="tags.length > 0">
-        <h3>标签</h3>
-        <div class="tags-container">
-          <el-tag
-            v-for="tag in tags"
-            :key="tag"
-            style="margin-right: 8px; margin-bottom: 8px;"
-          >
-            {{ tag }}
-          </el-tag>
+        <div class="problem-limits">
+          <div class="limit-item">
+            <el-icon><Timer /></el-icon>
+            <span class="limit-label">时间限制</span>
+            <span class="limit-value">{{ problem.timeLimit }} ms</span>
+          </div>
+          <div class="limit-item">
+            <el-icon><Coin /></el-icon>
+            <span class="limit-label">内存限制</span>
+            <span class="limit-value">{{ problem.memoryLimit }} MB</span>
+          </div>
         </div>
       </div>
+    </el-card>
 
-      <el-divider />
+    <!-- 主体内容区域：题目内容 + 侧边栏 -->
+    <div class="main-content">
+      <!-- 题目主要内容 -->
+      <el-card class="problem-content-card">
+        <!-- 未登录提示 -->
+        <el-alert
+          v-if="!isLoggedIn"
+          type="info"
+          :closable="false"
+          class="login-alert"
+        >
+          <template #default>
+            <div class="alert-content">
+              <el-icon><InfoFilled /></el-icon>
+              <span>您需要登录后才能提交代码。</span>
+              <el-button type="primary" size="small" @click="router.push('/login')">立即登录</el-button>
+              <el-button size="small" @click="router.push('/register')">注册账号</el-button>
+            </div>
+          </template>
+        </el-alert>
 
-      <div class="section">
-        <h3>题目描述</h3>
-        <p>{{ problem.description || '暂无描述' }}</p>
-      </div>
+        <!-- 比赛时间提示 -->
+        <el-alert
+          v-if="!canSubmit"
+          :title="submitButtonText"
+          :type="alertType"
+          show-icon
+          style="margin-bottom: 20px;"
+        />
 
-      <div class="actions">
+        <!-- 题目描述 -->
+        <div class="problem-section">
+          <h2 class="section-title">题目描述</h2>
+          <div class="section-content">
+            <p>{{ problem.description || '暂无描述' }}</p>
+          </div>
+        </div>
+      </el-card>
+
+      <!-- 侧边操作栏 -->
+      <div class="sidebar">
         <el-button 
           type="primary" 
+          size="large" 
           @click="showSubmitDialog"
           :disabled="!canSubmit"
+          class="sidebar-btn"
         >
-          {{ submitButtonText }}
+          <el-icon><Upload /></el-icon>
+          <span>{{ submitButtonText }}</span>
         </el-button>
-        <el-button type="success" @click="viewRecords">查看提交记录</el-button>
+        <el-button size="large" @click="viewRecords" class="sidebar-btn">
+          <el-icon><List /></el-icon>
+          <span>我的提交</span>
+        </el-button>
+        <el-button size="large" @click="goBack" class="sidebar-btn">
+          <el-icon><Back /></el-icon>
+          <span>返回比赛</span>
+        </el-button>
       </div>
-      
-      <!-- 比赛时间提示 -->
-      <el-alert
-        v-if="!canSubmit"
-        :title="submitButtonText"
-        :type="alertType"
-        show-icon
-        style="margin-top: 20px;"
-      />
-    </el-card>
+    </div>
 
     <!-- 提交代码对话框 -->
     <el-dialog v-model="submitDialogVisible" title="提交代码" width="60%">
@@ -93,11 +139,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Timer, Coin, Upload, List, Back, InfoFilled, Trophy } from '@element-plus/icons-vue'
 import { getProblemInfo, getProblemTags } from '@/api/problem'
-import { getContestInfo } from '@/api/contest'
+import { getContestInfo, getContestProblems } from '@/api/contest'
 import { submitCode } from '@/api/record'
 import { useUserStore } from '@/stores/user'
 import NotFound from '@/views/NotFound.vue'
@@ -109,6 +156,9 @@ const loading = ref(false)
 const submitting = ref(false)
 const submitDialogVisible = ref(false)
 const notFound = ref(false)
+
+// 计算是否已登录
+const isLoggedIn = computed(() => !!userStore.token)
 
 const contestId = route.params.contestId
 const problemLabel = route.params.problemLabel
@@ -280,8 +330,14 @@ const handleSubmitCode = async () => {
 }
 
 const viewRecords = () => {
-  // 跳转到比赛的提交记录页面
-  router.push(`/contest/${contestId}/records?problemId=${problemId.value}`)
+  const userId = userStore.userInfo?.id || localStorage.getItem('userId')
+  if (!userId) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+  // 跳转到该用户在该题目的提交记录
+  router.push(`/records?userId=${userId}&problemId=${problemId.value}`)
 }
 
 onMounted(() => {
@@ -298,66 +354,332 @@ onMounted(() => {
 }
 
 .contest-problem-detail {
+  max-width: 1400px;
+  margin: 0 auto;
   padding: 20px;
 }
 
-.card-header {
+/* 题目头部卡片 */
+.problem-header-card {
+  margin-bottom: 20px;
+}
+
+.problem-header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.problem-title-section {
+  flex: 1;
+}
+
+.problem-title {
+  margin: 0 0 12px 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.3;
+}
+
+[data-theme='dark'] .problem-title {
+  text-shadow: 0 0 15px rgba(102, 126, 234, 0.6);
+}
+
+.contest-info-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.contest-info-line .el-icon {
+  font-size: 16px;
+  color: #f59e0b;
+}
+
+.problem-author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 6px 12px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 6px;
+  border-left: 3px solid #667eea;
+  width: fit-content;
+}
+
+[data-theme='dark'] .problem-author {
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.author-label {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.problem-tags-line {
+  margin-bottom: 8px;
+}
+
+.header-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.header-tag-item {
+  cursor: default;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+}
+
+.header-tag-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.problem-id-line {
+  margin-top: 4px;
+}
+
+.problem-id {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.problem-limits {
+  display: flex;
+  gap: 30px;
   align-items: center;
 }
 
-.card-header h2 {
-  margin: 0 0 8px 0;
-}
-
-.contest-info {
-  margin: 0;
-  color: #909399;
-  font-size: 14px;
-}
-
-.section {
-  margin: 20px 0;
-}
-
-.section h3 {
-  margin-bottom: 10px;
-  color: #333;
-}
-
-.tags-section {
-  margin: 20px 0;
-}
-
-.tags-section h3 {
-  margin-bottom: 10px;
-  color: #333;
-}
-
-.tags-container {
+.limit-item {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+  padding: 8px 16px;
+  background: rgba(102, 126, 234, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
 }
 
-.actions {
-  margin-top: 30px;
+[data-theme='dark'] .limit-item {
+  background: rgba(102, 126, 234, 0.15);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.limit-item .el-icon {
+  font-size: 20px;
+  color: #667eea;
+}
+
+.limit-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.limit-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* 主体内容区域 */
+.main-content {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* 题目内容卡片 */
+.problem-content-card {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 登录提示 */
+.login-alert {
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.alert-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.alert-content .el-icon {
+  font-size: 18px;
+  color: #667eea;
+}
+
+.problem-section {
+  margin: 24px 0;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+}
+
+[data-theme='dark'] .section-title {
+  text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+.section-content {
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+  font-size: 15px;
+}
+
+.section-content p {
+  margin: 0;
+}
+
+/* 侧边操作栏 */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 160px;
+  position: sticky;
+  top: 20px;
+}
+
+.sidebar-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: auto;
+  padding: 16px 12px;
+  margin: 0 !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+/* 统一所有按钮的边框和背景 */
+.sidebar :deep(.el-button) {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.sidebar :deep(.el-button--primary) {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.sidebar :deep(.el-button:hover) {
+  background: rgba(102, 126, 234, 0.1) !important;
+  border-color: #667eea !important;
+}
+
+.sidebar-btn .el-icon {
+  font-size: 24px;
+}
+
+.sidebar-btn span {
+  font-size: 13px;
   text-align: center;
 }
 
-/* 统一按钮样式 */
-.actions :deep(.el-button) {
-  box-shadow: none !important;
+/* Element Plus 卡片科技风格 */
+:deep(.el-card) {
+  background: var(--color-surface);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--color-border);
+  transition: all 0.3s ease;
 }
 
-.actions :deep(.el-button--primary) {
-  box-shadow: none !important;
-  border: 1px solid var(--color-border);
+:deep(.el-card:hover) {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
-.actions :deep(.el-button:hover) {
-  box-shadow: none !important;
+[data-theme='dark'] :deep(.el-card) {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] :deep(.el-card:hover) {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+:deep(.el-divider) {
+  margin: 24px 0;
+  border-color: rgba(102, 126, 234, 0.2);
+}
+
+[data-theme='dark'] :deep(.el-divider) {
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+
+  .problem-content-card {
+    order: 1;
+  }
+
+  .sidebar {
+    order: 2;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    position: static;
+  }
+
+  .sidebar-btn {
+    flex: 1;
+    min-width: calc(33.333% - 8px);
+    padding: 12px 8px;
+  }
+
+  .sidebar-btn .el-icon {
+    font-size: 20px;
+  }
+
+  .sidebar-btn span {
+    font-size: 12px;
+  }
+
+  .problem-limits {
+    gap: 15px;
+  }
+
+  .limit-item {
+    padding: 6px 12px;
+  }
+
+  .limit-label {
+    font-size: 11px;
+  }
+
+  .limit-value {
+    font-size: 14px;
+  }
 }
 </style>
