@@ -128,6 +128,17 @@ const loading = ref(false)
 const dialogVisible = ref(false)
 const currentRecord = ref(null)
 
+const records = ref([])
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+
+// 搜索条件
+const searchProblemId = ref('')
+const searchStatus = ref('')
+const searchUserId = ref('')
+const mySubmissions = ref(false)
+
 // 接收路由参数
 const contestId = ref(route.params.contestId || null)
 const problemId = ref(route.query.problemId || null)
@@ -141,17 +152,6 @@ if (urlUserId.value) {
 if (problemId.value) {
   searchProblemId.value = problemId.value.toString()
 }
-
-const records = ref([])
-const currentPage = ref(1)
-const pageSize = ref(10)
-const total = ref(0)
-
-// 搜索条件
-const searchProblemId = ref('')
-const searchStatus = ref('')
-const searchUserId = ref('')
-const mySubmissions = ref(false)
 
 const statusForm = ref({
   status: ''
