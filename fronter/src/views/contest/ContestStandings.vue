@@ -143,21 +143,22 @@ const loadStandings = async () => {
   }
 }
 
-// 格式化罚时（分钟转小时:分钟）
-const formatPenalty = (minutes) => {
-  if (!minutes || minutes === 0) return '-'
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
+// 格式化罚时（秒转小时:分钟）
+const formatPenalty = (seconds) => {
+  if (!seconds || seconds === 0) return '-'
+  const hours = Math.floor(seconds / 3600)
+  const mins = Math.floor((seconds % 3600) / 60)
   if (hours > 0) {
     return `${hours}:${mins.toString().padStart(2, '0')}`
   }
-  return `${mins}`
+  return `${mins}分`
 }
 
-// 格式化时间（仅显示分钟）
-const formatTime = (minutes) => {
-  if (minutes === null || minutes === undefined) return '-'
-  return minutes.toString()
+// 格式化时间（秒转分钟，保留一位小数）
+const formatTime = (seconds) => {
+  if (seconds === null || seconds === undefined) return '-'
+  const minutes = (seconds / 60).toFixed(1)
+  return minutes
 }
 
 // 获取状态样式类

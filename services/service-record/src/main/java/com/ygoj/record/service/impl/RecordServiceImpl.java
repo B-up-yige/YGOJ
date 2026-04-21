@@ -927,12 +927,17 @@ public class RecordServiceImpl implements RecordService {
                     ProblemStat stat = new ProblemStat();
                     stat.status = status;
                     stat.attempts = 1;
+                    stat.wrongAttempts = "AC".equals(status) ? 0 : 1;
                     stat.firstAcTime = null;
                     stat.penalty = 0;
                     standing.problemStats.put(problemId, stat);
                 } else {
                     ProblemStat stat = standing.problemStats.get(problemId);
                     stat.attempts++;
+                    // 如果还没AC，这次是错误提交，增加错误次数
+                    if (!"AC".equals(stat.status)) {
+                        stat.wrongAttempts++;
+                    }
                     stat.status = status;
                 }
                 
@@ -941,7 +946,7 @@ public class RecordServiceImpl implements RecordService {
                     ProblemStat stat = standing.problemStats.get(problemId);
                     stat.status = "AC";
                     
-                    // 计算从比赛开始到AC的时间（分钟）
+                    // 计算从比赛开始到AC的时间（秒）
                     Result contestResult = problemFeignClient.getContestById(contestId);
                     com.fasterxml.jackson.databind.JsonNode contestData = objectMapper.convertValue(
                         contestResult.getData(),
@@ -952,9 +957,10 @@ public class RecordServiceImpl implements RecordService {
                         ? LocalDateTime.parse(startTimeStr)
                         : LocalDateTime.parse(startTimeStr, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                     
-                    long minutesFromStart = java.time.Duration.between(startTime, submitTime).toMinutes();
-                    stat.firstAcTime = minutesFromStart;
-                    stat.penalty = (int) (minutesFromStart + (stat.attempts - 1) * 20); // Codeforces规则：AC时间 + 错误次数*20分钟
+                    long secondsFromStart = java.time.Duration.between(startTime, submitTime).getSeconds();
+                    stat.firstAcTime = secondsFromStart;
+                    // 罚时 = AC时间(秒) + 错误次数 * 1200秒(20分钟)
+                    stat.penalty = (int) (secondsFromStart + stat.wrongAttempts * 1200);
                     
                     standing.totalSolved++;
                     standing.totalPenalty += stat.penalty;
@@ -1051,8 +1057,9 @@ public class RecordServiceImpl implements RecordService {
     // 内部类：题目统计数据
     private static class ProblemStat {
         String status;
-        int attempts;
-        Long firstAcTime; // AC的时间（分钟）
-        int penalty; // 该题的罚时
+        int attempts; // 总尝试次数（包括AC那次）
+        int wrongAttempts; // AC之前的错误次数
+        Long firstAcTime; // AC的时间（秒）
+        int penalty; // 该题的罚时（秒）
     }
 }
