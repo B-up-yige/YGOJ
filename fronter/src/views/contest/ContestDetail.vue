@@ -108,6 +108,10 @@
 
       <!-- 侧边操作栏 -->
       <div class="sidebar">
+        <el-button size="large" @click="viewRecords" class="sidebar-btn">
+          <el-icon><List /></el-icon>
+          <span>提交列表</span>
+        </el-button>
         <el-button size="large" @click="editContest" v-permission="PERMISSIONS.PERM_CONTEST_MANAGE" class="sidebar-btn">
           <el-icon><Edit /></el-icon>
           <span>编辑比赛</span>
@@ -141,7 +145,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { User, Clock, Edit, Back } from '@element-plus/icons-vue'
+import { User, Clock, Edit, Back, List } from '@element-plus/icons-vue'
 import { getContestInfo, getContestProblems, addContestProblem, delContestProblem, getUserContestProgress } from '@/api/contest'
 import { useUserStore, PERMISSIONS } from '@/stores/user'
 import NotFound from '@/views/NotFound.vue'
@@ -360,6 +364,10 @@ const goBack = () => {
 
 const editContest = () => {
   router.push(`/contest/edit/${route.params.id}`)
+}
+
+const viewRecords = () => {
+  router.push(`/contest/${route.params.id}/records`)
 }
 
 onMounted(() => {

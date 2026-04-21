@@ -336,8 +336,8 @@ const viewRecords = () => {
     router.push('/login')
     return
   }
-  // 跳转到该用户在该题目的提交记录
-  router.push(`/records?userId=${userId}&problemId=${problemId.value}`)
+  // 跳转到该用户在该题目的比赛提交记录
+  router.push(`/contest/${contestId}/records?userId=${userId}&problemId=${problemId.value}`)
 }
 
 onMounted(() => {
