@@ -79,9 +79,9 @@
           <el-icon><Upload /></el-icon>
           <span>提交代码</span>
         </el-button>
-        <el-button size="large" @click="viewRecords" class="sidebar-btn">
+        <el-button size="large" @click="viewMySubmissions" class="sidebar-btn">
           <el-icon><List /></el-icon>
-          <span>查看记录</span>
+          <span>我的提交</span>
         </el-button>
         <el-button 
           type="warning" 
@@ -242,8 +242,15 @@ const handleSubmitCode = async () => {
   }
 }
 
-const viewRecords = () => {
-  router.push('/records')
+const viewMySubmissions = () => {
+  const userId = userStore.userInfo?.id || localStorage.getItem('userId')
+  if (!userId) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+  // 跳转到该用户在该题目的提交记录
+  router.push(`/records?userId=${userId}&problemId=${route.params.id}`)
 }
 
 const editProblem = () => {

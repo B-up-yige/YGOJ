@@ -345,4 +345,19 @@ onMounted(() => {
   margin-top: 30px;
   text-align: center;
 }
+
+/* 统一按钮样式 */
+.actions :deep(.el-button) {
+  box-shadow: none !important;
+  border: 1px solid var(--color-border);
+}
+
+.actions :deep(.el-button--primary) {
+  box-shadow: none !important;
+  border: 1px solid var(--color-border);
+}
+
+.actions :deep(.el-button:hover) {
+  box-shadow: none !important;
+}
 </style>
