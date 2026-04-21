@@ -85,3 +85,11 @@ export function getContestProblemDetail(contestId, problemId) {
     method: 'get'
   })
 }
+
+// 获取比赛排行榜
+export function getContestStandings(contestId) {
+  return request({
+    url: `/record/contest-standings/${contestId}`,
+    method: 'get'
+  })
+}

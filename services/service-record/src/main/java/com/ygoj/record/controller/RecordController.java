@@ -271,4 +271,26 @@ public class RecordController {
             return Result.error(500, "重测失败: " + e.getMessage());
         }
     }
+    
+    /**
+     * 获取比赛排行榜(公开访问)
+     *
+     * @param contestId 比赛ID
+     * @return {@link Result}
+     */
+    @GetMapping("/contest-standings/{contestId}")
+    public Result getContestStandings(@PathVariable Long contestId) {
+        try {
+            log.info("获取比赛排行榜请求, contestId: {}", contestId);
+            
+            if (contestId == null) {
+                return Result.error(400, "比赛ID不能为空");
+            }
+            
+            return Result.success(recordService.getContestStandings(contestId));
+        } catch (Exception e) {
+            log.error("获取比赛排行榜失败, contestId: {}", contestId, e);
+            return Result.error(500, "获取比赛排行榜失败: " + e.getMessage());
+        }
+    }
 }

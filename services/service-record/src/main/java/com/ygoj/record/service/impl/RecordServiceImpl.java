@@ -862,4 +862,197 @@ public class RecordServiceImpl implements RecordService {
             return Result.error(500, "重测失败: " + e.getMessage());
         }
     }
+    
+    @Override
+    public List<Map<String, Object>> getContestStandings(Long contestId) {
+        try {
+            log.info("获取比赛排行榜, contestId: {}", contestId);
+            
+            if (contestId == null) {
+                throw new IllegalArgumentException("比赛ID不能为空");
+            }
+            
+            // 1. 获取比赛的所有题目（按problemOrder排序）
+            Result contestProblemsResult = problemFeignClient.getContestProblems(contestId);
+            if (contestProblemsResult.getData() == null) {
+                log.warn("比赛不存在或没有题目, contestId: {}", contestId);
+                return new ArrayList<>();
+            }
+            
+            List<Map<String, Object>> contestProblems = objectMapper.convertValue(
+                contestProblemsResult.getData(),
+                objectMapper.getTypeFactory().constructParametricType(List.class, Map.class)
+            );
+            
+            if (contestProblems.isEmpty()) {
+                log.info("比赛没有题目, contestId: {}", contestId);
+                return new ArrayList<>();
+            }
+            
+            // 2. 获取该比赛的所有提交记录
+            LambdaQueryWrapper<Record> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(Record::getContestId, contestId)
+                   .orderByAsc(Record::getSubmitTime);
+            List<Record> allRecords = recordMapper.selectList(wrapper);
+            
+            // 3. 按用户分组处理数据
+            Map<Long, UserStanding> userStandingMap = new HashMap<>();
+            
+            for (Record record : allRecords) {
+                Long userId = record.getUserId();
+                Long problemId = record.getProblemId();
+                String status = record.getStatus();
+                LocalDateTime submitTime = record.getSubmitTime();
+                
+                // 初始化用户数据
+                if (!userStandingMap.containsKey(userId)) {
+                    UserStanding standing = new UserStanding();
+                    standing.userId = userId;
+                    standing.totalSolved = 0;
+                    standing.totalPenalty = 0;
+                    standing.problemStats = new HashMap<>();
+                    userStandingMap.put(userId, standing);
+                }
+                
+                UserStanding standing = userStandingMap.get(userId);
+                
+                // 如果该题目已经AC，忽略后续提交
+                if (standing.problemStats.containsKey(problemId) && 
+                    "AC".equals(standing.problemStats.get(problemId).status)) {
+                    continue;
+                }
+                
+                // 初始化题目统计
+                if (!standing.problemStats.containsKey(problemId)) {
+                    ProblemStat stat = new ProblemStat();
+                    stat.status = status;
+                    stat.attempts = 1;
+                    stat.firstAcTime = null;
+                    stat.penalty = 0;
+                    standing.problemStats.put(problemId, stat);
+                } else {
+                    ProblemStat stat = standing.problemStats.get(problemId);
+                    stat.attempts++;
+                    stat.status = status;
+                }
+                
+                // 如果是AC，计算罚时
+                if ("AC".equals(status)) {
+                    ProblemStat stat = standing.problemStats.get(problemId);
+                    stat.status = "AC";
+                    
+                    // 计算从比赛开始到AC的时间（分钟）
+                    Result contestResult = problemFeignClient.getContestById(contestId);
+                    com.fasterxml.jackson.databind.JsonNode contestData = objectMapper.convertValue(
+                        contestResult.getData(),
+                        com.fasterxml.jackson.databind.JsonNode.class
+                    );
+                    String startTimeStr = contestData.get("startTime").asText();
+                    LocalDateTime startTime = startTimeStr.contains("T")
+                        ? LocalDateTime.parse(startTimeStr)
+                        : LocalDateTime.parse(startTimeStr, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                    
+                    long minutesFromStart = java.time.Duration.between(startTime, submitTime).toMinutes();
+                    stat.firstAcTime = minutesFromStart;
+                    stat.penalty = (int) (minutesFromStart + (stat.attempts - 1) * 20); // Codeforces规则：AC时间 + 错误次数*20分钟
+                    
+                    standing.totalSolved++;
+                    standing.totalPenalty += stat.penalty;
+                }
+            }
+            
+            // 4. 获取用户信息并构建排行榜
+            List<Map<String, Object>> standings = new ArrayList<>();
+            for (UserStanding standing : userStandingMap.values()) {
+                Map<String, Object> standingData = new HashMap<>();
+                standingData.put("userId", standing.userId);
+                
+                // 获取用户昵称
+                try {
+                    Result userInfoResult = userFeignClient.userinfo(standing.userId);
+                    if (userInfoResult.getData() != null) {
+                        com.fasterxml.jackson.databind.JsonNode userData = objectMapper.convertValue(
+                            userInfoResult.getData(),
+                            com.fasterxml.jackson.databind.JsonNode.class
+                        );
+                        standingData.put("nickname", userData.get("nickname").asText());
+                    } else {
+                        standingData.put("nickname", "未知用户");
+                    }
+                } catch (Exception e) {
+                    log.warn("获取用户信息失败, userId: {}", standing.userId, e);
+                    standingData.put("nickname", "未知用户");
+                }
+                
+                standingData.put("totalSolved", standing.totalSolved);
+                standingData.put("totalPenalty", standing.totalPenalty);
+                
+                // 构建每个题目的详细数据
+                Map<String, Object> problemDetails = new HashMap<>();
+                for (Map<String, Object> cp : contestProblems) {
+                    Long problemId = ((Number) cp.get("problemId")).longValue();
+                    String problemLabel = (String) cp.get("problemLabel");
+                    
+                    Map<String, Object> detail = new HashMap<>();
+                    if (standing.problemStats.containsKey(problemId)) {
+                        ProblemStat stat = standing.problemStats.get(problemId);
+                        detail.put("status", stat.status);
+                        detail.put("attempts", stat.attempts);
+                        detail.put("penalty", stat.penalty);
+                        detail.put("firstAcTime", stat.firstAcTime);
+                    } else {
+                        detail.put("status", null);
+                        detail.put("attempts", 0);
+                        detail.put("penalty", 0);
+                        detail.put("firstAcTime", null);
+                    }
+                    problemDetails.put(problemLabel, detail);
+                }
+                standingData.put("problems", problemDetails);
+                
+                standings.add(standingData);
+            }
+            
+            // 5. 排序：先按解题数降序，再按罚时升序
+            standings.sort((a, b) -> {
+                int solvedA = (Integer) a.get("totalSolved");
+                int solvedB = (Integer) b.get("totalSolved");
+                if (solvedA != solvedB) {
+                    return Integer.compare(solvedB, solvedA); // 解题数降序
+                }
+                int penaltyA = (Integer) a.get("totalPenalty");
+                int penaltyB = (Integer) b.get("totalPenalty");
+                return Integer.compare(penaltyA, penaltyB); // 罚时升序
+            });
+            
+            // 6. 添加排名
+            for (int i = 0; i < standings.size(); i++) {
+                standings.get(i).put("rank", i + 1);
+            }
+            
+            log.info("比赛排行榜生成成功, contestId: {}, 参赛人数: {}", contestId, standings.size());
+            return standings;
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("获取比赛排行榜异常, contestId: {}", contestId, e);
+            throw new RuntimeException("获取比赛排行榜失败: " + e.getMessage(), e);
+        }
+    }
+    
+    // 内部类：用户排行榜数据
+    private static class UserStanding {
+        Long userId;
+        int totalSolved;
+        int totalPenalty;
+        Map<Long, ProblemStat> problemStats;
+    }
+    
+    // 内部类：题目统计数据
+    private static class ProblemStat {
+        String status;
+        int attempts;
+        Long firstAcTime; // AC的时间（分钟）
+        int penalty; // 该题的罚时
+    }
 }

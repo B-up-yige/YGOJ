@@ -69,4 +69,11 @@ public interface RecordService {
      * @return {@link Result}
      */
     Result rejudge(Long recordId);
+    
+    /**
+     * 获取比赛排行榜
+     * @param contestId 比赛ID
+     * @return 排行榜数据列表
+     */
+    List<Map<String, Object>> getContestStandings(Long contestId);
 }
