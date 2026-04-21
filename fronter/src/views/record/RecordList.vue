@@ -131,6 +131,16 @@ const currentRecord = ref(null)
 // 接收路由参数
 const contestId = ref(route.params.contestId || null)
 const problemId = ref(route.query.problemId || null)
+const urlUserId = ref(route.query.userId || null)
+
+// 如果URL中有userId和problemId，自动设置为“我的提交”模式并过滤题目
+if (urlUserId.value) {
+  mySubmissions.value = true
+}
+
+if (problemId.value) {
+  searchProblemId.value = problemId.value.toString()
+}
 
 const records = ref([])
 const currentPage = ref(1)
