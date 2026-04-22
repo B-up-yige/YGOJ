@@ -9,7 +9,7 @@
 
     <el-row :gutter="24">
       <!-- 快捷操作 -->
-      <el-col :xs="24" :sm="8">
+      <el-col :xs="24" :sm="12" :md="6">
         <el-card shadow="always" class="action-card slide-in">
           <template #header>
             <div class="card-header">
@@ -42,7 +42,7 @@
       </el-col>
 
       <!-- 最新提交 -->
-      <el-col :xs="24" :sm="8">
+      <el-col :xs="24" :sm="12" :md="6">
         <el-card shadow="always" class="record-card slide-in" style="animation-delay: 0.1s;">
           <template #header>
             <div class="card-header">
@@ -65,9 +65,62 @@
         </el-card>
       </el-col>
 
-      <!-- 系统公告 -->
-      <el-col :xs="24" :sm="8">
-        <el-card shadow="always" class="notice-card slide-in" style="animation-delay: 0.2s;">
+      <!-- 最近比赛 -->
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card shadow="always" class="contest-card slide-in" style="animation-delay: 0.15s;">
+          <template #header>
+            <div class="card-header">
+              <span><el-icon><Timer /></el-icon> 最近比赛</span>
+              <el-button link type="primary" @click="goToContests" size="small">查看更多</el-button>
+            </div>
+          </template>
+          <div class="contest-list">
+            <div v-for="contest in recentContests" :key="contest.id" class="contest-item" @click="viewContest(contest.id)">
+              <div class="contest-info">
+                <h4 class="contest-title">{{ contest.title }}</h4>
+                <p class="contest-time">
+                  <el-icon><Timer /></el-icon>
+                  {{ formatContestTime(contest.startTime) }}
+                </p>
+              </div>
+              <el-tag :type="getContestStatusType(contest.status)" size="small">
+                {{ getContestStatusText(contest.status) }}
+              </el-tag>
+            </div>
+            <el-empty v-if="recentContests.length === 0" description="暂无比赛" :image-size="60" />
+          </div>
+        </el-card>
+      </el-col>
+
+      <!-- 最新题库 -->
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card shadow="always" class="problem-card slide-in" style="animation-delay: 0.2s;">
+          <template #header>
+            <div class="card-header">
+              <span><el-icon><Notebook /></el-icon> 最新题库</span>
+              <el-button link type="primary" @click="goToProblems" size="small">查看更多</el-button>
+            </div>
+          </template>
+          <div class="problem-list">
+            <div v-for="problem in latestProblems" :key="problem.id" class="problem-item" @click="viewProblem(problem.id)">
+              <div class="problem-info">
+                <span class="problem-id">#{{ problem.id }}</span>
+                <span class="problem-title">{{ problem.title }}</span>
+              </div>
+              <el-tag v-if="problem.difficulty" :type="getDifficultyType(problem.difficulty)" size="small">
+                {{ getDifficultyText(problem.difficulty) }}
+              </el-tag>
+            </div>
+            <el-empty v-if="latestProblems.length === 0" description="暂无题目" :image-size="60" />
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 系统公告 -->
+    <el-row :gutter="24" style="margin-top: 24px;">
+      <el-col :span="24">
+        <el-card shadow="always" class="notice-card slide-in" style="animation-delay: 0.25s;">
           <template #header>
             <div class="card-header">
               <span><el-icon><Bell /></el-icon> 系统公告</span>
@@ -98,7 +151,9 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getRecordList } from '@/api/record'
-import { Trophy, Collection, Document, List, Plus, Operation, TrendCharts, Bell } from '@element-plus/icons-vue'
+import { getContestList } from '@/api/contest'
+import { getProblemList } from '@/api/problem'
+import { Trophy, Collection, Document, List, Plus, Operation, TrendCharts, Bell, Timer, Notebook } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -109,6 +164,8 @@ const isAdmin = computed(() => {
 })
 
 const recentRecords = ref([])
+const recentContests = ref([])
+const latestProblems = ref([])
 
 const getStatusType = (status) => {
   const statusMap = {
@@ -158,6 +215,51 @@ const viewRecord = (id) => {
   router.push(`/record/${id}`)
 }
 
+const viewContest = (id) => {
+  router.push(`/contest/${id}`)
+}
+
+const viewProblem = (id) => {
+  router.push(`/problem/${id}`)
+}
+
+const formatContestTime = (time) => {
+  if (!time) return ''
+  const date = new Date(time)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+const getContestStatusType = (status) => {
+  const statusMap = {
+    'upcoming': 'info',
+    'running': 'success',
+    'finished': 'warning'
+  }
+  return statusMap[status] || 'info'
+}
+
+const getContestStatusText = (status) => {
+  const textMap = {
+    'upcoming': '未开始',
+    'running': '进行中',
+    'finished': '已结束'
+  }
+  return textMap[status] || status
+}
+
+const getDifficultyType = (difficulty) => {
+  const typeMap = {
+    '简单': 'success',
+    '中等': 'warning',
+    '困难': 'danger'
+  }
+  return typeMap[difficulty] || 'info'
+}
+
+const getDifficultyText = (difficulty) => {
+  return difficulty || '未知'
+}
+
 const loadRecentRecords = async () => {
   try {
     const res = await getRecordList(1, 10) // 获取第一页，10 条记录
@@ -167,8 +269,28 @@ const loadRecentRecords = async () => {
   }
 }
 
+const loadRecentContests = async () => {
+  try {
+    const res = await getContestList(1, 5, '') // 获取第一页，5 条比赛
+    recentContests.value = res.data?.records || res.data?.list || res.data || []
+  } catch (error) {
+    console.error('加载最近比赛失败:', error)
+  }
+}
+
+const loadLatestProblems = async () => {
+  try {
+    const res = await getProblemList(1, 5, '', '') // 获取第一页，5 条题目
+    latestProblems.value = res.data?.records || res.data?.list || res.data || []
+  } catch (error) {
+    console.error('加载最新题目失败:', error)
+  }
+}
+
 onMounted(() => {
   loadRecentRecords()
+  loadRecentContests()
+  loadLatestProblems()
 })
 </script>
 
@@ -379,6 +501,107 @@ onMounted(() => {
 .record-card .record-list {
   max-height: 320px;
   overflow-y: auto;
+}
+
+/* Contest List */
+.contest-card .contest-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.contest-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.contest-item:hover {
+  background-color: rgba(16, 185, 129, 0.04);
+  border-color: #10b981;
+  transform: translateX(4px);
+}
+
+.contest-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.contest-title {
+  margin: 0 0 var(--spacing-xs);
+  font-size: 0.9375rem;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contest-time {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contest-time .el-icon {
+  font-size: 0.875rem;
+}
+
+/* Problem List */
+.problem-card .problem-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.problem-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.problem-item:hover {
+  background-color: rgba(245, 158, 11, 0.04);
+  border-color: #f59e0b;
+  transform: translateX(4px);
+}
+
+.problem-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex: 1;
+  min-width: 0;
+}
+
+.problem-id {
+  font-weight: 600;
+  color: var(--color-primary);
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.problem-title {
+  color: var(--color-text-primary);
+  font-size: 0.9375rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .record-item {
