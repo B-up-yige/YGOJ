@@ -9,7 +9,7 @@
 
     <el-row :gutter="24">
       <!-- 快捷操作 -->
-      <el-col :xs="24" :sm="12" :md="6">
+      <el-col :xs="24" :sm="8">
         <el-card shadow="always" class="action-card slide-in">
           <template #header>
             <div class="card-header">
@@ -42,7 +42,7 @@
       </el-col>
 
       <!-- 最新提交 -->
-      <el-col :xs="24" :sm="12" :md="6">
+      <el-col :xs="24" :sm="8">
         <el-card shadow="always" class="record-card slide-in" style="animation-delay: 0.1s;">
           <template #header>
             <div class="card-header">
@@ -66,7 +66,7 @@
       </el-col>
 
       <!-- 最近比赛 -->
-      <el-col :xs="24" :sm="12" :md="6">
+      <el-col :xs="24" :sm="8">
         <el-card shadow="always" class="contest-card slide-in" style="animation-delay: 0.15s;">
           <template #header>
             <div class="card-header">
@@ -91,9 +91,11 @@
           </div>
         </el-card>
       </el-col>
+    </el-row>
 
-      <!-- 最新题库 -->
-      <el-col :xs="24" :sm="12" :md="6">
+    <!-- 最新题库 -->
+    <el-row :gutter="24" style="margin-top: 24px;">
+      <el-col :span="24">
         <el-card shadow="always" class="problem-card slide-in" style="animation-delay: 0.2s;">
           <template #header>
             <div class="card-header">
@@ -101,45 +103,23 @@
               <el-button link type="primary" @click="goToProblems" size="small">查看更多</el-button>
             </div>
           </template>
-          <div class="problem-list">
-            <div v-for="problem in latestProblems" :key="problem.id" class="problem-item" @click="viewProblem(problem.id)">
-              <div class="problem-info">
+          <div class="problem-list-full">
+            <div v-for="problem in latestProblems" :key="problem.id" class="problem-item-full" @click="viewProblem(problem.id)">
+              <div class="problem-info-full">
                 <span class="problem-id">#{{ problem.id }}</span>
                 <span class="problem-title">{{ problem.title }}</span>
               </div>
-              <el-tag v-if="problem.difficulty" :type="getDifficultyType(problem.difficulty)" size="small">
-                {{ getDifficultyText(problem.difficulty) }}
-              </el-tag>
+              <div class="problem-meta">
+                <el-tag v-if="problem.difficulty" :type="getDifficultyType(problem.difficulty)" size="small">
+                  {{ getDifficultyText(problem.difficulty) }}
+                </el-tag>
+                <span v-if="problem.accepted" class="problem-stats">
+                  通过: {{ problem.accepted }} / {{ problem.submitted || 0 }}
+                </span>
+              </div>
             </div>
             <el-empty v-if="latestProblems.length === 0" description="暂无题目" :image-size="60" />
           </div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- 系统公告 -->
-    <el-row :gutter="24" style="margin-top: 24px;">
-      <el-col :span="24">
-        <el-card shadow="always" class="notice-card slide-in" style="animation-delay: 0.25s;">
-          <template #header>
-            <div class="card-header">
-              <span><el-icon><Bell /></el-icon> 系统公告</span>
-            </div>
-          </template>
-          <el-timeline>
-            <el-timeline-item timestamp="2026-03-20" placement="top" color="#409EFF">
-              <el-card class="notice-item">
-                <h4>🎉 系统上线</h4>
-                <p>YGOJ 在线判题系统正式上线，欢迎使用！</p>
-              </el-card>
-            </el-timeline-item>
-            <el-timeline-item timestamp="即将发布" placement="top" color="#E6A23C">
-              <el-card class="notice-item">
-                <h4>📢 更多功能</h4>
-                <p>更多实用功能即将上线，敬请期待...</p>
-              </el-card>
-            </el-timeline-item>
-          </el-timeline>
         </el-card>
       </el-col>
     </el-row>
@@ -280,7 +260,7 @@ const loadRecentContests = async () => {
 
 const loadLatestProblems = async () => {
   try {
-    const res = await getProblemList(1, 5, '', '') // 获取第一页，5 条题目
+    const res = await getProblemList(1, 10, '', '') // 获取第一页，10 条题目
     latestProblems.value = res.data?.records || res.data?.list || res.data || []
   } catch (error) {
     console.error('加载最新题目失败:', error)
@@ -556,17 +536,17 @@ onMounted(() => {
   font-size: 0.875rem;
 }
 
-/* Problem List */
-.problem-card .problem-list {
-  max-height: 320px;
+/* Problem List - Full Width */
+.problem-card .problem-list-full {
+  max-height: 500px;
   overflow-y: auto;
 }
 
-.problem-item {
+.problem-item-full {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
   margin-bottom: var(--spacing-sm);
   background-color: var(--color-bg);
   border-radius: var(--radius-md);
@@ -575,33 +555,46 @@ onMounted(() => {
   border: 1px solid transparent;
 }
 
-.problem-item:hover {
+.problem-item-full:hover {
   background-color: rgba(245, 158, 11, 0.04);
   border-color: #f59e0b;
   transform: translateX(4px);
 }
 
-.problem-info {
+.problem-info-full {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
   flex: 1;
   min-width: 0;
 }
 
-.problem-id {
+.problem-info-full .problem-id {
   font-weight: 600;
   color: var(--color-primary);
-  font-size: 0.875rem;
+  font-size: 1rem;
   flex-shrink: 0;
 }
 
-.problem-title {
+.problem-info-full .problem-title {
   color: var(--color-text-primary);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.problem-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+.problem-stats {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
 }
 
 .record-item {
