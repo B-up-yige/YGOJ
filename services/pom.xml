@@ -15,6 +15,7 @@
         <module>service-problem</module>
         <module>service-record</module>
         <module>service-judger</module>
+        <module>service-discuss</module>
     </modules>
 
     <artifactId>services</artifactId>

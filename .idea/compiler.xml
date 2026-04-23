@@ -13,6 +13,7 @@
         <module name="service-problem" />
         <module name="model" />
         <module name="service-record" />
+        <module name="service-discuss" />
         <module name="gateway" />
       </profile>
     </annotationProcessing>
@@ -28,6 +29,7 @@
       <module name="gateway" options="-parameters" />
       <module name="judger" options="-parameters" />
       <module name="model" options="-parameters" />
+      <module name="service-discuss" options="-parameters" />
       <module name="service-judger" options="-parameters" />
       <module name="service-problem" options="-parameters" />
       <module name="service-problem (1)" options="-parameters" />

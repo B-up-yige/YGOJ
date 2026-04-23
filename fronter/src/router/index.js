@@ -123,6 +123,27 @@ const router = createRouter({
           name: 'ProblemsetCreate',
           component: () => import('@/views/problemset/ProblemsetEdit.vue')
         },
+        // 讨论区相关路由
+        {
+          path: '/discussion',
+          name: 'DiscussionList',
+          component: () => import('@/views/discussion/DiscussionList.vue')
+        },
+        {
+          path: '/discussion/:id',
+          name: 'DiscussionDetail',
+          component: () => import('@/views/discussion/DiscussionDetail.vue')
+        },
+        {
+          path: '/discussion/create',
+          name: 'DiscussionCreate',
+          component: () => import('@/views/discussion/DiscussionCreate.vue')
+        },
+        {
+          path: '/discussion/edit/:id',
+          name: 'DiscussionEdit',
+          component: () => import('@/views/discussion/DiscussionCreate.vue')
+        },
         // 管理相关路由
         {
           path: '/admin/users',

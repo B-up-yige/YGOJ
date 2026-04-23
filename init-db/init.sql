@@ -2,12 +2,14 @@
 CREATE DATABASE IF NOT EXISTS `user` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE DATABASE IF NOT EXISTS `problem` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE DATABASE IF NOT EXISTS `record` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS `discuss` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 创建远程访问用户
 CREATE USER IF NOT EXISTS 'ygoj'@'%' IDENTIFIED BY 'ygoj123456';
 GRANT ALL PRIVILEGES ON `user`.* TO 'ygoj'@'%';
 GRANT ALL PRIVILEGES ON `problem`.* TO 'ygoj'@'%';
 GRANT ALL PRIVILEGES ON `record`.* TO 'ygoj'@'%';
+GRANT ALL PRIVILEGES ON `discuss`.* TO 'ygoj'@'%';
 FLUSH PRIVILEGES;
 
 -- ==================== user 数据库 ====================
@@ -270,5 +272,54 @@ CREATE TABLE `user_daily_stats`  (
   UNIQUE INDEX `uk_user_date`(`user_id`, `stat_date`) USING BTREE,
   INDEX `idx_stat_date`(`stat_date`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户每日统计表' ROW_FORMAT = DYNAMIC;
+
+-- ==================== discuss 数据库 ====================
+CREATE DATABASE IF NOT EXISTS `discuss` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `discuss`;
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for discussion_post (讨论帖表)
+-- ----------------------------
+DROP TABLE IF EXISTS `discussion_post`;
+CREATE TABLE `discussion_post`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '帖子标题',
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '帖子内容',
+  `author_id` int(11) NOT NULL COMMENT '作者ID',
+  `category` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'GENERAL' COMMENT '板块分类: GENERAL-综合讨论, PROBLEM_HELP-题目求助, ALGORITHM-算法交流, BUG_REPORT-Bug反馈, SUGGESTION-建议意见',
+  `problem_id` int(11) NULL DEFAULT NULL COMMENT '关联题目ID(可选)',
+  `view_count` int(11) NOT NULL DEFAULT 0 COMMENT '浏览量',
+  `comment_count` int(11) NOT NULL DEFAULT 0 COMMENT '评论数',
+  `is_pinned` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否置顶: 0-否, 1-是',
+  `is_locked` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否锁定: 0-否, 1-是',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_author_id`(`author_id`) USING BTREE,
+  INDEX `idx_category`(`category`) USING BTREE,
+  INDEX `idx_problem_id`(`problem_id`) USING BTREE,
+  INDEX `idx_created_at`(`created_at`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '讨论帖表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for discussion_comment (评论表)
+-- ----------------------------
+DROP TABLE IF EXISTS `discussion_comment`;
+CREATE TABLE `discussion_comment`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `post_id` int(11) NOT NULL COMMENT '帖子ID',
+  `author_id` int(11) NOT NULL COMMENT '作者ID',
+  `parent_id` int(11) NULL DEFAULT NULL COMMENT '父评论ID(用于回复)',
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '评论内容',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_post_id`(`post_id`) USING BTREE,
+  INDEX `idx_author_id`(`author_id`) USING BTREE,
+  INDEX `idx_parent_id`(`parent_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '评论表' ROW_FORMAT = DYNAMIC;
 
 SET FOREIGN_KEY_CHECKS = 1;

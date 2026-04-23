@@ -28,5 +28,9 @@ spring:
                   uri: lb://service-problem
                   predicates:
                       - Path=/api/problemset/**
+                - id: discuss-route
+                  uri: lb://service-discuss
+                  predicates:
+                      - Path=/api/discuss/**
             default-filters:
                 - StripPrefix=1

@@ -305,6 +305,44 @@ services:
     networks:
       - ygoj-network
 
+  # Service Discuss
+  service-discuss:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: services/service-discuss
+        SERVICE_PORT: 8004
+    container_name: ygoj-service-discuss
+    restart: always
+    environment:
+      SPRING_OPTS: >-
+        -Dspring.cloud.nacos.server-addr=nacos:8848
+        -Dspring.datasource.url=jdbc:mysql://mysql:3306/discuss?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+        -Dspring.datasource.username=ygoj
+        -Dspring.datasource.password=ygoj123456
+        -Dspring.data.redis.host=redis
+        -Dspring.data.redis.port=6379
+        -Dspring.data.redis.database=0
+        -Dseata.registry.address=seata-server:8091
+        -Dseata.service.vgroup-mapping.default_tx_group=default
+        -Dseata.service.grouplist.default=seata-server:8091
+        -Dspring.cloud.sentinel.transport.dashboard=sentinel-dashboard:8858
+      TZ: Asia/Shanghai
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      seata-server:
+        condition: service_started
+      sentinel-dashboard:
+        condition: service_started
+    networks:
+      - ygoj-network
+
   # File System
   file-system:
     build:

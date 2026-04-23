@@ -35,6 +35,10 @@
           <el-icon><List /></el-icon>
           <span>提交</span>
         </el-menu-item>
+        <el-menu-item index="/discussion">
+          <el-icon><ChatDotRound /></el-icon>
+          <span>讨论区</span>
+        </el-menu-item>
       </el-menu>
       <div class="user-actions">
         <!-- 主题切换按钮 -->
@@ -88,7 +92,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { House, Document, Trophy, Collection, List, ArrowDown, User, SwitchButton, Sunny, Moon, Setting } from '@element-plus/icons-vue'
+import { House, Document, Trophy, Collection, List, ArrowDown, User, SwitchButton, Sunny, Moon, Setting, ChatDotRound } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { getUserIdByToken, getUserinfo } from '@/api/user'
 
@@ -139,6 +143,7 @@ const activeMenu = computed(() => {
   if (path.startsWith('/problems') || path.startsWith('/problem/')) return '/problems'
   if (path.startsWith('/contests') || path.startsWith('/contest/')) return '/contests'
   if (path.startsWith('/records') || path.startsWith('/record/')) return '/records'
+  if (path.startsWith('/discussion')) return '/discussion'
   return ''
 })
 
