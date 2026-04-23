@@ -11,3 +11,4 @@
 # Docker environment file (contains sensitive information)
 .env
 /.lingma/
+/fake/
