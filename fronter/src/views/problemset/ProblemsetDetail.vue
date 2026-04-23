@@ -31,9 +31,7 @@
         <!-- 题集描述 -->
         <div class="problemset-section">
           <h2 class="section-title">题集描述</h2>
-          <div class="section-content">
-            <p>{{ problemset.description || '暂无描述' }}</p>
-          </div>
+          <div class="section-content markdown-body" v-html="renderedDescription"></div>
         </div>
 
         <el-divider />
@@ -118,13 +116,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { User, Edit, Back } from '@element-plus/icons-vue'
 import { getProblemsetInfo, getProblemsetProblems, addProblemsetProblem, delProblemsetProblem, getUserProblemsetProgress } from '@/api/problemset'
 import { useUserStore, PERMISSIONS } from '@/stores/user'
 import NotFound from '@/views/NotFound.vue'
+import { renderMarkdown } from '@/utils/markdown'
 
 const route = useRoute()
 const router = useRouter()
@@ -140,6 +139,11 @@ const addProblemForm = ref({
   problemId: null
 })
 const adding = ref(false)
+
+// 渲染 Markdown 描述
+const renderedDescription = computed(() => {
+  return renderMarkdown(problemset.value.description || '暂无描述')
+})
 
 const loadProblemset = async () => {
   loading.value = true
@@ -422,11 +426,178 @@ onMounted(() => {
   line-height: 1.8;
   color: var(--color-text-secondary);
   font-size: 15px;
-  white-space: pre-wrap;
 }
 
 .section-content p {
   margin: 0;
+}
+
+/* Markdown 样式 */
+.markdown-body {
+  color: var(--color-text-primary);
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.markdown-body :deep(h1),
+.markdown-body :deep(h2),
+.markdown-body :deep(h3),
+.markdown-body :deep(h4),
+.markdown-body :deep(h5),
+.markdown-body :deep(h6) {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-text-primary);
+}
+
+.markdown-body :deep(h1) {
+  font-size: 2em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.markdown-body :deep(h2) {
+  font-size: 1.5em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.markdown-body :deep(h3) {
+  font-size: 1.25em;
+}
+
+.markdown-body :deep(h4) {
+  font-size: 1em;
+}
+
+.markdown-body :deep(p) {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.markdown-body :deep(ul),
+.markdown-body :deep(ol) {
+  margin-top: 0;
+  margin-bottom: 16px;
+  padding-left: 2em;
+}
+
+.markdown-body :deep(li) {
+  margin: 4px 0;
+}
+
+.markdown-body :deep(blockquote) {
+  margin: 16px 0;
+  padding: 0 1em;
+  color: var(--color-text-secondary);
+  border-left: 0.25em solid #667eea;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 4px;
+}
+
+[data-theme='dark'] .markdown-body :deep(blockquote) {
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.markdown-body :deep(code) {
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
+  background-color: rgba(102, 126, 234, 0.1);
+  border-radius: 3px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  color: var(--color-text-primary);
+}
+
+.markdown-body :deep(pre) {
+  padding: 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-radius: 6px;
+  margin: 16px 0;
+  border: 1px solid var(--color-border);
+}
+
+[data-theme='dark'] .markdown-body :deep(pre) {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.markdown-body :deep(pre code) {
+  display: inline;
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  line-height: inherit;
+  word-wrap: normal;
+  background-color: transparent;
+  border: 0;
+}
+
+.markdown-body :deep(table) {
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin: 16px 0;
+  width: 100%;
+}
+
+.markdown-body :deep(table th),
+.markdown-body :deep(table td) {
+  padding: 6px 13px;
+  border: 1px solid var(--color-border);
+}
+
+.markdown-body :deep(table tr) {
+  background-color: transparent;
+  border-top: 1px solid var(--color-border);
+}
+
+.markdown-body :deep(table tr:nth-child(2n)) {
+  background-color: rgba(102, 126, 234, 0.03);
+}
+
+[data-theme='dark'] .markdown-body :deep(table tr:nth-child(2n)) {
+  background-color: rgba(102, 126, 234, 0.08);
+}
+
+.markdown-body :deep(table th) {
+  font-weight: 600;
+  background-color: rgba(102, 126, 234, 0.05);
+}
+
+[data-theme='dark'] .markdown-body :deep(table th) {
+  background-color: rgba(102, 126, 234, 0.1);
+}
+
+.markdown-body :deep(a) {
+  color: #667eea;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.markdown-body :deep(a:hover) {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+.markdown-body :deep(img) {
+  max-width: 100%;
+  box-sizing: border-box;
+  border-radius: 6px;
+  margin: 16px 0;
+}
+
+.markdown-body :deep(hr) {
+  height: 0.25em;
+  padding: 0;
+  margin: 24px 0;
+  background-color: var(--color-border);
+  border: 0;
 }
 
 /* 侧边操作栏 */
