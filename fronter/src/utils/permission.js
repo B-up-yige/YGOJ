@@ -25,12 +25,39 @@ export function hasRole(role) {
 }
 
 /**
- * 检查是否是管理员
+ * 检查是否是超级管理员
+ * @returns {boolean}
+ */
+export function isSuperAdmin() {
+  const userStore = useUserStore()
+  return userStore.isSuperAdmin
+}
+
+/**
+ * 检查是否是管理员（包括超级管理员）
  * @returns {boolean}
  */
 export function isAdmin() {
   const userStore = useUserStore()
   return userStore.isAdmin
+}
+
+/**
+ * 检查是否可以提交代码
+ * @returns {boolean}
+ */
+export function canSubmitCode() {
+  const userStore = useUserStore()
+  return userStore.canSubmitCode
+}
+
+/**
+ * 检查是否可以参加比赛
+ * @returns {boolean}
+ */
+export function canJoinContest() {
+  const userStore = useUserStore()
+  return userStore.canJoinContest
 }
 
 /**
@@ -40,6 +67,24 @@ export function isAdmin() {
 export function canCreateProblem() {
   const userStore = useUserStore()
   return userStore.canCreateProblem
+}
+
+/**
+ * 检查是否可以管理题目
+ * @returns {boolean}
+ */
+export function canManageProblem() {
+  const userStore = useUserStore()
+  return userStore.canManageProblem
+}
+
+/**
+ * 检查是否可以创建比赛
+ * @returns {boolean}
+ */
+export function canCreateContest() {
+  const userStore = useUserStore()
+  return userStore.canCreateContest
 }
 
 /**
@@ -58,6 +103,51 @@ export function canManageContest() {
 export function canCreateProblemset() {
   const userStore = useUserStore()
   return userStore.canCreateProblemset
+}
+
+/**
+ * 检查是否可以管理题集
+ * @returns {boolean}
+ */
+export function canManageProblemset() {
+  const userStore = useUserStore()
+  return userStore.canManageProblemset
+}
+
+/**
+ * 检查是否可以创建帖子
+ * @returns {boolean}
+ */
+export function canCreatePost() {
+  const userStore = useUserStore()
+  return userStore.canCreatePost
+}
+
+/**
+ * 检查是否可以管理帖子
+ * @returns {boolean}
+ */
+export function canManagePost() {
+  const userStore = useUserStore()
+  return userStore.canManagePost
+}
+
+/**
+ * 检查是否可以发表评论
+ * @returns {boolean}
+ */
+export function canCreateComment() {
+  const userStore = useUserStore()
+  return userStore.canCreateComment
+}
+
+/**
+ * 检查是否可以管理用户权限
+ * @returns {boolean}
+ */
+export function canManageUser() {
+  const userStore = useUserStore()
+  return userStore.canManageUser
 }
 
 /**

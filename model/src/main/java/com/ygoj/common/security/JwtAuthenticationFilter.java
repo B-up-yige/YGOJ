@@ -137,37 +137,53 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (role != null && !role.isEmpty()) {
             authorities.add(new SimpleGrantedAuthority(role));
             
-            // 如果是管理员，添加所有自定义权限
-            if (PermissionConstants.ROLE_ADMIN.equals(role)) {
+            // 如果是超级管理员或管理员，添加所有自定义权限
+            if (PermissionConstants.ROLE_SUPER_ADMIN.equals(role) || PermissionConstants.ROLE_ADMIN.equals(role)) {
                 // 题目相关权限
                 authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_CREATE));
-                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_EDIT));
-                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_DELETE));
-                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_VIEW));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_MANAGE_OWN));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_MANAGE_ALL));
                 authorities.add(new SimpleGrantedAuthority("PROBLEM_CREATE"));
-                authorities.add(new SimpleGrantedAuthority("PROBLEM_EDIT"));
-                authorities.add(new SimpleGrantedAuthority("PROBLEM_DELETE"));
+                authorities.add(new SimpleGrantedAuthority("PROBLEM_MANAGE_OWN"));
+                authorities.add(new SimpleGrantedAuthority("PROBLEM_MANAGE_ALL"));
                 authorities.add(new SimpleGrantedAuthority("PROBLEM_SUBMIT"));
                 
                 // 比赛相关权限
                 authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_CREATE));
-                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_MANAGE));
-                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_JOIN));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_MANAGE_OWN));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_MANAGE_ALL));
                 authorities.add(new SimpleGrantedAuthority("CONTEST_CREATE"));
-                authorities.add(new SimpleGrantedAuthority("CONTEST_MANAGE"));
+                authorities.add(new SimpleGrantedAuthority("CONTEST_MANAGE_OWN"));
+                authorities.add(new SimpleGrantedAuthority("CONTEST_MANAGE_ALL"));
+                authorities.add(new SimpleGrantedAuthority("CONTEST_JOIN"));
                 
                 // 题集相关权限
                 authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEMSET_CREATE));
-                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEMSET_MANAGE));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEMSET_MANAGE_OWN));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEMSET_MANAGE_ALL));
                 authorities.add(new SimpleGrantedAuthority("PROBLEMSET_CREATE"));
-                authorities.add(new SimpleGrantedAuthority("PROBLEMSET_MANAGE"));
+                authorities.add(new SimpleGrantedAuthority("PROBLEMSET_MANAGE_OWN"));
+                authorities.add(new SimpleGrantedAuthority("PROBLEMSET_MANAGE_ALL"));
+                
+                // 帖子相关权限
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_POST_CREATE));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_POST_MANAGE_OWN));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_POST_MANAGE_ALL));
+                authorities.add(new SimpleGrantedAuthority("POST_CREATE"));
+                authorities.add(new SimpleGrantedAuthority("POST_MANAGE_OWN"));
+                authorities.add(new SimpleGrantedAuthority("POST_MANAGE_ALL"));
+                
+                // 评论相关权限
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_COMMENT_CREATE));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_COMMENT_DELETE_OWN));
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_COMMENT_DELETE_ALL));
+                authorities.add(new SimpleGrantedAuthority("COMMENT_CREATE"));
+                authorities.add(new SimpleGrantedAuthority("COMMENT_DELETE_OWN"));
+                authorities.add(new SimpleGrantedAuthority("COMMENT_DELETE_ALL"));
                 
                 // 用户管理权限
                 authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_USER_MANAGE));
                 authorities.add(new SimpleGrantedAuthority("USER_MANAGE"));
-                
-                // 其他权限
-                authorities.add(new SimpleGrantedAuthority("ADMIN"));
                 
                 return authorities;
             }
@@ -175,24 +191,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         // 根据位运算权限值添加对应的权限
         if (permission != null) {
-            // 题目相关权限
-            if ((permission & (1L << PermissionConstants.PERM_PROBLEM_VIEW)) != 0) {
-                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_VIEW));
-            }
+            // 代码提交权限
             if ((permission & (1L << PermissionConstants.PERM_PROBLEM_SUBMIT)) != 0) {
                 authorities.add(new SimpleGrantedAuthority("PROBLEM_SUBMIT"));
             }
+            
+            // 参加比赛权限
+            if ((permission & (1L << PermissionConstants.PERM_CONTEST_JOIN)) != 0) {
+                authorities.add(new SimpleGrantedAuthority("CONTEST_JOIN"));
+            }
+            
+            // 题目相关权限
             if ((permission & (1L << PermissionConstants.PERM_PROBLEM_CREATE)) != 0) {
                 authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_CREATE));
                 authorities.add(new SimpleGrantedAuthority("PROBLEM_CREATE"));
             }
-            if ((permission & (1L << PermissionConstants.PERM_PROBLEM_EDIT)) != 0) {
-                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_EDIT));
-                authorities.add(new SimpleGrantedAuthority("PROBLEM_EDIT"));
+            if ((permission & (1L << PermissionConstants.PERM_PROBLEM_MANAGE_OWN)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_MANAGE_OWN));
+                authorities.add(new SimpleGrantedAuthority("PROBLEM_MANAGE_OWN"));
             }
-            if ((permission & (1L << PermissionConstants.PERM_PROBLEM_DELETE)) != 0) {
-                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_DELETE));
-                authorities.add(new SimpleGrantedAuthority("PROBLEM_DELETE"));
+            if ((permission & (1L << PermissionConstants.PERM_PROBLEM_MANAGE_ALL)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEM_MANAGE_ALL));
+                authorities.add(new SimpleGrantedAuthority("PROBLEM_MANAGE_ALL"));
             }
             
             // 比赛相关权限
@@ -200,12 +220,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_CREATE));
                 authorities.add(new SimpleGrantedAuthority("CONTEST_CREATE"));
             }
-            if ((permission & (1L << PermissionConstants.PERM_CONTEST_MANAGE)) != 0) {
-                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_MANAGE));
-                authorities.add(new SimpleGrantedAuthority("CONTEST_MANAGE"));
+            if ((permission & (1L << PermissionConstants.PERM_CONTEST_MANAGE_OWN)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_MANAGE_OWN));
+                authorities.add(new SimpleGrantedAuthority("CONTEST_MANAGE_OWN"));
             }
-            if ((permission & (1L << PermissionConstants.PERM_CONTEST_JOIN)) != 0) {
-                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_JOIN));
+            if ((permission & (1L << PermissionConstants.PERM_CONTEST_MANAGE_ALL)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_CONTEST_MANAGE_ALL));
+                authorities.add(new SimpleGrantedAuthority("CONTEST_MANAGE_ALL"));
             }
             
             // 题集相关权限
@@ -213,9 +234,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEMSET_CREATE));
                 authorities.add(new SimpleGrantedAuthority("PROBLEMSET_CREATE"));
             }
-            if ((permission & (1L << PermissionConstants.PERM_PROBLEMSET_MANAGE)) != 0) {
-                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEMSET_MANAGE));
-                authorities.add(new SimpleGrantedAuthority("PROBLEMSET_MANAGE"));
+            if ((permission & (1L << PermissionConstants.PERM_PROBLEMSET_MANAGE_OWN)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEMSET_MANAGE_OWN));
+                authorities.add(new SimpleGrantedAuthority("PROBLEMSET_MANAGE_OWN"));
+            }
+            if ((permission & (1L << PermissionConstants.PERM_PROBLEMSET_MANAGE_ALL)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_PROBLEMSET_MANAGE_ALL));
+                authorities.add(new SimpleGrantedAuthority("PROBLEMSET_MANAGE_ALL"));
+            }
+            
+            // 帖子相关权限
+            if ((permission & (1L << PermissionConstants.PERM_POST_CREATE)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_POST_CREATE));
+                authorities.add(new SimpleGrantedAuthority("POST_CREATE"));
+            }
+            if ((permission & (1L << PermissionConstants.PERM_POST_MANAGE_OWN)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_POST_MANAGE_OWN));
+                authorities.add(new SimpleGrantedAuthority("POST_MANAGE_OWN"));
+            }
+            if ((permission & (1L << PermissionConstants.PERM_POST_MANAGE_ALL)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_POST_MANAGE_ALL));
+                authorities.add(new SimpleGrantedAuthority("POST_MANAGE_ALL"));
+            }
+            
+            // 评论相关权限
+            if ((permission & (1L << PermissionConstants.PERM_COMMENT_CREATE)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_COMMENT_CREATE));
+                authorities.add(new SimpleGrantedAuthority("COMMENT_CREATE"));
+            }
+            if ((permission & (1L << PermissionConstants.PERM_COMMENT_DELETE_OWN)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_COMMENT_DELETE_OWN));
+                authorities.add(new SimpleGrantedAuthority("COMMENT_DELETE_OWN"));
+            }
+            if ((permission & (1L << PermissionConstants.PERM_COMMENT_DELETE_ALL)) != 0) {
+                authorities.add(new SimpleGrantedAuthority(PermissionConstants.CUSTOM_COMMENT_DELETE_ALL));
+                authorities.add(new SimpleGrantedAuthority("COMMENT_DELETE_ALL"));
             }
             
             // 用户管理权限

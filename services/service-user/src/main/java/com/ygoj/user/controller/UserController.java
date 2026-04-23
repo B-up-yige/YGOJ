@@ -235,7 +235,7 @@ public class UserController {
     }
 
     /**
-     * 更新用户权限(仅管理员 - 需要用户管理权限)
+     * 更新用户权限(仅超级管理员 - 需要用户管理权限)
      */
     @PreAuthorize("hasAuthority('USER_MANAGE')")
     @PutMapping("/admin/user/permission")
@@ -245,7 +245,21 @@ public class UserController {
             String role = (String) params.get("role");
             Long permission = Long.valueOf(params.get("permission").toString());
             
-            log.info("管理员更新用户权限请求, userId: {}, role: {}, permission: {}", userId, role, permission);
+            // 获取当前用户ID
+            Long currentUserId = com.ygoj.common.security.SecurityUtils.getCurrentUserId();
+            if (currentUserId == null) {
+                return Result.error(401, "未登录或登录已过期");
+            }
+            
+            // 检查当前用户是否为超级管理员
+            com.ygoj.user.Userinfo currentUser = userService.getUserinfoById(currentUserId);
+            if (currentUser == null || !"SUPER_ADMIN".equals(currentUser.getRole())) {
+                log.warn("非超级管理员尝试修改用户权限, currentUserId: {}", currentUserId);
+                return Result.error(403, "只有超级管理员才能修改用户权限和角色");
+            }
+            
+            log.info("超级管理员更新用户权限请求, currentUserId: {}, targetUserId: {}, role: {}, permission: {}", 
+                currentUserId, userId, role, permission);
             
             if (userId == null) {
                 return Result.error(400, "用户ID不能为空");

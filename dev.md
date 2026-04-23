@@ -44,7 +44,7 @@
 
 YGOJ 采用 **Spring Security** 权限框架，基于 JWT + RBAC（角色访问控制）实现无状态认证和授权，支持：
 
-1. **角色权限（ROLE）**：基于用户角色的粗粒度控制（USER, ADMIN等）
+1. **角色权限（ROLE）**：基于用户角色的粗粒度控制（USER, ADMIN, CONTEST_ADMIN, PROBLEM_ADMIN）
 2. **细粒度权限（Permission）**：基于位运算的权限控制，共15个权限位
 3. **方法级鉴权**：使用 `@PreAuthorize` 注解进行接口权限控制
 4. **前端权限指令**：使用 `v-permission` 指令控制按钮显示
@@ -133,6 +133,8 @@ const isAdmin = computed(() => userStore.isAdmin)
 **角色列表：**
 - `USER` - 普通用户
 - `ADMIN` - 系统管理员（拥有所有角色和权限）
+- `CONTEST_ADMIN` - 比赛管理员
+- `PROBLEM_ADMIN` - 题目管理员
 
 **权限列表（基于位运算，共15个权限位）：**
 
@@ -182,7 +184,7 @@ permission BIGINT DEFAULT 3
 - **用户名**: `admin`
 - **密码**: `Admin@123456`
 - **角色**: `ADMIN`
-- **权限值**: `32767` (拥有所有15个权限，二进制: 111111111111111)
+- **权限值**: `32767` (拥有所有15个权限)
 - **邮箱**: `admin@ygoj.com`
 
 使用该账号登录后，可以访问「系统管理」页面管理其他用户的权限。

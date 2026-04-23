@@ -43,37 +43,40 @@ CREATE TABLE `userinfo`  (
   `nickname` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   `password` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `email` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `role` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'USER' COMMENT '用户角色: USER, ADMIN, CONTEST_ADMIN等',
-  `permission` bigint(20) NOT NULL DEFAULT 3 COMMENT '位运算权限值',
+  `role` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'USER' COMMENT '用户角色: SUPER_ADMIN, ADMIN, USER',
+  `permission` bigint(20) NOT NULL DEFAULT 4611 COMMENT '位运算权限值（默认：自我题集+自我帖子+代码提交+参加比赛）',
   `is_banned` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否被拉黑: 0-正常, 1-已拉黑',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
--- 初始化管理员账号
+-- 初始化超级管理员账号
 -- ----------------------------
--- 默认管理员账号: admin / Admin@123456
+-- 默认超级管理员账号: admin / Admin@123456
 -- 密码使用MD5加密: MD5("Admin@123456") = "0f2797f2182804d0cc7f0b85d254c146"
--- 权限值说明: 32767 = 所有权限位都设置为1 (二进制: 111111111111111, 共15个权限位)
+-- 权限值说明: 262143 = 所有权限位都设置为1 (二进制: 111111111111111111, 共18个权限位)
 -- 权限位对应关系:
---   位0: PERM_PROBLEM_VIEW (查看题目)
---   位1: PERM_PROBLEM_SUBMIT (提交代码)
+--   位0: PERM_PROBLEM_SUBMIT (代码提交权限)
+--   位1: PERM_CONTEST_JOIN (参加比赛权限)
 --   位2: PERM_PROBLEM_CREATE (创建题目)
---   位3: PERM_PROBLEM_EDIT (编辑题目)
---   位4: PERM_PROBLEM_DELETE (删除题目)
---   位5: PERM_RECORD_VIEW (查看提交记录)
---   位6: PERM_RANKING_VIEW (查看排行榜)
---   位7: PERM_CONTEST_CREATE (创建比赛)
---   位8: PERM_CONTEST_MANAGE (管理比赛)
---   位9: PERM_CONTEST_JOIN (参加比赛)
---   位10: PERM_PROBLEMSET_CREATE (创建题集)
---   位11: PERM_PROBLEMSET_MANAGE (管理题集)
---   位12: PERM_PROBLEMSET_VIEW (查看题集)
---   位13: PERM_USER_MANAGE (用户管理)
---   位14: PERM_SYSTEM_CONFIG (系统配置/重测)
+--   位3: PERM_PROBLEM_MANAGE_OWN (管理自己的题目)
+--   位4: PERM_PROBLEM_MANAGE_ALL (管理所有题目)
+--   位5: PERM_CONTEST_CREATE (创建比赛)
+--   位6: PERM_CONTEST_MANAGE_OWN (管理自己的比赛)
+--   位7: PERM_CONTEST_MANAGE_ALL (管理所有比赛)
+--   位8: PERM_PROBLEMSET_CREATE (创建题集)
+--   位9: PERM_PROBLEMSET_MANAGE_OWN (管理自己的题集)
+--   位10: PERM_PROBLEMSET_MANAGE_ALL (管理所有题集)
+--   位11: PERM_POST_CREATE (创建帖子)
+--   位12: PERM_POST_MANAGE_OWN (管理自己的帖子)
+--   位13: PERM_POST_MANAGE_ALL (管理所有帖子)
+--   位14: PERM_COMMENT_CREATE (发表评论)
+--   位15: PERM_COMMENT_DELETE_OWN (删除自己的评论)
+--   位16: PERM_COMMENT_DELETE_ALL (删除所有评论)
+--   位17: PERM_USER_MANAGE (用户管理)
 INSERT INTO `userinfo` (`username`, `nickname`, `password`, `email`, `role`, `permission`) 
-VALUES ('admin', '系统管理员', '0f2797f2182804d0cc7f0b85d254c146', 'admin@ygoj.com', 'ADMIN', 32767)
-ON DUPLICATE KEY UPDATE `role` = 'ADMIN', `permission` = 32767;
+VALUES ('admin', '系统管理员', '0f2797f2182804d0cc7f0b85d254c146', 'admin@ygoj.com', 'SUPER_ADMIN', 262143)
+ON DUPLICATE KEY UPDATE `role` = 'SUPER_ADMIN', `permission` = 262143;
 
 SET FOREIGN_KEY_CHECKS = 1;
 

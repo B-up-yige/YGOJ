@@ -112,9 +112,9 @@
           <el-select v-model="editForm.role" placeholder="选择角色">
             <el-option label="普通用户" value="USER" />
             <el-option label="管理员" value="ADMIN" />
-            <el-option label="比赛管理员" value="CONTEST_ADMIN" />
-            <el-option label="题目管理员" value="PROBLEM_ADMIN" />
+            <el-option label="超级管理员" value="SUPER_ADMIN" :disabled="true" />
           </el-select>
+          <span class="tip">超级管理员只有初始admin账号，无法手动设置</span>
         </el-form-item>
 
         <el-form-item label="权限配置">
@@ -131,10 +131,10 @@
           <el-input-number 
             v-model="editForm.permission" 
             :min="0" 
-            :max="32767"
+            :max="262143"
             disabled
           />
-          <span class="tip">根据上方选择自动计算（最大32767）</span>
+          <span class="tip">根据上方选择自动计算（最大262143）</span>
         </el-form-item>
       </el-form>
 
@@ -174,23 +174,26 @@ const editForm = ref({
 
 const selectedPermissions = ref([])
 
-// 权限列表定义（15个权限位）
+// 权限列表定义（18个权限位）
 const permissionList = [
-  { bit: 0, name: '查看题目' },
-  { bit: 1, name: '提交代码' },
+  { bit: 0, name: '代码提交' },
+  { bit: 1, name: '参加比赛' },
   { bit: 2, name: '创建题目' },
-  { bit: 3, name: '编辑题目' },
-  { bit: 4, name: '删除题目' },
-  { bit: 5, name: '查看提交记录' },
-  { bit: 6, name: '查看排行榜' },
-  { bit: 7, name: '创建比赛' },
-  { bit: 8, name: '管理比赛' },
-  { bit: 9, name: '参加比赛' },
-  { bit: 10, name: '创建题集' },
-  { bit: 11, name: '管理题集' },
-  { bit: 12, name: '查看题集' },
-  { bit: 13, name: '用户管理' },
-  { bit: 14, name: '系统配置' }
+  { bit: 3, name: '管理自己的题目' },
+  { bit: 4, name: '管理所有题目' },
+  { bit: 5, name: '创建比赛' },
+  { bit: 6, name: '管理自己的比赛' },
+  { bit: 7, name: '管理所有比赛' },
+  { bit: 8, name: '创建题集' },
+  { bit: 9, name: '管理自己的题集' },
+  { bit: 10, name: '管理所有题集' },
+  { bit: 11, name: '创建帖子' },
+  { bit: 12, name: '管理自己的帖子' },
+  { bit: 13, name: '管理所有帖子' },
+  { bit: 14, name: '发表评论' },
+  { bit: 15, name: '删除自己的评论' },
+  { bit: 16, name: '删除所有评论' },
+  { bit: 17, name: '用户管理' }
 ]
 
 // 监听选中权限变化，自动计算权限值

@@ -10,93 +10,117 @@ public class PermissionConstants {
     
     // ==================== 角色常量 ====================
     
-    /** 普通用户 */
-    public static final String ROLE_USER = "USER";
+    /** 超级管理员（只有一个，初始admin账号） */
+    public static final String ROLE_SUPER_ADMIN = "SUPER_ADMIN";
     
     /** 管理员 */
     public static final String ROLE_ADMIN = "ADMIN";
     
-    /** 比赛管理员 */
-    public static final String ROLE_CONTEST_ADMIN = "CONTEST_ADMIN";
-    
-    /** 题目管理员 */
-    public static final String ROLE_PROBLEM_ADMIN = "PROBLEM_ADMIN";
+    /** 普通用户 */
+    public static final String ROLE_USER = "USER";
     
     // ==================== 位运算权限常量 ====================
     
-    /** 查看题目 */
-    public static final int PERM_PROBLEM_VIEW = 0;
+    /** 代码提交权限 */
+    public static final int PERM_PROBLEM_SUBMIT = 0;
     
-    /** 提交代码 */
-    public static final int PERM_PROBLEM_SUBMIT = 1;
+    /** 参加比赛权限 */
+    public static final int PERM_CONTEST_JOIN = 1;
     
     /** 创建题目 */
     public static final int PERM_PROBLEM_CREATE = 2;
     
-    /** 编辑题目 */
-    public static final int PERM_PROBLEM_EDIT = 3;
+    /** 管理自己的题目（编辑+删除） */
+    public static final int PERM_PROBLEM_MANAGE_OWN = 3;
     
-    /** 删除题目 */
-    public static final int PERM_PROBLEM_DELETE = 4;
-    
-    /** 查看提交记录 */
-    public static final int PERM_RECORD_VIEW = 5;
-    
-    /** 查看排行榜 */
-    public static final int PERM_RANKING_VIEW = 6;
+    /** 管理所有题目（编辑+删除） */
+    public static final int PERM_PROBLEM_MANAGE_ALL = 4;
     
     /** 创建比赛 */
-    public static final int PERM_CONTEST_CREATE = 7;
+    public static final int PERM_CONTEST_CREATE = 5;
     
-    /** 管理比赛 */
-    public static final int PERM_CONTEST_MANAGE = 8;
+    /** 管理自己的比赛（编辑+删除） */
+    public static final int PERM_CONTEST_MANAGE_OWN = 6;
     
-    /** 参加比赛 */
-    public static final int PERM_CONTEST_JOIN = 9;
+    /** 管理所有比赛（编辑+删除） */
+    public static final int PERM_CONTEST_MANAGE_ALL = 7;
     
     /** 创建题集 */
-    public static final int PERM_PROBLEMSET_CREATE = 10;
+    public static final int PERM_PROBLEMSET_CREATE = 8;
     
-    /** 管理题集 */
-    public static final int PERM_PROBLEMSET_MANAGE = 11;
+    /** 管理自己的题集（编辑+删除+管理题目） */
+    public static final int PERM_PROBLEMSET_MANAGE_OWN = 9;
     
-    /** 查看题集 */
-    public static final int PERM_PROBLEMSET_VIEW = 12;
+    /** 管理所有题集（编辑+删除+管理题目） */
+    public static final int PERM_PROBLEMSET_MANAGE_ALL = 10;
     
-    /** 用户管理 */
-    public static final int PERM_USER_MANAGE = 13;
+    /** 创建帖子 */
+    public static final int PERM_POST_CREATE = 11;
     
-    /** 系统配置（重测等） */
-    public static final int PERM_SYSTEM_CONFIG = 14;
+    /** 管理自己的帖子（编辑+删除） */
+    public static final int PERM_POST_MANAGE_OWN = 12;
+    
+    /** 管理所有帖子（编辑+删除+板块管理） */
+    public static final int PERM_POST_MANAGE_ALL = 13;
+    
+    /** 发表评论 */
+    public static final int PERM_COMMENT_CREATE = 14;
+    
+    /** 删除自己的评论 */
+    public static final int PERM_COMMENT_DELETE_OWN = 15;
+    
+    /** 删除所有评论 */
+    public static final int PERM_COMMENT_DELETE_ALL = 16;
+    
+    /** 用户管理（修改他人权限和角色） */
+    public static final int PERM_USER_MANAGE = 17;
     
     // ==================== 自定义权限常量 ====================
     
-    /** 问题:创建 */
+    /** 题目:创建 */
     public static final String CUSTOM_PROBLEM_CREATE = "problem:create";
     
-    /** 问题:编辑 */
-    public static final String CUSTOM_PROBLEM_EDIT = "problem:edit";
+    /** 题目:管理自己的 */
+    public static final String CUSTOM_PROBLEM_MANAGE_OWN = "problem:manage:own";
     
-    /** 问题:删除 */
-    public static final String CUSTOM_PROBLEM_DELETE = "problem:delete";
-    
-    /** 问题:查看 */
-    public static final String CUSTOM_PROBLEM_VIEW = "problem:view";
+    /** 题目:管理所有 */
+    public static final String CUSTOM_PROBLEM_MANAGE_ALL = "problem:manage:all";
     
     /** 比赛:创建 */
     public static final String CUSTOM_CONTEST_CREATE = "contest:create";
     
-    /** 比赛:管理 */
-    public static final String CUSTOM_CONTEST_MANAGE = "contest:manage";
+    /** 比赛:管理自己的 */
+    public static final String CUSTOM_CONTEST_MANAGE_OWN = "contest:manage:own";
     
-    /** 比赛:参加 */
-    public static final String CUSTOM_CONTEST_JOIN = "contest:join";
+    /** 比赛:管理所有 */
+    public static final String CUSTOM_CONTEST_MANAGE_ALL = "contest:manage:all";
     
     /** 题集:创建 */
     public static final String CUSTOM_PROBLEMSET_CREATE = "problemset:create";
     
-    /** 题集:管理 */
-    public static final String CUSTOM_PROBLEMSET_MANAGE = "problemset:manage";
+    /** 题集:管理自己的 */
+    public static final String CUSTOM_PROBLEMSET_MANAGE_OWN = "problemset:manage:own";
+    
+    /** 题集:管理所有 */
+    public static final String CUSTOM_PROBLEMSET_MANAGE_ALL = "problemset:manage:all";
+    
+    /** 帖子:创建 */
+    public static final String CUSTOM_POST_CREATE = "post:create";
+    
+    /** 帖子:管理自己的 */
+    public static final String CUSTOM_POST_MANAGE_OWN = "post:manage:own";
+    
+    /** 帖子:管理所有 */
+    public static final String CUSTOM_POST_MANAGE_ALL = "post:manage:all";
+    
+    /** 评论:创建 */
+    public static final String CUSTOM_COMMENT_CREATE = "comment:create";
+    
+    /** 评论:删除自己的 */
+    public static final String CUSTOM_COMMENT_DELETE_OWN = "comment:delete:own";
+    
+    /** 评论:删除所有 */
+    public static final String CUSTOM_COMMENT_DELETE_ALL = "comment:delete:all";
     
     /** 用户:管理 */
     public static final String CUSTOM_USER_MANAGE = "user:manage";
