@@ -26,7 +26,6 @@
                   {{ formatContestTime(contest.startTime) }}
                   <span v-if="contest.endTime" class="contest-end-time"> - {{ formatContestTime(contest.endTime) }}</span>
                 </p>
-                <p v-if="contest.description" class="contest-desc">{{ contest.description }}</p>
               </div>
               <div class="contest-meta">
                 <el-tag :type="getContestStatusType(contest.status)" size="default">
@@ -63,7 +62,6 @@
                     创建者: #{{ problemset.createUser }}
                   </span>
                 </p>
-                <p v-if="problemset.description" class="problemset-desc">{{ problemset.description }}</p>
               </div>
               <div class="problemset-action">
                 <el-button type="primary" size="default" @click.stop="viewProblemset(problemset.id)">
