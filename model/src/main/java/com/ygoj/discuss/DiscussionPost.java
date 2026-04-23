@@ -20,7 +20,6 @@ public class DiscussionPost {
     private Userinfo author;
     
     private String category; // 板块分类
-    private Long problemId;
     private Integer viewCount;
     private Integer commentCount;
     private Boolean isPinned;

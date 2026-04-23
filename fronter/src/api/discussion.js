@@ -67,3 +67,47 @@ export function deleteComment(id) {
     method: 'delete'
   })
 }
+
+// ==================== 板块管理 API ====================
+
+// 获取启用的板块列表（公开）
+export function getActiveCategories() {
+  return request({
+    url: '/discuss/category/list',
+    method: 'get'
+  })
+}
+
+// 获取所有板块列表（管理员）
+export function getAllCategories() {
+  return request({
+    url: '/discuss/category/admin/list',
+    method: 'get'
+  })
+}
+
+// 创建板块（管理员）
+export function createCategory(data) {
+  return request({
+    url: '/discuss/category/admin/create',
+    method: 'post',
+    data
+  })
+}
+
+// 更新板块（管理员）
+export function updateCategory(data) {
+  return request({
+    url: '/discuss/category/admin/update',
+    method: 'put',
+    data
+  })
+}
+
+// 删除板块（管理员）
+export function deleteCategory(id) {
+  return request({
+    url: `/discuss/category/admin/${id}`,
+    method: 'delete'
+  })
+}

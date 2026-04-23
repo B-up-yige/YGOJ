@@ -10,14 +10,27 @@
 
     <!-- 板块筛选 -->
     <div class="category-filter">
-      <el-radio-group v-model="selectedCategory" @change="handleCategoryChange">
+      <el-radio-group v-model="selectedCategory" @change="handleCategoryChange" v-loading="loadingCategories">
         <el-radio-button label="">全部</el-radio-button>
-        <el-radio-button label="GENERAL">综合讨论</el-radio-button>
-        <el-radio-button label="PROBLEM_HELP">题目求助</el-radio-button>
-        <el-radio-button label="ALGORITHM">算法交流</el-radio-button>
-        <el-radio-button label="BUG_REPORT">Bug反馈</el-radio-button>
-        <el-radio-button label="SUGGESTION">建议意见</el-radio-button>
+        <el-radio-button 
+          v-for="cat in categories" 
+          :key="cat.code" 
+          :label="cat.code"
+        >
+          {{ cat.name }}
+        </el-radio-button>
       </el-radio-group>
+      <!-- 管理员入口 -->
+      <el-button 
+        v-if="userStore.isAdmin" 
+        link 
+        type="primary" 
+        @click="router.push('/discussion/categories')"
+        style="margin-left: auto;"
+      >
+        <el-icon><Setting /></el-icon>
+        <span>板块管理</span>
+      </el-button>
     </div>
 
     <!-- 帖子列表 -->
@@ -33,9 +46,6 @@
               class="category-tag"
             >
               {{ getCategoryName(scope.row.category) }}
-            </el-tag>
-            <el-tag v-if="scope.row.problemId" type="info" size="small" class="problem-tag">
-              题目 {{ scope.row.problemId }}
             </el-tag>
             <router-link :to="`/discussion/${scope.row.id}`" class="post-title-link">
               {{ scope.row.title }}
@@ -85,8 +95,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Plus } from '@element-plus/icons-vue'
-import { getPostList } from '@/api/discussion'
+import { Plus, Setting } from '@element-plus/icons-vue'
+import { getPostList, getActiveCategories } from '@/api/discussion'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 import dayjs from 'dayjs'
@@ -100,6 +110,8 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const selectedCategory = ref('')
+const loadingCategories = ref(false)
+const categories = ref([])
 
 const loadPosts = async () => {
   loading.value = true
@@ -151,16 +163,23 @@ const handleCategoryChange = () => {
   loadPosts()
 }
 
+// 加载板块列表
+const loadCategories = async () => {
+  loadingCategories.value = true
+  try {
+    const res = await getActiveCategories()
+    categories.value = res.data || []
+  } catch (error) {
+    console.error('加载板块列表失败:', error)
+  } finally {
+    loadingCategories.value = false
+  }
+}
+
 // 获取板块显示名称
 const getCategoryName = (category) => {
-  const categoryMap = {
-    'GENERAL': '综合讨论',
-    'PROBLEM_HELP': '题目求助',
-    'ALGORITHM': '算法交流',
-    'BUG_REPORT': 'Bug反馈',
-    'SUGGESTION': '建议意见'
-  }
-  return categoryMap[category] || '未知板块'
+  const cat = categories.value.find(c => c.code === category)
+  return cat ? cat.name : '未知板块'
 }
 
 // 获取板块标签类型
@@ -181,6 +200,7 @@ const formatTime = (time) => {
 }
 
 onMounted(() => {
+  loadCategories()
   loadPosts()
 })
 </script>
@@ -225,10 +245,6 @@ onMounted(() => {
 }
 
 .category-tag {
-  flex-shrink: 0;
-}
-
-.problem-tag {
   flex-shrink: 0;
 }
 

@@ -307,7 +307,6 @@ CREATE TABLE `discussion_post`  (
   `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '帖子内容',
   `author_id` int(11) NOT NULL COMMENT '作者ID',
   `category` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'GENERAL' COMMENT '板块分类: GENERAL-综合讨论, PROBLEM_HELP-题目求助, ALGORITHM-算法交流, BUG_REPORT-Bug反馈, SUGGESTION-建议意见',
-  `problem_id` int(11) NULL DEFAULT NULL COMMENT '关联题目ID(可选)',
   `view_count` int(11) NOT NULL DEFAULT 0 COMMENT '浏览量',
   `comment_count` int(11) NOT NULL DEFAULT 0 COMMENT '评论数',
   `is_pinned` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否置顶: 0-否, 1-是',
@@ -317,7 +316,6 @@ CREATE TABLE `discussion_post`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_author_id`(`author_id`) USING BTREE,
   INDEX `idx_category`(`category`) USING BTREE,
-  INDEX `idx_problem_id`(`problem_id`) USING BTREE,
   INDEX `idx_created_at`(`created_at`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '讨论帖表' ROW_FORMAT = DYNAMIC;
 
@@ -338,5 +336,33 @@ CREATE TABLE `discussion_comment`  (
   INDEX `idx_author_id`(`author_id`) USING BTREE,
   INDEX `idx_parent_id`(`parent_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '评论表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for discussion_category (讨论板块表)
+-- ----------------------------
+DROP TABLE IF EXISTS `discussion_category`;
+CREATE TABLE `discussion_category`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '板块代码(唯一标识)',
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '板块名称',
+  `description` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '板块描述',
+  `sort_order` int(11) NOT NULL DEFAULT 0 COMMENT '排序顺序',
+  `is_active` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否启用: 0-禁用, 1-启用',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_code`(`code`) USING BTREE,
+  INDEX `idx_sort_order`(`sort_order`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '讨论板块表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- 初始化默认板块数据
+-- ----------------------------
+INSERT INTO `discussion_category` (`code`, `name`, `description`, `sort_order`, `is_active`) VALUES
+('GENERAL', '综合讨论', '一般性话题交流', 1, 1),
+('PROBLEM_HELP', '题目求助', '具体题目的疑问和解答', 2, 1),
+('ALGORITHM', '算法交流', '算法学习和经验分享', 3, 1),
+('BUG_REPORT', 'Bug反馈', '系统问题报告', 4, 1),
+('SUGGESTION', '建议意见', '功能建议和改进意见', 5, 1);
 
 SET FOREIGN_KEY_CHECKS = 1;

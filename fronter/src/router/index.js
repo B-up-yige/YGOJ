@@ -144,6 +144,12 @@ const router = createRouter({
           name: 'DiscussionEdit',
           component: () => import('@/views/discussion/DiscussionCreate.vue')
         },
+        {
+          path: '/discussion/categories',
+          name: 'CategoryManagement',
+          component: () => import('@/views/discussion/CategoryManagement.vue'),
+          meta: { requiresAdmin: true }
+        },
         // 管理相关路由
         {
           path: '/admin/users',

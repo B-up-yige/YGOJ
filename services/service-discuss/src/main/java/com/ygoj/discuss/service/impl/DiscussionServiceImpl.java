@@ -32,9 +32,9 @@ public class DiscussionServiceImpl implements DiscussionService {
     private UserFeignClient userFeignClient;
 
     @Override
-    public Page<DiscussionPost> getPostList(Long page, Long pageSize, Long problemId, String category) {
+    public Page<DiscussionPost> getPostList(Long page, Long pageSize, String category) {
         try {
-            log.debug("获取帖子列表, page: {}, pageSize: {}, problemId: {}, category: {}", page, pageSize, problemId, category);
+            log.debug("获取帖子列表, page: {}, pageSize: {}, category: {}", page, pageSize, category);
             
             if (page == null || page < 1) {
                 page = 1L;
@@ -45,11 +45,6 @@ public class DiscussionServiceImpl implements DiscussionService {
             
             Page<DiscussionPost> postPage = new Page<>(page, pageSize);
             LambdaQueryWrapper<DiscussionPost> wrapper = new LambdaQueryWrapper<>();
-            
-            // 如果指定了problemId，则筛选该题目的讨论
-            if (problemId != null) {
-                wrapper.eq(DiscussionPost::getProblemId, problemId);
-            }
             
             // 如果指定了category，则筛选该板块
             if (category != null && !category.trim().isEmpty()) {

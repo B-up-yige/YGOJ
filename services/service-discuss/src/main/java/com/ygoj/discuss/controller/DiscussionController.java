@@ -26,10 +26,9 @@ public class DiscussionController {
     @GetMapping("/posts")
     public Result getPostList(@RequestParam(required = false, defaultValue = "1") Long page,
                               @RequestParam(required = false, defaultValue = "10") Long pageSize,
-                              @RequestParam(required = false) Long problemId,
                               @RequestParam(required = false) String category) {
         try {
-            log.debug("获取帖子列表请求, page: {}, pageSize: {}, problemId: {}, category: {}", page, pageSize, problemId, category);
+            log.debug("获取帖子列表请求, page: {}, pageSize: {}, category: {}", page, pageSize, category);
             
             if (page == null || page < 1) {
                 page = 1L;
@@ -38,7 +37,7 @@ public class DiscussionController {
                 pageSize = 10L;
             }
             
-            Page<DiscussionPost> posts = discussionService.getPostList(page, pageSize, problemId, category);
+            Page<DiscussionPost> posts = discussionService.getPostList(page, pageSize, category);
             return Result.success(posts);
         } catch (Exception e) {
             log.error("获取帖子列表失败", e);

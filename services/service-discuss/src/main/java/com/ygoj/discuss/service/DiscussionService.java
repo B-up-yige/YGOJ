@@ -10,7 +10,7 @@ public interface DiscussionService {
     /**
      * 分页获取帖子列表
      */
-    Page<DiscussionPost> getPostList(Long page, Long pageSize, Long problemId, String category);
+    Page<DiscussionPost> getPostList(Long page, Long pageSize, String category);
     
     /**
      * 获取帖子详情
