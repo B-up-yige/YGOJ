@@ -7,76 +7,10 @@
       <p class="logo-subtitle">Online Judge System</p>
     </div>
 
-    <el-row :gutter="24">
-      <!-- 快捷操作 -->
-      <el-col :xs="24" :sm="8">
-        <el-card shadow="always" class="action-card slide-in">
-          <template #header>
-            <div class="card-header">
-              <span><el-icon><Operation /></el-icon> 快捷操作</span>
-            </div>
-          </template>
-          <div class="quick-actions">
-            <button @click="goToProblems" class="action-btn action-btn-primary">
-              <el-icon><Document /></el-icon>
-              <span>浏览题目</span>
-            </button>
-            <button @click="goToContests" class="action-btn action-btn-success">
-              <el-icon><Trophy /></el-icon>
-              <span>浏览比赛</span>
-            </button>
-            <button @click="goToProblemsets" class="action-btn action-btn-warning">
-              <el-icon><Collection /></el-icon>
-              <span>浏览题集</span>
-            </button>
-            <button @click="goToRecords" class="action-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
-              <el-icon><List /></el-icon>
-              <span>查看提交</span>
-            </button>
-            <button v-if="isAdmin" @click="createProblem" class="action-btn" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">
-              <el-icon><Plus /></el-icon>
-              <span>创建题目</span>
-            </button>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <!-- 最新提交 -->
-    <el-row :gutter="24" style="margin-top: 24px;">
-      <el-col :span="24">
-        <el-card shadow="always" class="record-card slide-in" style="animation-delay: 0.1s;">
-          <template #header>
-            <div class="card-header">
-              <span><el-icon><TrendCharts /></el-icon> 最新提交</span>
-              <el-button link type="primary" @click="goToRecords" size="small">查看更多</el-button>
-            </div>
-          </template>
-          <div class="record-list-full">
-            <div v-for="record in recentRecords" :key="record.id" class="record-item-full" @click="viewRecord(record.id)">
-              <div class="record-info-full">
-                <span class="record-id">#{{ record.id }}</span>
-                <span class="record-problem">题目 #{{ record.problemId }}</span>
-                <span v-if="record.userId" class="record-user">用户 #{{ record.userId }}</span>
-              </div>
-              <div class="record-meta">
-                <el-tag :type="getStatusType(record.status)" size="default">
-                  {{ getStatusText(record.status) }}
-                </el-tag>
-                <span v-if="record.time" class="record-stat">时间: {{ record.time }}ms</span>
-                <span v-if="record.memory" class="record-stat">内存: {{ record.memory }}KB</span>
-              </div>
-            </div>
-            <el-empty v-if="recentRecords.length === 0" description="暂无提交记录" :image-size="60" />
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
-
     <!-- 最近比赛 -->
     <el-row :gutter="24" style="margin-top: 24px;">
       <el-col :span="24">
-        <el-card shadow="always" class="contest-card slide-in" style="animation-delay: 0.15s;">
+        <el-card shadow="always" class="contest-card slide-in" style="animation-delay: 0.1s;">
           <template #header>
             <div class="card-header">
               <span><el-icon><Timer /></el-icon> 最近比赛</span>
@@ -101,6 +35,43 @@
               </div>
             </div>
             <el-empty v-if="recentContests.length === 0" description="暂无比赛" :image-size="60" />
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 最新题集 -->
+    <el-row :gutter="24" style="margin-top: 24px;">
+      <el-col :span="24">
+        <el-card shadow="always" class="problemset-card slide-in" style="animation-delay: 0.15s;">
+          <template #header>
+            <div class="card-header">
+              <span><el-icon><FolderOpened /></el-icon> 最新题集</span>
+              <el-button link type="primary" @click="goToProblemsets" size="small">查看更多</el-button>
+            </div>
+          </template>
+          <div class="problemset-list-full">
+            <div v-for="problemset in recentProblemsets" :key="problemset.id" class="problemset-item-full" @click="viewProblemset(problemset.id)">
+              <div class="problemset-info-full">
+                <h4 class="problemset-title-full">{{ problemset.title }}</h4>
+                <p class="problemset-meta">
+                  <span v-if="problemset.problemCount" class="problemset-count">
+                    <el-icon><Document /></el-icon>
+                    题目数: {{ problemset.problemCount }}
+                  </span>
+                  <span v-if="problemset.createUser" class="problemset-author">
+                    创建者: #{{ problemset.createUser }}
+                  </span>
+                </p>
+                <p v-if="problemset.description" class="problemset-desc">{{ problemset.description }}</p>
+              </div>
+              <div class="problemset-action">
+                <el-button type="primary" size="default" @click.stop="viewProblemset(problemset.id)">
+                  查看题集
+                </el-button>
+              </div>
+            </div>
+            <el-empty v-if="recentProblemsets.length === 0" description="暂无题集" :image-size="60" />
           </div>
         </el-card>
       </el-col>
@@ -136,6 +107,37 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- 最新提交 -->
+    <el-row :gutter="24" style="margin-top: 24px;">
+      <el-col :span="24">
+        <el-card shadow="always" class="record-card slide-in" style="animation-delay: 0.25s;">
+          <template #header>
+            <div class="card-header">
+              <span><el-icon><TrendCharts /></el-icon> 最新提交</span>
+              <el-button link type="primary" @click="goToRecords" size="small">查看更多</el-button>
+            </div>
+          </template>
+          <div class="record-list-full">
+            <div v-for="record in recentRecords" :key="record.id" class="record-item-full" @click="viewRecord(record.id)">
+              <div class="record-info-full">
+                <span class="record-id">#{{ record.id }}</span>
+                <span class="record-problem">题目 #{{ record.problemId }}</span>
+                <span v-if="record.userId" class="record-user">用户 #{{ record.userId }}</span>
+              </div>
+              <div class="record-meta">
+                <el-tag :type="getStatusType(record.status)" size="default">
+                  {{ getStatusText(record.status) }}
+                </el-tag>
+                <span v-if="record.time" class="record-stat">时间: {{ record.time }}ms</span>
+                <span v-if="record.memory" class="record-stat">内存: {{ record.memory }}KB</span>
+              </div>
+            </div>
+            <el-empty v-if="recentRecords.length === 0" description="暂无提交记录" :image-size="60" />
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -146,7 +148,8 @@ import { useUserStore } from '@/stores/user'
 import { getRecordList } from '@/api/record'
 import { getContestList } from '@/api/contest'
 import { getProblemList } from '@/api/problem'
-import { Trophy, Collection, Document, List, Plus, Operation, TrendCharts, Bell, Timer, Notebook } from '@element-plus/icons-vue'
+import { getProblemsetList } from '@/api/problemset'
+import { Trophy, Collection, Document, List, Plus, Operation, TrendCharts, Bell, Timer, Notebook, FolderOpened } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -159,6 +162,7 @@ const isAdmin = computed(() => {
 const recentRecords = ref([])
 const recentContests = ref([])
 const latestProblems = ref([])
+const recentProblemsets = ref([])
 
 const getStatusType = (status) => {
   const statusMap = {
@@ -214,6 +218,10 @@ const viewContest = (id) => {
 
 const viewProblem = (id) => {
   router.push(`/problem/${id}`)
+}
+
+const viewProblemset = (id) => {
+  router.push(`/problemset/${id}`)
 }
 
 const formatContestTime = (time) => {
@@ -280,10 +288,20 @@ const loadLatestProblems = async () => {
   }
 }
 
+const loadRecentProblemsets = async () => {
+  try {
+    const res = await getProblemsetList(1, 10, '') // 获取第一页，10 条题集
+    recentProblemsets.value = res.data?.records || res.data?.list || res.data || []
+  } catch (error) {
+    console.error('加载最新题集失败:', error)
+  }
+}
+
 onMounted(() => {
-  loadRecentRecords()
   loadRecentContests()
+  loadRecentProblemsets()
   loadLatestProblems()
+  loadRecentRecords()
 })
 </script>
 
@@ -688,6 +706,84 @@ onMounted(() => {
   font-size: 0.875rem;
   color: var(--color-text-secondary);
   white-space: nowrap;
+}
+
+/* Problemset List - Full Width */
+.problemset-card .problemset-list-full {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.problemset-item-full {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.problemset-item-full:hover {
+  background-color: rgba(139, 92, 246, 0.04);
+  border-color: #8b5cf6;
+  transform: translateX(4px);
+}
+
+.problemset-info-full {
+  flex: 1;
+  min-width: 0;
+}
+
+.problemset-title-full {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 1.125rem;
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.problemset-meta {
+  margin: 0 0 var(--spacing-xs);
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.problemset-count {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.problemset-count .el-icon {
+  font-size: 1rem;
+}
+
+.problemset-author {
+  color: var(--color-text-tertiary);
+}
+
+.problemset-desc {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.problemset-action {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-shrink: 0;
 }
 
 .record-item {
