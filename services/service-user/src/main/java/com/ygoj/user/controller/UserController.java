@@ -258,6 +258,12 @@ public class UserController {
                 return Result.error(403, "只有超级管理员才能修改用户权限和角色");
             }
             
+            // 检查是否尝试修改自己的权限
+            if (currentUserId.equals(userId)) {
+                log.warn("超级管理员尝试修改自己的权限, userId: {}", currentUserId);
+                return Result.error(403, "超级管理员不能修改自己的权限和角色");
+            }
+            
             log.info("超级管理员更新用户权限请求, currentUserId: {}, targetUserId: {}, role: {}, permission: {}", 
                 currentUserId, userId, role, permission);
             
