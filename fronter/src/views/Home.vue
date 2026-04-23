@@ -40,9 +40,11 @@
           </div>
         </el-card>
       </el-col>
+    </el-row>
 
-      <!-- 最新提交 -->
-      <el-col :xs="24" :sm="8">
+    <!-- 最新提交 -->
+    <el-row :gutter="24" style="margin-top: 24px;">
+      <el-col :span="24">
         <el-card shadow="always" class="record-card slide-in" style="animation-delay: 0.1s;">
           <template #header>
             <div class="card-header">
@@ -50,23 +52,30 @@
               <el-button link type="primary" @click="goToRecords" size="small">查看更多</el-button>
             </div>
           </template>
-          <div class="record-list">
-            <div v-for="record in recentRecords" :key="record.id" class="record-item" @click="viewRecord(record.id)">
-              <div class="record-info">
+          <div class="record-list-full">
+            <div v-for="record in recentRecords" :key="record.id" class="record-item-full" @click="viewRecord(record.id)">
+              <div class="record-info-full">
                 <span class="record-id">#{{ record.id }}</span>
                 <span class="record-problem">题目 #{{ record.problemId }}</span>
+                <span v-if="record.userId" class="record-user">用户 #{{ record.userId }}</span>
               </div>
-              <el-tag :type="getStatusType(record.status)" size="small">
-                {{ getStatusText(record.status) }}
-              </el-tag>
+              <div class="record-meta">
+                <el-tag :type="getStatusType(record.status)" size="default">
+                  {{ getStatusText(record.status) }}
+                </el-tag>
+                <span v-if="record.time" class="record-stat">时间: {{ record.time }}ms</span>
+                <span v-if="record.memory" class="record-stat">内存: {{ record.memory }}KB</span>
+              </div>
             </div>
             <el-empty v-if="recentRecords.length === 0" description="暂无提交记录" :image-size="60" />
           </div>
         </el-card>
       </el-col>
+    </el-row>
 
-      <!-- 最近比赛 -->
-      <el-col :xs="24" :sm="8">
+    <!-- 最近比赛 -->
+    <el-row :gutter="24" style="margin-top: 24px;">
+      <el-col :span="24">
         <el-card shadow="always" class="contest-card slide-in" style="animation-delay: 0.15s;">
           <template #header>
             <div class="card-header">
@@ -74,18 +83,22 @@
               <el-button link type="primary" @click="goToContests" size="small">查看更多</el-button>
             </div>
           </template>
-          <div class="contest-list">
-            <div v-for="contest in recentContests" :key="contest.id" class="contest-item" @click="viewContest(contest.id)">
-              <div class="contest-info">
-                <h4 class="contest-title">{{ contest.title }}</h4>
-                <p class="contest-time">
+          <div class="contest-list-full">
+            <div v-for="contest in recentContests" :key="contest.id" class="contest-item-full" @click="viewContest(contest.id)">
+              <div class="contest-info-full">
+                <h4 class="contest-title-full">{{ contest.title }}</h4>
+                <p class="contest-time-full">
                   <el-icon><Timer /></el-icon>
                   {{ formatContestTime(contest.startTime) }}
+                  <span v-if="contest.endTime" class="contest-end-time"> - {{ formatContestTime(contest.endTime) }}</span>
                 </p>
+                <p v-if="contest.description" class="contest-desc">{{ contest.description }}</p>
               </div>
-              <el-tag :type="getContestStatusType(contest.status)" size="small">
-                {{ getContestStatusText(contest.status) }}
-              </el-tag>
+              <div class="contest-meta">
+                <el-tag :type="getContestStatusType(contest.status)" size="default">
+                  {{ getContestStatusText(contest.status) }}
+                </el-tag>
+              </div>
             </div>
             <el-empty v-if="recentContests.length === 0" description="暂无比赛" :image-size="60" />
           </div>
@@ -251,7 +264,7 @@ const loadRecentRecords = async () => {
 
 const loadRecentContests = async () => {
   try {
-    const res = await getContestList(1, 5, '') // 获取第一页，5 条比赛
+    const res = await getContestList(1, 10, '') // 获取第一页，10 条比赛
     recentContests.value = res.data?.records || res.data?.list || res.data || []
   } catch (error) {
     console.error('加载最近比赛失败:', error)
@@ -477,23 +490,17 @@ onMounted(() => {
   text-align: center;
 }
 
-/* Record List */
-.record-card .record-list {
-  max-height: 320px;
+/* Record List - Full Width */
+.record-card .record-list-full {
+  max-height: 500px;
   overflow-y: auto;
 }
 
-/* Contest List */
-.contest-card .contest-list {
-  max-height: 320px;
-  overflow-y: auto;
-}
-
-.contest-item {
+.record-item-full {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
   margin-bottom: var(--spacing-sm);
   background-color: var(--color-bg);
   border-radius: var(--radius-md);
@@ -502,38 +509,124 @@ onMounted(() => {
   border: 1px solid transparent;
 }
 
-.contest-item:hover {
-  background-color: rgba(16, 185, 129, 0.04);
-  border-color: #10b981;
+.record-item-full:hover {
+  background-color: rgba(37, 99, 235, 0.04);
+  border-color: var(--color-primary-light);
   transform: translateX(4px);
 }
 
-.contest-info {
+.record-info-full {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
   flex: 1;
   min-width: 0;
 }
 
-.contest-title {
-  margin: 0 0 var(--spacing-xs);
-  font-size: 0.9375rem;
-  color: var(--color-text-primary);
+.record-info-full .record-id {
   font-weight: 600;
+  color: var(--color-primary);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.record-info-full .record-problem {
+  color: var(--color-text-primary);
+  font-size: 1rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.contest-time {
-  margin: 0;
-  font-size: 0.8125rem;
+.record-info-full .record-user {
+  color: var(--color-text-secondary);
+  font-size: 0.9375rem;
+  white-space: nowrap;
+}
+
+.record-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+.record-stat {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* Contest List - Full Width */
+.contest-card .contest-list-full {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.contest-item-full {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.contest-item-full:hover {
+  background-color: rgba(16, 185, 129, 0.04);
+  border-color: #10b981;
+  transform: translateX(4px);
+}
+
+.contest-info-full {
+  flex: 1;
+  min-width: 0;
+}
+
+.contest-title-full {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 1.125rem;
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.contest-time-full {
+  margin: 0 0 var(--spacing-xs);
+  font-size: 0.9375rem;
   color: var(--color-text-secondary);
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--spacing-xs);
 }
 
-.contest-time .el-icon {
+.contest-time-full .el-icon {
+  font-size: 1rem;
+}
+
+.contest-end-time {
+  color: var(--color-text-tertiary);
+}
+
+.contest-desc {
+  margin: 0;
   font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.contest-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-shrink: 0;
 }
 
 /* Problem List - Full Width */
