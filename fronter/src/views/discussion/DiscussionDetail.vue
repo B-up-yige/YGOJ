@@ -33,7 +33,15 @@
 
       <div class="post-content markdown-body" v-html="renderedContent"></div>
 
-      <div class="post-actions" v-if="canEdit || canDelete">
+      <div class="post-actions" v-if="canEdit || canDelete || canManageAllPosts">
+        <el-button 
+          :type="post.isPinned ? 'warning' : 'primary'" 
+          @click="handleTogglePin"
+          v-if="canManageAllPosts"
+        >
+          <el-icon><Top /></el-icon>
+          <span>{{ post.isPinned ? '取消置顶' : '置顶' }}</span>
+        </el-button>
         <el-button type="primary" @click="handleEdit" v-if="canEdit">
           <el-icon><Edit /></el-icon>
           <span>编辑</span>
@@ -103,8 +111,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Delete, Edit } from '@element-plus/icons-vue'
-import { getPostById, deletePost, getComments, createComment } from '@/api/discussion'
+import { ArrowLeft, Delete, Edit, Top } from '@element-plus/icons-vue'
+import { getPostById, deletePost, getComments, createComment, togglePinPost } from '@/api/discussion'
 import { useUserStore, PERMISSIONS } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
@@ -158,6 +166,12 @@ const canDelete = computed(() => {
   }
   
   return false
+})
+
+// 检查是否有管理所有帖子的权限（用于置顶功能）
+const canManageAllPosts = computed(() => {
+  if (!userStore.token || !post.value) return false
+  return userStore.hasPermission(PERMISSIONS.PERM_POST_MANAGE_ALL)
 })
 
 const loadPost = async () => {
@@ -226,6 +240,28 @@ const handleDelete = async () => {
     if (error !== 'cancel') {
       console.error('删除失败:', error)
       ElMessage.error('删除失败')
+    }
+  }
+}
+
+// 置顶/取消置顶帖子
+const handleTogglePin = async () => {
+  try {
+    const action = post.value.isPinned ? '取消置顶' : '置顶'
+    await ElMessageBox.confirm(`确定要${action}这个帖子吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await togglePinPost(post.value.id, !post.value.isPinned)
+    ElMessage.success(`${action}成功`)
+    // 重新加载帖子以更新状态
+    await loadPost()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('操作失败:', error)
+      ElMessage.error('操作失败')
     }
   }
 }

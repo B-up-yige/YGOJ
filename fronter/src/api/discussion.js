@@ -68,6 +68,15 @@ export function deleteComment(id) {
   })
 }
 
+// 置顶/取消置顶帖子
+export function togglePinPost(id, isPinned) {
+  return request({
+    url: `/discuss/post/${id}/pin`,
+    method: 'put',
+    data: isPinned
+  })
+}
+
 // ==================== 板块管理 API ====================
 
 // 获取启用的板块列表（公开）

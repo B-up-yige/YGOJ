@@ -51,4 +51,11 @@ public interface DiscussionService {
      * 删除评论
      */
     void deleteComment(Long id);
+    
+    /**
+     * 置顶/取消置顶帖子
+     * @param postId 帖子ID
+     * @param isPinned 是否置顶
+     */
+    void togglePinPost(Long postId, Boolean isPinned);
 }

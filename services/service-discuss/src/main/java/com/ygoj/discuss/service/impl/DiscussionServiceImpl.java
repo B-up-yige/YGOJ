@@ -302,6 +302,37 @@ public class DiscussionServiceImpl implements DiscussionService {
         }
     }
     
+    @Override
+    @Transactional
+    public void togglePinPost(Long postId, Boolean isPinned) {
+        try {
+            log.info("切换帖子置顶状态, postId: {}, isPinned: {}", postId, isPinned);
+            
+            if (postId == null) {
+                throw new IllegalArgumentException("帖子ID不能为空");
+            }
+            
+            if (isPinned == null) {
+                throw new IllegalArgumentException("置顶状态不能为空");
+            }
+            
+            DiscussionPost post = postMapper.selectById(postId);
+            if (post == null) {
+                throw new IllegalArgumentException("帖子不存在");
+            }
+            
+            post.setIsPinned(isPinned);
+            postMapper.updateById(post);
+            
+            log.info("切换帖子置顶状态成功, postId: {}, isPinned: {}", postId, isPinned);
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("切换帖子置顶状态异常, postId: {}", postId, e);
+            throw new RuntimeException("切换帖子置顶状态失败: " + e.getMessage(), e);
+        }
+    }
+    
     /**
      * 填充帖子作者信息
      */

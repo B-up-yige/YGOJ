@@ -76,9 +76,17 @@
         </template>
       </el-table-column>
       
-      <el-table-column label="操作" width="180" fixed="right">
+      <el-table-column label="操作" width="240" fixed="right">
         <template #default="scope">
           <div class="action-buttons">
+            <el-button 
+              size="small" 
+              :type="scope.row.isPinned ? 'warning' : 'primary'"
+              @click="handleTogglePin(scope.row)"
+              v-if="canManageAllPosts"
+            >
+              {{ scope.row.isPinned ? '取消置顶' : '置顶' }}
+            </el-button>
             <el-button 
               size="small" 
               type="primary" 
@@ -116,10 +124,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Plus, Setting } from '@element-plus/icons-vue'
-import { getPostList, getActiveCategories, deletePost } from '@/api/discussion'
+import { getPostList, getActiveCategories, deletePost, togglePinPost } from '@/api/discussion'
 import { useUserStore, PERMISSIONS } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
@@ -205,6 +213,12 @@ const canEditOrDelete = (post) => {
   return false
 }
 
+// 检查是否有管理所有帖子的权限（用于置顶功能）
+const canManageAllPosts = computed(() => {
+  if (!userStore.token) return false
+  return userStore.hasPermission(PERMISSIONS.PERM_POST_MANAGE_ALL)
+})
+
 // 编辑帖子
 const handleEditPost = (postId) => {
   router.push(`/discussion/edit/${postId}`)
@@ -226,6 +240,27 @@ const handleDeletePost = async (post) => {
     if (error !== 'cancel') {
       console.error('删除失败:', error)
       ElMessage.error('删除失败')
+    }
+  }
+}
+
+// 置顶/取消置顶帖子
+const handleTogglePin = async (post) => {
+  try {
+    const action = post.isPinned ? '取消置顶' : '置顶'
+    await ElMessageBox.confirm(`确定要${action}这个帖子吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await togglePinPost(post.id, !post.isPinned)
+    ElMessage.success(`${action}成功`)
+    loadPosts()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('操作失败:', error)
+      ElMessage.error('操作失败')
     }
   }
 }
