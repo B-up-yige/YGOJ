@@ -176,8 +176,6 @@
               <div class="col-problem">题目</div>
               <div class="col-user">用户</div>
               <div class="col-status">状态</div>
-              <div class="col-time">时间</div>
-              <div class="col-memory">内存</div>
             </div>
             <div v-for="record in recentRecords" :key="record.id" 
                  class="table-row record-row"
@@ -197,20 +195,6 @@
                 <el-tag :type="getStatusType(record.status)" size="small" effect="light">
                   {{ getStatusText(record.status) }}
                 </el-tag>
-              </div>
-              <div class="col-time">
-                <span v-if="record.time" class="perf-stat">
-                  <el-icon><Clock /></el-icon>
-                  {{ record.time }}ms
-                </span>
-                <span v-else class="perf-stat">-</span>
-              </div>
-              <div class="col-memory">
-                <span v-if="record.memory" class="perf-stat">
-                  <el-icon><Cpu /></el-icon>
-                  {{ record.memory }}KB
-                </span>
-                <span v-else class="perf-stat">-</span>
               </div>
             </div>
             <el-empty v-if="recentRecords.length === 0" description="暂无提交记录" :image-size="60" />
@@ -626,7 +610,7 @@ onMounted(() => {
 
 /* Record header */
 .record-header {
-  grid-template-columns: 100px 1.5fr 120px 120px 100px 100px;
+  grid-template-columns: 100px 2fr 120px 120px;
 }
 
 /* Discussion header */
@@ -748,7 +732,7 @@ onMounted(() => {
 
 /* Record Row */
 .record-row {
-  grid-template-columns: 100px 1.5fr 120px 120px 100px 100px;
+  grid-template-columns: 100px 2fr 120px 120px;
 }
 
 .record-row .col-id {
@@ -775,18 +759,6 @@ onMounted(() => {
 
 .record-row .col-status {
   justify-self: center;
-}
-
-.record-row .col-time,
-.record-row .col-memory {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.record-row .col-time .perf-stat,
-.record-row .col-memory .perf-stat {
-  margin-right: 0;
 }
 
 /* Discussion Row */
