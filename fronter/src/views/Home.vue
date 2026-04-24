@@ -94,7 +94,7 @@
               </div>
               <div class="col-author">
                 <el-icon><User /></el-icon>
-                #{{ problemset.createUser || '未知' }}
+                {{ problemset.author?.nickname || problemset.author?.username || `#${problemset.authorId || '未知'}` }}
               </div>
             </div>
             <el-empty v-if="recentProblemsets.length === 0" description="暂无题集" :image-size="60" />
@@ -189,7 +189,7 @@
               </div>
               <div class="col-user">
                 <el-icon><User /></el-icon>
-                #{{ record.userId || '未知' }}
+                {{ record.userName || record.userNickname || `#${record.userId || '未知'}` }}
               </div>
               <div class="col-status">
                 <el-tag :type="getStatusType(record.status)" size="small" effect="light">
