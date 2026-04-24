@@ -53,20 +53,28 @@
             <span>{{ row.permission }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" fixed="right" min-width="250">
+        <el-table-column label="操作" fixed="right" min-width="320">
           <template #default="{ row }">
             <el-button 
               size="small" 
-              :disabled="row.role === 'ADMIN'"
+              :disabled="row.role === 'ADMIN' || row.role === 'SUPER_ADMIN'"
               @click="showEditDialog(row)"
             >
               编辑权限
             </el-button>
             <el-button 
-              v-if="row.isBanned !== 1"
               size="small" 
               type="warning"
-              :disabled="row.role === 'ADMIN'"
+              :disabled="row.role === 'SUPER_ADMIN'"
+              @click="showResetPasswordDialog(row)"
+            >
+              重置密码
+            </el-button>
+            <el-button 
+              v-if="row.isBanned !== 1"
+              size="small" 
+              type="danger"
+              :disabled="row.role === 'ADMIN' || row.role === 'SUPER_ADMIN'"
               @click="handleBanUser(row, true)"
             >
               拉黑
@@ -75,6 +83,7 @@
               v-else
               size="small" 
               type="success"
+              :disabled="row.role === 'SUPER_ADMIN'"
               @click="handleBanUser(row, false)"
             >
               解禁
@@ -174,6 +183,15 @@ const editForm = ref({
 
 const selectedPermissions = ref([])
 
+const resetPasswordDialogVisible = ref(false)
+const resettingPassword = ref(false)
+const resetPasswordForm = ref({
+  userId: null,
+  username: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
 // 权限列表定义（18个权限位）
 const permissionList = [
   { bit: 0, name: '代码提交' },
@@ -247,9 +265,13 @@ const loadUsers = async () => {
 
 // 显示编辑对话框
 const showEditDialog = (user) => {
-  // 禁止编辑管理员的权限
+  // 禁止编辑管理员和超级管理员的权限
   if (user.role === 'ADMIN') {
     ElMessage.warning('管理员拥有所有权限，无法编辑')
+    return
+  }
+  if (user.role === 'SUPER_ADMIN') {
+    ElMessage.warning('超级管理员权限不可编辑')
     return
   }
   
@@ -273,9 +295,13 @@ const showEditDialog = (user) => {
 
 // 更新用户权限
 const handleUpdatePermission = async () => {
-  // 禁止修改管理员权限
+  // 禁止修改管理员和超级管理员权限
   if (editForm.value.role === 'ADMIN') {
     ElMessage.warning('不能修改管理员的权限')
+    return
+  }
+  if (editForm.value.role === 'SUPER_ADMIN') {
+    ElMessage.warning('不能修改超级管理员的权限')
     return
   }
   
@@ -338,6 +364,77 @@ const handleBanUser = async (user, isBanned) => {
       console.error('操作失败:', error)
       ElMessage.error('操作失败')
     }
+  }
+}
+
+// 显示重置密码对话框
+const showResetPasswordDialog = (user) => {
+  // 禁止重置超级管理员密码
+  if (user.role === 'SUPER_ADMIN') {
+    ElMessage.warning('不能重置超级管理员的密码')
+    return
+  }
+  
+  resetPasswordForm.value = {
+    userId: user.id,
+    username: user.username,
+    newPassword: '',
+    confirmPassword: ''
+  }
+  
+  resetPasswordDialogVisible.value = true
+}
+
+// 重置用户密码
+const handleResetPassword = async () => {
+  // 验证表单
+  if (!resetPasswordForm.value.newPassword) {
+    ElMessage.warning('请输入新密码')
+    return
+  }
+  if (!resetPasswordForm.value.confirmPassword) {
+    ElMessage.warning('请确认新密码')
+    return
+  }
+  if (resetPasswordForm.value.newPassword !== resetPasswordForm.value.confirmPassword) {
+    ElMessage.error('两次输入的密码不一致')
+    return
+  }
+  
+  // 验证密码格式
+  const passwordRegex = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{}|;:'",.<>/?]+$/
+  if (!passwordRegex.test(resetPasswordForm.value.newPassword)) {
+    ElMessage.error('密码只能由字母、数字和特殊符号组成')
+    return
+  }
+  
+  resettingPassword.value = true
+  try {
+    const token = localStorage.getItem('token')
+    const response = await axios.put(`/api/user/admin/user/reset-password/${resetPasswordForm.value.userId}`, {
+      newPassword: resetPasswordForm.value.newPassword
+    }, {
+      headers: {
+        'Authorization': token
+      }
+    })
+    
+    if (response.data.code === 200) {
+      ElMessage.success('密码重置成功')
+      resetPasswordDialogVisible.value = false
+      loadUsers()
+    } else {
+      ElMessage.error(response.data.message || '密码重置失败')
+    }
+  } catch (error) {
+    console.error('重置密码失败:', error)
+    if (error.response && error.response.data && error.response.data.message) {
+      ElMessage.error(error.response.data.message)
+    } else {
+      ElMessage.error('重置密码失败')
+    }
+  } finally {
+    resettingPassword.value = false
   }
 }
 

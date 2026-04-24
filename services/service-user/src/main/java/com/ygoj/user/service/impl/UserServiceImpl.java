@@ -363,9 +363,12 @@ public class UserServiceImpl implements UserService {
                 return Result.error(404, "用户不存在");
             }
             
-            // 不允许拉黑管理员账号
+            // 不允许拉黑管理员和超级管理员账号
             if ("ADMIN".equals(user.getRole())) {
                 return Result.error(403, "不能拉黑管理员账号");
+            }
+            if ("SUPER_ADMIN".equals(user.getRole())) {
+                return Result.error(403, "不能拉黑超级管理员账号");
             }
             
             // 更新拉黑状态
@@ -464,6 +467,45 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             log.error("修改密码异常, userId: {}", userId, e);
             return Result.error(500, "修改密码失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 管理员重置用户密码
+     */
+    @Override
+    public Result resetUserPassword(Long userId, String newPassword) {
+        try {
+            log.info("管理员重置用户密码, userId: {}", userId);
+            
+            Userinfo user = userinfoMapper.selectById(userId);
+            if (user == null) {
+                return Result.error(404, "用户不存在");
+            }
+            
+            // 不允许重置超级管理员密码
+            if ("SUPER_ADMIN".equals(user.getRole())) {
+                return Result.error(403, "不能重置超级管理员的密码");
+            }
+            
+            // 验证新密码格式
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                return Result.error(400, "新密码不能为空");
+            }
+            if (!cn.hutool.core.lang.Validator.isMatchRegex("^[a-zA-Z0-9!@#$%^&*()_+\\-=\\[\\]{}|;:'\",.<>/?]+$", newPassword)) {
+                return Result.error(400, "密码只能由字母、数字和特殊符号组成");
+            }
+            
+            // 加密新密码
+            String encryptedNewPassword = DigestUtil.md5Hex(newPassword);
+            user.setPassword(encryptedNewPassword);
+            userinfoMapper.updateById(user);
+            
+            log.info("用户密码重置成功, userId: {}", userId);
+            return Result.success("密码重置成功");
+        } catch (Exception e) {
+            log.error("重置用户密码异常, userId: {}", userId, e);
+            return Result.error(500, "重置密码失败: " + e.getMessage());
         }
     }
 }

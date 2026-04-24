@@ -40,4 +40,9 @@ public interface UserService {
      * 修改密码
      */
     Result changePassword(Long userId, String oldPassword, String newPassword);
+    
+    /**
+     * 管理员重置用户密码
+     */
+    Result resetUserPassword(Long userId, String newPassword);
 }

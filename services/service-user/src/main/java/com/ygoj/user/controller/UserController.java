@@ -308,6 +308,50 @@ public class UserController {
     }
 
     /**
+     * 重置用户密码(仅超级管理员 - 需要用户管理权限)
+     */
+    @PreAuthorize("hasAuthority('USER_MANAGE')")
+    @PutMapping("/admin/user/reset-password/{id}")
+    public Result resetUserPassword(@PathVariable Long id, @RequestBody Map<String, Object> params) {
+        try {
+            // 获取当前用户ID
+            Long currentUserId = com.ygoj.common.security.SecurityUtils.getCurrentUserId();
+            if (currentUserId == null) {
+                return Result.error(401, "未登录或登录已过期");
+            }
+            
+            // 检查当前用户是否为超级管理员
+            com.ygoj.user.Userinfo currentUser = userService.getUserinfoById(currentUserId);
+            if (currentUser == null || !"SUPER_ADMIN".equals(currentUser.getRole())) {
+                log.warn("非超级管理员尝试重置用户密码, currentUserId: {}", currentUserId);
+                return Result.error(403, "只有超级管理员才能重置用户密码");
+            }
+            
+            // 检查是否尝试修改自己的密码
+            if (currentUserId.equals(id)) {
+                log.warn("超级管理员尝试重置自己的密码, userId: {}", currentUserId);
+                return Result.error(403, "超级管理员不能重置自己的密码，请使用修改密码功能");
+            }
+            
+            log.info("超级管理员重置用户密码请求, targetUserId: {}", id);
+            
+            if (id == null) {
+                return Result.error(400, "用户ID不能为空");
+            }
+            
+            String newPassword = (String) params.get("newPassword");
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                return Result.error(400, "新密码不能为空");
+            }
+            
+            return userService.resetUserPassword(id, newPassword);
+        } catch (Exception e) {
+            log.error("重置用户密码失败, userId: {}", id, e);
+            return Result.error(500, "重置密码失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 更新用户信息（昵称、邮箱）(需要登录)
      */
     @PreAuthorize("isAuthenticated()")
