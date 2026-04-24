@@ -211,7 +211,23 @@ public class ContestServiceImpl implements ContestService {
             LambdaQueryWrapper<ContestProblem> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(ContestProblem::getContestId, contestId)
                    .orderByAsc(ContestProblem::getProblemOrder);
-            return contestProblemMapper.selectList(wrapper);
+            List<ContestProblem> problems = contestProblemMapper.selectList(wrapper);
+            
+            // 填充题目名称
+            for (ContestProblem problem : problems) {
+                if (problem.getProblemId() != null) {
+                    try {
+                        Probleminfo probleminfo = probleminfoMapper.selectById(problem.getProblemId());
+                        if (probleminfo != null) {
+                            problem.setProblemTitle(probleminfo.getTitle());
+                        }
+                    } catch (Exception e) {
+                        log.warn("获取题目信息失败, problemId: {}", problem.getProblemId(), e);
+                    }
+                }
+            }
+            
+            return problems;
         } catch (Exception e) {
             log.error("获取比赛题目列表异常, contestId: {}", contestId, e);
             throw new RuntimeException("获取比赛题目列表失败: " + e.getMessage(), e);

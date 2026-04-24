@@ -219,7 +219,23 @@ public class ProblemsetServiceImpl implements ProblemsetService {
             LambdaQueryWrapper<ProblemsetProblem> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(ProblemsetProblem::getProblemsetId, problemsetId)
                    .orderByDesc(ProblemsetProblem::getAddedAt);
-            return problemsetProblemMapper.selectList(wrapper);
+            List<ProblemsetProblem> problems = problemsetProblemMapper.selectList(wrapper);
+            
+            // 填充题目名称
+            for (ProblemsetProblem problem : problems) {
+                if (problem.getProblemId() != null) {
+                    try {
+                        Probleminfo probleminfo = probleminfoMapper.selectById(problem.getProblemId());
+                        if (probleminfo != null) {
+                            problem.setProblemTitle(probleminfo.getTitle());
+                        }
+                    } catch (Exception e) {
+                        log.warn("获取题目信息失败, problemId: {}", problem.getProblemId(), e);
+                    }
+                }
+            }
+            
+            return problems;
         } catch (Exception e) {
             log.error("获取题集题目列表异常, problemsetId: {}", problemsetId, e);
             throw new RuntimeException("获取题集题目列表失败: " + e.getMessage(), e);

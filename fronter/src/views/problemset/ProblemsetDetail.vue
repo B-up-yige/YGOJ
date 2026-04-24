@@ -49,7 +49,11 @@
             </el-button>
           </div>
           <el-table :data="problems" style="width: 100%">
-            <el-table-column prop="problemId" label="题目ID" width="120" />
+            <el-table-column prop="problemTitle" label="题目标题" min-width="250">
+              <template #default="scope">
+                <span>{{ scope.row.problemTitle || '未知题目' }}</span>
+              </template>
+            </el-table-column>
             <el-table-column label="我的状态" width="150">
               <template #default="scope">
                 <el-tag v-if="userProgress[scope.row.problemId]" :type="getStatusTagType(userProgress[scope.row.problemId])">
