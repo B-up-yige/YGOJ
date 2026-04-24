@@ -4,8 +4,10 @@
 
 ## 目录
 
+- [项目架构](#项目架构)
 - [技术栈](#技术栈)
 - [权限系统](#权限系统)
+- [讨论区功能](#讨论区功能)
 - [Docker 部署架构](#docker-部署架构)
 - [配置管理](#配置管理)
 - [服务端口说明](#服务端口说明)
@@ -17,24 +19,92 @@
 ## 技术栈
 
 ### 后端框架
-- **Spring Cloud** - 微服务框架
+- **Spring Boot**: 3.3.4 - 核心框架
+- **Spring Cloud**: 2023.0.3 - 微服务框架
+- **Spring Cloud Alibaba**: 2023.0.3.2 - 阿里微服务组件
 - **Spring Security** - 安全认证与授权框架
+- **JWT (Hutool)** - 无状态认证
+- **MyBatis Plus** - ORM 框架
+- **OpenFeign** - 服务间调用
+
+### 微服务组件
 - **Nacos 2.4.3** - 服务注册与配置中心
 - **Sentinel 1.8.6** - 流量控制与熔断降级
 - **Seata 2.1.0** - 分布式事务
 - **Spring Cloud Gateway** - API 网关
-- **JWT** - 无状态认证
 
 ### 数据存储
 - **MySQL 5.7.40** - 关系型数据库
-- **Redis** - 缓存
-- **RabbitMQ** - 消息队列
+- **Redis (Latest)** - 缓存与 Token 存储
+- **RabbitMQ 3.x (Management)** - 消息队列
+
+### 判题系统
+- **Docker Java 3.3.0** - Docker API 客户端
+- **HttpClient5** - HTTP 客户端
+
+### 工具库
+- **Lombok** - 简化 Java 代码
+- **Hutool 5.8.43** - Java 工具类库
+- **Fastjson2 2.0.57** - JSON 处理
 
 ### 前端
-- **Vue 3** - 前端框架
-- **Vite** - 构建工具
-- **Element Plus** - UI 组件库
-- **Pinia** - 状态管理
+- **Vue 3.5.29** - 前端框架
+- **Vite 7.3.1** - 构建工具
+- **Element Plus 2.13.5** - UI 组件库
+- **Pinia 3.0.4** - 状态管理
+- **Vue Router 5.0.3** - 路由管理
+- **Axios 1.13.6** - HTTP 客户端
+- **ECharts 6.0.0** - 数据可视化
+- **Markdown-it 14.1.1** - Markdown 渲染
+
+### 开发环境
+- **JDK 17** - Java 运行环境
+- **Maven 3.9.6** - 项目构建工具
+- **Node.js 20.19+ / 22.12+** - 前端运行环境
+- **Docker & Docker Compose** - 容器化部署
+
+---
+
+## 项目架构
+
+### 微服务架构
+
+YGOJ 采用 Spring Cloud 微服务架构，包含以下核心服务：
+
+| 服务名称 | 端口 | 说明 |
+|---------|------|------|
+| **gateway** | 80 | API 网关，统一入口，负责路由转发、鉴权 |
+| **service-user** | 8001 | 用户服务，处理用户注册、登录、信息管理 |
+| **service-problem** | 8000 | 题目服务，管理题目、比赛、题集 |
+| **service-record** | 8002 | 提交记录服务，处理代码提交与结果查询 |
+| **service-judger** | 8003 | 判题服务，基于 Docker 容器执行代码 |
+| **service-discuss** | 8004 | 讨论区服务，管理帖子与评论 |
+| **file-system** | 9201 | 文件服务，存储测试用例与上传文件 |
+
+ps: 端口不会实际占用宿主机端口
+
+### 中间件
+
+| 中间件 | 版本 | 用途 |
+|-------|------|------|
+| **Nacos** | 2.4.3 | 服务注册发现、配置中心 |
+| **MySQL** | 5.7.40 | 数据存储（user/problem/record/discuss 库） |
+| **Redis** | Latest | 缓存、JWT Token 存储 |
+| **RabbitMQ** | 3.x | 消息队列，异步判题任务 |
+| **Seata** | 2.1.0 | 分布式事务协调 |
+| **Sentinel** | 1.8.6 | 流量控制、熔断降级 |
+
+### 数据流
+
+```
+用户请求 → Gateway (80) → 微服务
+                          ↓
+                   Nacos (服务发现)
+                          ↓
+              MySQL / Redis / RabbitMQ
+                          ↓
+                  Judger (Docker 判题)
+```
 
 ---
 
@@ -131,34 +201,37 @@ const isAdmin = computed(() => userStore.isAdmin)
 ### 权限映射说明
 
 **角色列表：**
+- `SUPER_ADMIN` - 超级管理员（只有一个，初始 admin 账号，拥有所有权限）
+- `ADMIN` - 管理员
 - `USER` - 普通用户
-- `ADMIN` - 系统管理员（拥有所有角色和权限）
-- `CONTEST_ADMIN` - 比赛管理员
-- `PROBLEM_ADMIN` - 题目管理员
 
-**权限列表（基于位运算，共15个权限位）：**
+**权限列表（基于位运算，共18个权限位）：**
 
 | 权限常量 | 权限字符串 | 说明 | 位索引 |
 |---------|-----------|------|--------|
-| PERM_PROBLEM_VIEW | problem:view | 查看题目 | 0 |
-| PERM_PROBLEM_SUBMIT | problem:submit | 提交代码 | 1 |
+| PERM_PROBLEM_SUBMIT | problem:submit | 提交代码 | 0 |
+| PERM_CONTEST_JOIN | contest:join | 参加比赛 | 1 |
 | PERM_PROBLEM_CREATE | problem:create | 创建题目 | 2 |
-| PERM_PROBLEM_EDIT | problem:edit | 编辑题目 | 3 |
-| PERM_PROBLEM_DELETE | problem:delete | 删除题目 | 4 |
-| PERM_RECORD_VIEW | record:view | 查看提交记录 | 5 |
-| PERM_RANKING_VIEW | ranking:view | 查看排行榜 | 6 |
-| PERM_CONTEST_CREATE | contest:create | 创建比赛 | 7 |
-| PERM_CONTEST_MANAGE | contest:manage | 管理比赛 | 8 |
-| PERM_CONTEST_JOIN | contest:join | 参加比赛 | 9 |
-| PERM_PROBLEMSET_CREATE | problemset:create | 创建题集 | 10 |
-| PERM_PROBLEMSET_MANAGE | problemset:manage | 管理题集 | 11 |
-| PERM_PROBLEMSET_VIEW | problemset:view | 查看题集 | 12 |
-| PERM_USER_MANAGE | user:manage | 用户管理 | 13 |
-| PERM_SYSTEM_CONFIG | system:config | 系统配置（重测等） | 14 |
+| PERM_PROBLEM_MANAGE_OWN | problem:manage:own | 管理自己的题目 | 3 |
+| PERM_PROBLEM_MANAGE_ALL | problem:manage:all | 管理所有题目 | 4 |
+| PERM_CONTEST_CREATE | contest:create | 创建比赛 | 5 |
+| PERM_CONTEST_MANAGE_OWN | contest:manage:own | 管理自己的比赛 | 6 |
+| PERM_CONTEST_MANAGE_ALL | contest:manage:all | 管理所有比赛 | 7 |
+| PERM_PROBLEMSET_CREATE | problemset:create | 创建题集 | 8 |
+| PERM_PROBLEMSET_MANAGE_OWN | problemset:manage:own | 管理自己的题集 | 9 |
+| PERM_PROBLEMSET_MANAGE_ALL | problemset:manage:all | 管理所有题集 | 10 |
+| PERM_POST_CREATE | post:create | 创建帖子 | 11 |
+| PERM_POST_MANAGE_OWN | post:manage:own | 管理自己的帖子 | 12 |
+| PERM_POST_MANAGE_ALL | post:manage:all | 管理所有帖子 | 13 |
+| PERM_COMMENT_CREATE | comment:create | 发表评论 | 14 |
+| PERM_COMMENT_DELETE_OWN | comment:delete:own | 删除自己的评论 | 15 |
+| PERM_COMMENT_DELETE_ALL | comment:delete:all | 删除所有评论 | 16 |
+| PERM_USER_MANAGE | user:manage | 用户管理 | 17 |
 
 **注意：** 
-- 已移除不存在的权限：`PERM_SOLUTION_VIEW`, `PERM_SOLUTION_CREATE`
-- 权限位索引从 0 到 14，共 15 个权限
+- 权限位索引从 0 到 17，共 **18 个权限**
+- 采用细粒度权限设计，区分「管理自己的」和「管理所有的」权限
+- 所有权限均使用位运算存储，高效且易于扩展
 
 ### 数据库配置
 
@@ -173,37 +246,195 @@ permission BIGINT DEFAULT 3
 ```
 
 **权限值说明：**
-- 数据库中存储位运算值（如 7 = 第0、1、2位）
-- JwtAuthenticationFilter 会自动将其转换为权限字符串（如 "problem:view", "problem:submit", "problem:create"）
+- 数据库中存储位运算值（如 7 = 第0、1、2位同时设置）
+- JwtAuthenticationFilter 会自动将其转换为权限字符串（如 "problem:submit", "contest:join", "problem:create"）
 - 前端和后端代码中使用权限常量进行判断
+- 权限计算公式：将需要的权限位设置为1，然后转换为十进制（例如：拥有位0和位2 = 2^0 + 2^2 = 1 + 4 = 5）
 
 **初始管理员账号：**
 
-系统初始化时会自动创建一个默认管理员账号：
+系统初始化时会自动创建一个默认超级管理员账号：
 
 - **用户名**: `admin`
 - **密码**: `Admin@123456`
-- **角色**: `ADMIN`
-- **权限值**: `32767` (拥有所有15个权限)
+- **角色**: `SUPER_ADMIN`
+- **权限值**: `262143` (拥有所有18个权限，二进制: 111111111111111111)
 - **邮箱**: `admin@ygoj.com`
 
 使用该账号登录后，可以访问「系统管理」页面管理其他用户的权限。
 
 **设置用户权限示例：**
 ```sql
--- 设置普通用户（查看题目 + 提交代码）
+-- 设置普通用户（提交代码 + 参加比赛）
+-- 二进制: 11 (位0和位1) = 3
 UPDATE userinfo SET role = 'USER', permission = 3 WHERE id = ?;
 
--- 设置题目管理员（题目相关所有权限: 位0-4）
--- 二进制: 11111 = 31
-UPDATE userinfo SET role = 'USER', permission = 31 WHERE id = ?;
+-- 设置题目管理员（创建题目 + 管理自己的题目）
+-- 二进制: 1100 (位2和位3) = 12
+UPDATE userinfo SET role = 'USER', permission = 12 WHERE id = ?;
 
--- 设置超级管理员（所有15个权限）
--- 二进制: 111111111111111 = 32767
-UPDATE userinfo SET role = 'ADMIN', permission = 32767 WHERE id = ?;
+-- 设置讨论区管理员（创建帖子 + 管理所有帖子 + 管理所有评论）
+-- 二进制: 1110000000000 (位11、13、16) = 2^11 + 2^13 + 2^16 = 2048 + 8192 + 65536 = 75776
+UPDATE userinfo SET role = 'USER', permission = 75776 WHERE id = ?;
+
+-- 设置超级管理员（所有18个权限）
+-- 二进制: 111111111111111111 = 262143
+UPDATE userinfo SET role = 'SUPER_ADMIN', permission = 262143 WHERE id = ?;
 ```
 
 > **注意**：修改用户权限后，用户需要重新登录才能生效。
+
+---
+
+## 讨论区功能
+
+### 概述
+
+YGOJ 内置了完整的讨论区系统，支持用户发帖、评论、分类管理等功能。
+
+### 核心功能
+
+1. **板块分类**：支持多个讨论板块（综合讨论、题目求助、算法交流、Bug反馈、建议意见）
+2. **帖子管理**：创建、编辑、删除帖子，支持 Markdown 格式
+3. **评论系统**：支持对帖子进行评论和回复
+4. **置顶/锁定**：管理员可以置顶或锁定帖子
+5. **浏览量统计**：自动记录帖子浏览量和评论数
+6. **权限控制**：基于 Spring Security 的细粒度权限管理
+
+### 数据库设计
+
+#### discussion_post (帖子表)
+```sql
+CREATE TABLE `discussion_post` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `title` VARCHAR(200) NOT NULL COMMENT '标题',
+  `content` TEXT NOT NULL COMMENT '内容(Markdown)',
+  `author_id` INT NOT NULL COMMENT '作者ID',
+  `category` VARCHAR(50) DEFAULT 'GENERAL' COMMENT '板块分类',
+  `view_count` INT DEFAULT 0 COMMENT '浏览量',
+  `comment_count` INT DEFAULT 0 COMMENT '评论数',
+  `is_pinned` TINYINT(1) DEFAULT 0 COMMENT '是否置顶',
+  `is_locked` TINYINT(1) DEFAULT 0 COMMENT '是否锁定',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+#### discussion_comment (评论表)
+```sql
+CREATE TABLE `discussion_comment` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `post_id` INT NOT NULL COMMENT '帖子ID',
+  `author_id` INT NOT NULL COMMENT '作者ID',
+  `parent_id` INT DEFAULT NULL COMMENT '父评论ID(用于回复)',
+  `content` TEXT NOT NULL COMMENT '评论内容',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+### 后端实现
+
+**服务位置**: `services/service-discuss`
+
+**核心组件**:
+- `DiscussionController`: REST API 控制器
+- `DiscussionService`: 业务逻辑层
+- `DiscussionPostMapper` / `DiscussionCommentMapper`: MyBatis Plus Mapper
+- `UserFeignClient`: 通过 Feign 调用用户服务获取作者信息
+
+**主要接口**:
+```java
+// 帖子相关
+GET    /discuss/post/list          // 分页获取帖子列表
+GET    /discuss/post/{id}          // 获取帖子详情
+POST   /discuss/post               // 创建帖子
+PUT    /discuss/post               // 更新帖子
+DELETE /discuss/post/{id}          // 删除帖子
+PUT    /discuss/post/pin           // 置顶/取消置顶
+
+// 评论相关
+GET    /discuss/comment/{postId}   // 获取帖子的评论列表
+POST   /discuss/comment            // 创建评论
+DELETE /discuss/comment/{id}       // 删除评论
+```
+
+### 前端实现
+
+**页面位置**: `fronter/src/views/discussion/`
+
+**核心页面**:
+- `DiscussionList.vue`: 帖子列表页，支持板块筛选、分页
+- `DiscussionDetail.vue`: 帖子详情页，显示内容和评论
+- `DiscussionCreate.vue`: 创建/编辑帖子页，支持 Markdown 编辑器
+- `CategoryManage.vue`: 板块管理页（仅管理员）
+
+**Markdown 支持**:
+- 使用 `markdown-it` 库渲染 Markdown 内容
+- 提供三种编辑模式：纯编辑、纯预览、分屏编辑
+- 支持标题、粗体、列表、代码块、表格等常用语法
+
+### 权限配置
+
+讨论区相关权限常量定义在 `PermissionConstants.java`:
+
+**位运算权限常量：**
+```java
+public static final int PERM_POST_CREATE = 11;              // 创建帖子
+public static final int PERM_POST_MANAGE_OWN = 12;          // 管理自己的帖子
+public static final int PERM_POST_MANAGE_ALL = 13;          // 管理所有帖子
+public static final int PERM_COMMENT_CREATE = 14;           // 发表评论
+public static final int PERM_COMMENT_DELETE_OWN = 15;       // 删除自己的评论
+public static final int PERM_COMMENT_DELETE_ALL = 16;       // 删除所有评论
+```
+
+**自定义权限字符串：**
+```java
+// 帖子权限
+public static final String CUSTOM_POST_CREATE = "post:create";
+public static final String CUSTOM_POST_MANAGE_OWN = "post:manage:own";
+public static final String CUSTOM_POST_MANAGE_ALL = "post:manage:all";
+
+// 评论权限
+public static final String CUSTOM_COMMENT_CREATE = "comment:create";
+public static final String CUSTOM_COMMENT_DELETE_OWN = "comment:delete:own";
+public static final String CUSTOM_COMMENT_DELETE_ALL = "comment:delete:all";
+```
+
+**默认权限分配：**
+- 新用户注册默认拥有：`PERM_PROBLEM_SUBMIT`(0), `PERM_CONTEST_JOIN`(1)
+  - 权限值 = 2^0 + 2^1 = 3
+  - 包含：提交代码、参加比赛
+- 如需添加讨论区权限，需手动设置：
+  - 基础讨论权限（发帖+评论）：位11和位14 = 2^11 + 2^14 = 2048 + 16384 = 18432
+  - 完整讨论权限（含管理）：位11-16 = 2^11 + 2^12 + 2^13 + 2^14 + 2^15 + 2^16 = 131072
+
+### 使用示例
+
+**创建帖子**:
+```vue
+<template>
+  <el-button v-permission="PERMISSIONS.CUSTOM_POST_CREATE">
+    发布新帖
+  </el-button>
+</template>
+
+<script setup>
+import { PERMISSIONS } from '@/stores/user'
+</script>
+```
+
+**后端权限控制**:
+```java
+@PreAuthorize("hasAuthority('CUSTOM_POST_CREATE')")
+@PostMapping("/post")
+public Result createPost(@RequestBody DiscussionPost post) {
+    discussionService.createPost(post);
+    return Result.success();
+}
+```
+
+---
 
 ### JWT Token 结构
 
@@ -268,23 +499,19 @@ axios.get('/api/problem/1', {
 1. 权限常量定义在 `stores/user.js` 的 `PERMISSIONS` 对象中
 2. 使用 `v-permission` 指令控制按钮显示/隐藏
 3. 使用 `useUserStore().hasPermission()` 检查权限
-4. 使用 `useUserStore().isAdmin` 检查是否为管理员
-5. 权限位索引必须与后端保持一致（0-14）
+4. 使用 `useUserStore().isSuperAdmin` 或 `useUserStore().isAdmin` 检查角色
+5. 权限位索引必须与后端保持一致（0-17）
 6. 用户登录后，权限信息会自动存储在 Pinia store 和 localStorage 中
 7. 前端文档详见 `fronter/PERMISSION_USAGE.md`
 
 **数据库配置：**
-1. 管理员默认权限值为 32767（2^15 - 1）
-2. **新用户注册默认权限值为 5731**，包含以下权限：
-   - 查看题目 (位0)
-   - 提交代码 (位1)
-   - 查看提交记录 (位5)
-   - 查看排行榜 (位6)
-   - 参加比赛 (位9)
-   - 创建题集 (位10)
-   - 查看题集 (位12)
-3. 权限值计算公式：将需要的权限位设置为1，然后转换为十进制
-4. 示例：拥有位0、2、3的权限 = 2^0 + 2^2 + 2^3 = 1 + 4 + 8 = 13
+1. 超级管理员默认权限值为 262143（2^18 - 1，拥有所有18个权限）
+2. **新用户注册默认权限值为 3**，包含以下权限：
+   - 提交代码 (位0)
+   - 参加比赛 (位1)
+3. 如需添加更多权限，参考权限列表中的位索引进行计算
+4. 权限值计算公式：将需要的权限位设置为1，然后转换为十进制
+5. 示例：拥有位0、2、3的权限 = 2^0 + 2^2 + 2^3 = 1 + 4 + 8 = 13
 
 ---
 
@@ -427,6 +654,7 @@ environment:
 | Service Problem | 8000 | 题目服务 |
 | Service Record | 8002 | 提交记录服务 |
 | Service Judger | 8003 | 判题服务 |
+| Service Discuss | 8004 | 讨论区服务 |
 | File System | 9201 | 文件服务 |
 | Seata | 8091 | 分布式事务 |
 | Sentinel | 8858 | 流量控制 |
@@ -437,9 +665,14 @@ environment:
 
 ## 常用命令
 
+### Docker Compose 命令
+
 ```bash
-# 完整部署
+# 完整部署（首次构建）
 docker-compose up -d --build
+
+# 启动所有服务
+docker-compose up -d
 
 # 查看服务状态
 docker-compose ps
@@ -455,6 +688,58 @@ docker-compose down
 
 # 停止并清理数据卷（谨慎使用）
 docker-compose down -v
+```
+
+### 部署脚本命令
+
+```bash
+# Linux: 赋予执行权限
+chmod +x deploy.sh
+
+# 交互式菜单
+sudo ./deploy.sh
+
+# 直接部署
+sudo ./deploy.sh 1
+
+# Docker 换源
+sudo ./deploy.sh 2
+
+# 更新并部署（git pull + 部署）
+sudo ./deploy.sh 3
+```
+
+### 调试命令
+
+```bash
+# 进入 MySQL 容器
+docker exec -it ygoj-mysql mysql -uygoj -pygoj123456
+
+# 进入 Redis 容器
+docker exec -it ygoj-redis redis-cli
+
+# 查看容器环境变量
+docker exec ygoj-service-user env | grep MYSQL
+
+# 测试容器间连通性
+docker exec ygoj-gateway ping mysql
+docker exec ygoj-service-user ping redis
+
+# 临时暴露内部服务端口（调试用）
+docker run --rm -it --network ygoj_ygoj-network nicolaka/netshoot ping mysql
+```
+
+### Maven 命令
+
+```bash
+# 构建整个项目
+mvn clean package
+
+# 跳过测试构建
+mvn clean package -DskipTests
+
+# 构建指定模块
+mvn clean package -pl services/service-user -am
 ```
 
 ---
@@ -494,28 +779,10 @@ docker exec ygoj-service-user ping redis
 
 ---
 
-## 调试技巧
-
-```bash
-# 进入 MySQL 容器
-docker exec -it ygoj-mysql mysql -uroot -p
-
-# 进入 Redis 容器
-docker exec -it ygoj-redis redis-cli
-
-# 查看容器环境变量
-docker exec ygoj-service-user env | grep MYSQL
-
-# 临时暴露内部服务端口（调试用）
-docker run --rm -it --network ygoj_ygoj-network nicolaka/netshoot ping mysql
-```
-
----
-
 ## 注意事项
 
 1. **脚本会自动安装 Maven 3.9.6 并执行项目构建**
-2. 数据库会自动初始化
+2. 数据库会自动初始化（包括 user/problem/record/discuss 四个库）
 3. 文件数据持久化在 Docker volume `file-data` 中
 4. **仅需确保 80 和 3000 端口未被占用**（其他服务不暴露到宿主机）
 5. Nacos 默认账号密码: nacos/nacos
@@ -528,3 +795,4 @@ docker run --rm -it --network ygoj_ygoj-network nicolaka/netshoot ping mysql
 12. **Docker 镜像使用本地 JAR 包构建，提升构建速度**
 13. **所有配置通过 JVM 参数（-D）注入**，不使用环境变量占位符
 14. **内部服务通过 Docker Bridge 网络通信**，使用容器名作为主机名
+15. **讨论区服务 (service-discuss)** 提供完整的论坛功能，支持 Markdown、板块分类、评论回复
