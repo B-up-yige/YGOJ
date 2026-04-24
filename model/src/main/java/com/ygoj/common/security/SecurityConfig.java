@@ -78,6 +78,13 @@ public class SecurityConfig {
                     "/record/problemset-progress"
                 ).permitAll()
                 
+                // 公开接口 - 讨论区相关
+                .requestMatchers(
+                    "/discuss/posts",
+                    "/discuss/post/**",
+                    "/discuss/comments/**"
+                ).permitAll()
+                
                 // 公开接口 - 文件下载(判题服务异步调用,无法传递 JWT)
                 .requestMatchers("/file/download/**").permitAll()
                 
