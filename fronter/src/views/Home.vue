@@ -325,7 +325,7 @@ const goToRecords = () => {
 }
 
 const goToDiscussions = () => {
-  router.push('/discussions')
+  router.push('/discussion')
 }
 
 const createProblem = () => {
