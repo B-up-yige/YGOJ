@@ -33,8 +33,12 @@
 
       <div class="post-content markdown-body" v-html="renderedContent"></div>
 
-      <div class="post-actions" v-if="canEdit">
-        <el-button type="danger" @click="handleDelete">
+      <div class="post-actions" v-if="canEdit || canDelete">
+        <el-button type="primary" @click="handleEdit" v-if="canEdit">
+          <el-icon><Edit /></el-icon>
+          <span>编辑</span>
+        </el-button>
+        <el-button type="danger" @click="handleDelete" v-if="canDelete">
           <el-icon><Delete /></el-icon>
           <span>删除</span>
         </el-button>
@@ -99,9 +103,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Delete } from '@element-plus/icons-vue'
+import { ArrowLeft, Delete, Edit } from '@element-plus/icons-vue'
 import { getPostById, deletePost, getComments, createComment } from '@/api/discussion'
-import { useUserStore } from '@/stores/user'
+import { useUserStore, PERMISSIONS } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
 import { renderMarkdown } from '@/utils/markdown'
@@ -121,10 +125,39 @@ const renderedContent = computed(() => {
 })
 
 const canEdit = computed(() => {
-  if (!userStore.token) return false
-  // 管理员或作者可以删除
-  return userStore.userInfo?.role === 'ADMIN' || 
-         userStore.userInfo?.id === post.value?.authorId
+  if (!userStore.token || !post.value) return false
+  const currentUserId = userStore.userInfo?.id
+  
+  // 管理员权限可以编辑所有帖子
+  if (userStore.hasPermission(PERMISSIONS.PERM_POST_MANAGE_ALL)) {
+    return true
+  }
+  
+  // 作者本人且有管理自己帖子的权限
+  if (currentUserId === post.value.authorId && 
+      userStore.hasPermission(PERMISSIONS.PERM_POST_MANAGE_OWN)) {
+    return true
+  }
+  
+  return false
+})
+
+const canDelete = computed(() => {
+  if (!userStore.token || !post.value) return false
+  const currentUserId = userStore.userInfo?.id
+  
+  // 管理员权限可以删除所有帖子
+  if (userStore.hasPermission(PERMISSIONS.PERM_POST_MANAGE_ALL)) {
+    return true
+  }
+  
+  // 作者本人且有管理自己帖子的权限
+  if (currentUserId === post.value.authorId && 
+      userStore.hasPermission(PERMISSIONS.PERM_POST_MANAGE_OWN)) {
+    return true
+  }
+  
+  return false
 })
 
 const loadPost = async () => {
@@ -172,6 +205,10 @@ const handleSubmitComment = async () => {
   } finally {
     submitting.value = false
   }
+}
+
+const handleEdit = () => {
+  router.push(`/discussion/edit/${post.value.id}`)
 }
 
 const handleDelete = async () => {

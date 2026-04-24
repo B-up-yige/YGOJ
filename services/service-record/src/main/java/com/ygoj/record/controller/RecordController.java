@@ -255,7 +255,7 @@ public class RecordController {
      * @param id 提交记录ID
      * @return {@link Result}
      */
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SUPER_ADMIN')")
     @PostMapping("/rejudge/{id}")
     public Result rejudge(@PathVariable Long id) {
         try {

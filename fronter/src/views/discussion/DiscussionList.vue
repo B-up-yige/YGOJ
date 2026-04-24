@@ -75,6 +75,29 @@
           <span class="time-text">{{ formatTime(scope.row.createdAt) }}</span>
         </template>
       </el-table-column>
+      
+      <el-table-column label="操作" width="180" fixed="right">
+        <template #default="scope">
+          <div class="action-buttons">
+            <el-button 
+              size="small" 
+              type="primary" 
+              @click="handleEditPost(scope.row.id)"
+              v-if="canEditOrDelete(scope.row)"
+            >
+              编辑
+            </el-button>
+            <el-button 
+              size="small" 
+              type="danger" 
+              @click="handleDeletePost(scope.row)"
+              v-if="canEditOrDelete(scope.row)"
+            >
+              删除
+            </el-button>
+          </div>
+        </template>
+      </el-table-column>
     </el-table>
 
     <!-- 分页 -->
@@ -96,9 +119,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Plus, Setting } from '@element-plus/icons-vue'
-import { getPostList, getActiveCategories } from '@/api/discussion'
-import { useUserStore } from '@/stores/user'
-import { ElMessage } from 'element-plus'
+import { getPostList, getActiveCategories, deletePost } from '@/api/discussion'
+import { useUserStore, PERMISSIONS } from '@/stores/user'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
 
 const router = useRouter()
@@ -161,6 +184,50 @@ const handleSizeChange = (size) => {
 const handleCategoryChange = () => {
   currentPage.value = 1
   loadPosts()
+}
+
+// 检查是否可以编辑或删除帖子
+const canEditOrDelete = (post) => {
+  if (!userStore.token) return false
+  const currentUserId = userStore.userInfo?.id
+  
+  // 如果有管理所有帖子的权限
+  if (userStore.hasPermission(PERMISSIONS.PERM_POST_MANAGE_ALL)) {
+    return true
+  }
+  
+  // 如果是作者本人且有管理自己帖子的权限
+  if (currentUserId === post.authorId && 
+      userStore.hasPermission(PERMISSIONS.PERM_POST_MANAGE_OWN)) {
+    return true
+  }
+  
+  return false
+}
+
+// 编辑帖子
+const handleEditPost = (postId) => {
+  router.push(`/discussion/edit/${postId}`)
+}
+
+// 删除帖子
+const handleDeletePost = async (post) => {
+  try {
+    await ElMessageBox.confirm('确定要删除这个帖子吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await deletePost(post.id)
+    ElMessage.success('删除成功')
+    loadPosts()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除失败:', error)
+      ElMessage.error('删除失败')
+    }
+  }
 }
 
 // 加载板块列表
@@ -284,5 +351,11 @@ onMounted(() => {
   margin-top: 24px;
   display: flex;
   justify-content: flex-end;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
 }
 </style>

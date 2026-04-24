@@ -106,6 +106,26 @@ public class DiscussionController {
                 return Result.error(400, "帖子信息或ID不能为空");
             }
             
+            // 获取当前用户ID
+            Long currentUserId = com.ygoj.common.security.SecurityUtils.getCurrentUserId();
+            if (currentUserId == null) {
+                return Result.error(401, "未登录或登录已过期");
+            }
+            
+            // 检查权限：作者本人或管理员
+            DiscussionPost existingPost = discussionService.getPostById(post.getId());
+            if (existingPost == null) {
+                return Result.error(404, "帖子不存在");
+            }
+            
+            String currentRole = com.ygoj.common.security.SecurityUtils.getCurrentRole();
+            boolean isAdmin = "ADMIN".equals(currentRole) || "SUPER_ADMIN".equals(currentRole);
+            boolean isAuthor = currentUserId.equals(existingPost.getAuthorId());
+            
+            if (!isAdmin && !isAuthor) {
+                return Result.error(403, "无权限编辑此帖子");
+            }
+            
             discussionService.updatePost(post);
             return Result.success();
         } catch (Exception e) {
@@ -117,7 +137,7 @@ public class DiscussionController {
     /**
      * 删除帖子(需要管理员权限)
      */
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SUPER_ADMIN')")
     @DeleteMapping("/post/{id}")
     public Result deletePost(@PathVariable Long id) {
         try {
@@ -125,6 +145,26 @@ public class DiscussionController {
             
             if (id == null) {
                 return Result.error(400, "帖子ID不能为空");
+            }
+            
+            // 获取当前用户ID
+            Long currentUserId = com.ygoj.common.security.SecurityUtils.getCurrentUserId();
+            if (currentUserId == null) {
+                return Result.error(401, "未登录或登录已过期");
+            }
+            
+            // 检查权限：作者本人或管理员
+            DiscussionPost post = discussionService.getPostById(id);
+            if (post == null) {
+                return Result.error(404, "帖子不存在");
+            }
+            
+            String currentRole = com.ygoj.common.security.SecurityUtils.getCurrentRole();
+            boolean isAdmin = "ADMIN".equals(currentRole) || "SUPER_ADMIN".equals(currentRole);
+            boolean isAuthor = currentUserId.equals(post.getAuthorId());
+            
+            if (!isAdmin && !isAuthor) {
+                return Result.error(403, "无权限删除此帖子");
             }
             
             discussionService.deletePost(id);
@@ -179,7 +219,7 @@ public class DiscussionController {
     /**
      * 删除评论(需要管理员权限)
      */
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SUPER_ADMIN')")
     @DeleteMapping("/comment/{id}")
     public Result deleteComment(@PathVariable Long id) {
         try {

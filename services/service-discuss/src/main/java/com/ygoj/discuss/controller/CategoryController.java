@@ -36,7 +36,7 @@ public class CategoryController {
     /**
      * 获取所有板块列表（管理员）
      */
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SUPER_ADMIN')")
     @GetMapping("/admin/list")
     public Result getAllCategories() {
         try {
@@ -52,7 +52,7 @@ public class CategoryController {
     /**
      * 创建板块（管理员）
      */
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SUPER_ADMIN')")
     @PostMapping("/admin/create")
     public Result createCategory(@RequestBody DiscussionCategory category) {
         try {
@@ -73,7 +73,7 @@ public class CategoryController {
     /**
      * 更新板块（管理员）
      */
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SUPER_ADMIN')")
     @PutMapping("/admin/update")
     public Result updateCategory(@RequestBody DiscussionCategory category) {
         try {
@@ -94,7 +94,7 @@ public class CategoryController {
     /**
      * 删除板块（管理员）
      */
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('SUPER_ADMIN')")
     @DeleteMapping("/admin/{id}")
     public Result deleteCategory(@PathVariable Long id) {
         try {
