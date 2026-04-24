@@ -82,7 +82,8 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/discuss/posts",
                     "/discuss/post/**",
-                    "/discuss/comments/**"
+                    "/discuss/comments/**",
+                    "/discuss/category/list"
                 ).permitAll()
                 
                 // 公开接口 - 文件下载(判题服务异步调用,无法传递 JWT)
