@@ -7,10 +7,10 @@
       <p class="logo-subtitle">Online Judge System</p>
     </div>
 
-    <!-- 第一行：比赛、题集、题库 -->
+    <!-- 第一行：比赛 + 题集 -->
     <el-row :gutter="24" style="margin-top: 32px;">
       <!-- 最近比赛 -->
-      <el-col :xs="24" :sm="24" :md="8">
+      <el-col :xs="24" :sm="12">
         <el-card shadow="always" class="section-card slide-in" style="animation-delay: 0.1s;">
           <template #header>
             <div class="section-header">
@@ -24,7 +24,7 @@
                 </div>
               </div>
               <el-button type="primary" link @click="goToContests" size="small">
-                更多 <el-icon><ArrowRight /></el-icon>
+                查看更多 <el-icon><ArrowRight /></el-icon>
               </el-button>
             </div>
           </template>
@@ -57,7 +57,7 @@
       </el-col>
 
       <!-- 最新题集 -->
-      <el-col :xs="24" :sm="24" :md="8">
+      <el-col :xs="24" :sm="12">
         <el-card shadow="always" class="section-card slide-in" style="animation-delay: 0.15s;">
           <template #header>
             <div class="section-header">
@@ -71,7 +71,7 @@
                 </div>
               </div>
               <el-button type="primary" link @click="goToProblemsets" size="small">
-                更多 <el-icon><ArrowRight /></el-icon>
+                查看更多 <el-icon><ArrowRight /></el-icon>
               </el-button>
             </div>
           </template>
@@ -101,9 +101,12 @@
           </div>
         </el-card>
       </el-col>
+    </el-row>
 
+    <!-- 第二行：题库 + 提交 -->
+    <el-row :gutter="24" style="margin-top: 24px;">
       <!-- 最新题库 -->
-      <el-col :xs="24" :sm="24" :md="8">
+      <el-col :xs="24" :sm="12">
         <el-card shadow="always" class="section-card slide-in" style="animation-delay: 0.2s;">
           <template #header>
             <div class="section-header">
@@ -117,7 +120,7 @@
                 </div>
               </div>
               <el-button type="primary" link @click="goToProblems" size="small">
-                更多 <el-icon><ArrowRight /></el-icon>
+                查看更多 <el-icon><ArrowRight /></el-icon>
               </el-button>
             </div>
           </template>
@@ -147,12 +150,9 @@
           </div>
         </el-card>
       </el-col>
-    </el-row>
 
-    <!-- 第二行：提交、讨论 -->
-    <el-row :gutter="24" style="margin-top: 24px; margin-bottom: 32px;">
       <!-- 最新提交 -->
-      <el-col :xs="24" :sm="24" :md="12">
+      <el-col :xs="24" :sm="12">
         <el-card shadow="always" class="section-card slide-in" style="animation-delay: 0.25s;">
           <template #header>
             <div class="section-header">
@@ -166,7 +166,7 @@
                 </div>
               </div>
               <el-button type="primary" link @click="goToRecords" size="small">
-                更多 <el-icon><ArrowRight /></el-icon>
+                查看更多 <el-icon><ArrowRight /></el-icon>
               </el-button>
             </div>
           </template>
@@ -217,9 +217,10 @@
           </div>
         </el-card>
       </el-col>
-
-      <!-- 最新讨论 -->
-      <el-col :xs="24" :sm="24" :md="12">
+    </el-row>
+    <!-- 第三行：讨论 -->
+    <el-row :gutter="24" style="margin-top: 24px; margin-bottom: 32px;">
+      <el-col :span="24">
         <el-card shadow="always" class="section-card slide-in" style="animation-delay: 0.3s;">
           <template #header>
             <div class="section-header">
@@ -233,7 +234,7 @@
                 </div>
               </div>
               <el-button type="primary" link @click="goToDiscussions" size="small">
-                更多 <el-icon><ArrowRight /></el-icon>
+                查看更多 <el-icon><ArrowRight /></el-icon>
               </el-button>
             </div>
           </template>
@@ -266,7 +267,7 @@
                 </span>
               </div>
             </div>
-            <el-empty v-if="recentPosts.length === 0" description="暂无讨论" :image-size="60" />
+            <el-empty v-if="recentPosts.length === 0" description="暂无讨论" :image-size="80" />
           </div>
         </el-card>
       </el-col>
