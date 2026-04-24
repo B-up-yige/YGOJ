@@ -376,6 +376,168 @@ onMounted(() => {
   color: var(--color-text-primary);
 }
 
+/* Markdown 样式 */
+.post-content :deep(h1),
+.post-content :deep(h2),
+.post-content :deep(h3),
+.post-content :deep(h4),
+.post-content :deep(h5),
+.post-content :deep(h6) {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-text-primary);
+}
+
+.post-content :deep(h1) {
+  font-size: 2em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.post-content :deep(h2) {
+  font-size: 1.5em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.post-content :deep(h3) {
+  font-size: 1.25em;
+}
+
+.post-content :deep(h4) {
+  font-size: 1em;
+}
+
+.post-content :deep(p) {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.post-content :deep(ul),
+.post-content :deep(ol) {
+  margin-top: 0;
+  margin-bottom: 16px;
+  padding-left: 2em;
+}
+
+.post-content :deep(li) {
+  margin: 4px 0;
+}
+
+.post-content :deep(blockquote) {
+  margin: 16px 0;
+  padding: 0 1em;
+  color: var(--color-text-secondary);
+  border-left: 0.25em solid #667eea;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 4px;
+}
+
+[data-theme='dark'] .post-content :deep(blockquote) {
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.post-content :deep(code) {
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
+  background-color: rgba(102, 126, 234, 0.1);
+  border-radius: 3px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  color: var(--color-text-primary);
+}
+
+.post-content :deep(pre) {
+  padding: 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-radius: 6px;
+  margin: 16px 0;
+  border: 1px solid var(--color-border);
+}
+
+[data-theme='dark'] .post-content :deep(pre) {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.post-content :deep(pre code) {
+  display: inline;
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  line-height: inherit;
+  word-wrap: normal;
+  background-color: transparent;
+  border: 0;
+}
+
+.post-content :deep(table) {
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin: 16px 0;
+  width: 100%;
+}
+
+.post-content :deep(table th),
+.post-content :deep(table td) {
+  padding: 6px 13px;
+  border: 1px solid var(--color-border);
+}
+
+.post-content :deep(table tr) {
+  background-color: transparent;
+  border-top: 1px solid var(--color-border);
+}
+
+.post-content :deep(table tr:nth-child(2n)) {
+  background-color: rgba(102, 126, 234, 0.03);
+}
+
+[data-theme='dark'] .post-content :deep(table tr:nth-child(2n)) {
+  background-color: rgba(102, 126, 234, 0.08);
+}
+
+.post-content :deep(table th) {
+  font-weight: 600;
+  background-color: rgba(102, 126, 234, 0.05);
+}
+
+[data-theme='dark'] .post-content :deep(table th) {
+  background-color: rgba(102, 126, 234, 0.1);
+}
+
+.post-content :deep(a) {
+  color: #667eea;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.post-content :deep(a:hover) {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+.post-content :deep(img) {
+  max-width: 100%;
+  box-sizing: border-box;
+  border-radius: 6px;
+  margin: 16px 0;
+}
+
+.post-content :deep(hr) {
+  height: 0.25em;
+  padding: 0;
+  margin: 24px 0;
+  background-color: var(--color-border);
+  border: 0;
+}
+
 .post-actions {
   margin-top: 24px;
   padding-top: 16px;
