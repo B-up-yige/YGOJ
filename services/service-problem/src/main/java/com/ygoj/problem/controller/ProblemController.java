@@ -76,12 +76,12 @@ public class ProblemController {
     }
 
     /**
-     * 编辑题目信息(需要编辑题目权限)
+     * 编辑题目信息(需要管理题目权限 - 作者本人或管理员)
      *
      * @param probleminfo 题目信息
      * @return {@link Result}
      */
-    @PreAuthorize("hasAuthority('PROBLEM_EDIT')")
+    @PreAuthorize("hasAuthority('PROBLEM_MANAGE_OWN') or hasAuthority('PROBLEM_MANAGE_ALL')")
     @PutMapping("/edit")
     public Result editProblem(@RequestBody Probleminfo probleminfo) {
         try {
@@ -101,12 +101,12 @@ public class ProblemController {
     }
 
     /**
-     * 删除题目(需要删除题目权限)
+     * 删除题目(需要管理题目权限 - 作者本人或管理员)
      *
      * @param id 题目id
      * @return {@link Result}
      */
-    @PreAuthorize("hasAuthority('PROBLEM_DELETE')")
+    @PreAuthorize("hasAuthority('PROBLEM_MANAGE_OWN') or hasAuthority('PROBLEM_MANAGE_ALL')")
     @DeleteMapping("/del/{id}")
     public Result delProblemInfo(@PathVariable("id") Long id) {
         try {
@@ -147,9 +147,9 @@ public class ProblemController {
     }
 
     /**
-     * 添加测试用例(需要编辑题目权限)
+     * 添加测试用例(需要管理题目权限 - 作者本人或管理员)
      */
-    @PreAuthorize("hasAuthority('PROBLEM_EDIT')")
+    @PreAuthorize("hasAuthority('PROBLEM_MANAGE_OWN') or hasAuthority('PROBLEM_MANAGE_ALL')")
     @PostMapping("/addTestCase")
     public Result addTestCase(@RequestParam Long problemId,
                               @RequestParam MultipartFile input, @RequestParam MultipartFile output) {
@@ -203,9 +203,9 @@ public class ProblemController {
     }
 
     /**
-     * 删除测试用例(需要编辑题目权限)
+     * 删除测试用例(需要管理题目权限 - 作者本人或管理员)
      */
-    @PreAuthorize("hasAuthority('PROBLEM_EDIT')")
+    @PreAuthorize("hasAuthority('PROBLEM_MANAGE_OWN') or hasAuthority('PROBLEM_MANAGE_ALL')")
     @DeleteMapping("/delTestCase")
     public Result delTestCase(@RequestBody Testcase testcase) {
         try {
@@ -273,9 +273,9 @@ public class ProblemController {
     }
 
     /**
-     * 添加题目标签(需要编辑题目权限)
+     * 添加题目标签(需要管理题目权限 - 作者本人或管理员)
      */
-    @PreAuthorize("hasAuthority('PROBLEM_EDIT')")
+    @PreAuthorize("hasAuthority('PROBLEM_MANAGE_OWN') or hasAuthority('PROBLEM_MANAGE_ALL')")
     @PostMapping("/probleminfo/{id}/addTag")
     public Result addTag(@PathVariable("id") Long id, @RequestBody String tagName) {
         log.info("添加题目标签请求, problemId: {}, tag: {}", id, tagName);
@@ -312,9 +312,9 @@ public class ProblemController {
     }
 
     /**
-     * 删除题目标签(需要编辑题目权限)
+     * 删除题目标签(需要管理题目权限 - 作者本人或管理员)
      */
-    @PreAuthorize("hasAuthority('PROBLEM_EDIT')")
+    @PreAuthorize("hasAuthority('PROBLEM_MANAGE_OWN') or hasAuthority('PROBLEM_MANAGE_ALL')")
     @DeleteMapping("/probleminfo/{id}/delTag")
     public Result delTag(@PathVariable("id") Long id, @RequestBody String tagName) {
         try {

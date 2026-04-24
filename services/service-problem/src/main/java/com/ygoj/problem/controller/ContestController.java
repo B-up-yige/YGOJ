@@ -89,9 +89,9 @@ public class ContestController {
     }
 
     /**
-     * 编辑比赛(需要管理比赛权限)
+     * 编辑比赛(需要管理比赛权限 - 作者本人或管理员)
      */
-    @PreAuthorize("hasAuthority('CONTEST_MANAGE')")
+    @PreAuthorize("hasAuthority('CONTEST_MANAGE_OWN') or hasAuthority('CONTEST_MANAGE_ALL')")
     @PutMapping("/edit")
     public Result editContest(@RequestBody Contest contest) {
         try {
@@ -111,9 +111,9 @@ public class ContestController {
     }
 
     /**
-     * 删除比赛(需要管理比赛权限)
+     * 删除比赛(需要管理比赛权限 - 作者本人或管理员)
      */
-    @PreAuthorize("hasAuthority('CONTEST_MANAGE')")
+    @PreAuthorize("hasAuthority('CONTEST_MANAGE_OWN') or hasAuthority('CONTEST_MANAGE_ALL')")
     @DeleteMapping("/del/{id}")
     public Result delContest(@PathVariable Long id) {
         try {
@@ -128,9 +128,9 @@ public class ContestController {
     }
 
     /**
-     * 添加比赛题目(需要管理比赛权限)
+     * 添加比赛题目(需要管理比赛权限 - 作者本人或管理员)
      */
-    @PreAuthorize("hasAuthority('CONTEST_MANAGE')")
+    @PreAuthorize("hasAuthority('CONTEST_MANAGE_OWN') or hasAuthority('CONTEST_MANAGE_ALL')")
     @PostMapping("/problem/add")
     public Result addContestProblem(@RequestBody ContestProblem contestProblem) {
         try {
@@ -151,9 +151,9 @@ public class ContestController {
     }
 
     /**
-     * 删除比赛题目(需要管理比赛权限)
+     * 删除比赛题目(需要管理比赛权限 - 作者本人或管理员)
      */
-    @PreAuthorize("hasAuthority('CONTEST_MANAGE')")
+    @PreAuthorize("hasAuthority('CONTEST_MANAGE_OWN') or hasAuthority('CONTEST_MANAGE_ALL')")
     @DeleteMapping("/problem/del")
     public Result delContestProblem(@RequestParam Long contestId,
                                      @RequestParam Long problemId) {
