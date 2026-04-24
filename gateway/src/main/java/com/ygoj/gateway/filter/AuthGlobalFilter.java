@@ -43,10 +43,16 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
             }
         }
 
-        //更新请求头
-        ServerHttpRequest mutatedRequest = request.mutate()
-                .header("JWT", jwt)
-                .build();
+        //更新请求头 - 同时保留 Authorization 和添加 JWT 头
+        ServerHttpRequest.Builder requestBuilder = request.mutate()
+                .header("JWT", jwt);
+        
+        // 如果原始请求有 Authorization 头，也保留它（供下游服务的 JwtAuthenticationFilter 使用）
+        if (token != null && !token.isEmpty()) {
+            requestBuilder.header("Authorization", token);
+        }
+        
+        ServerHttpRequest mutatedRequest = requestBuilder.build();
         ServerWebExchange mutatedExchange = exchange.mutate()
                 .request(mutatedRequest)
                 .build();
