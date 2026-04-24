@@ -128,7 +128,6 @@
             <div class="table-header problem-header">
               <div class="col-id">题号</div>
               <div class="col-title">题目名称</div>
-              <div class="col-difficulty">难度</div>
               <div class="col-stats">通过率</div>
             </div>
             <div v-for="problem in latestProblems" :key="problem.id" 
@@ -140,14 +139,6 @@
               <div class="col-title">
                 <span class="row-icon">💻</span>
                 <span class="text">{{ problem.title }}</span>
-              </div>
-              <div class="col-difficulty">
-                <el-tag v-if="problem.difficulty" 
-                        :type="getDifficultyType(problem.difficulty)" 
-                        size="small" 
-                        effect="light">
-                  {{ getDifficultyText(problem.difficulty) }}
-                </el-tag>
               </div>
               <div class="col-stats">
                 <span class="stat-text">
@@ -162,7 +153,7 @@
     </el-row>
 
     <!-- 最新提交 -->
-    <el-row :gutter="24" style="margin-top: 24px; margin-bottom: 32px;">
+    <el-row :gutter="24" style="margin-top: 24px;">
       <el-col :span="24">
         <el-card shadow="always" class="section-card slide-in" style="animation-delay: 0.25s;">
           <template #header>
@@ -224,6 +215,61 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- 最新讨论 -->
+    <el-row :gutter="24" style="margin-top: 24px; margin-bottom: 32px;">
+      <el-col :span="24">
+        <el-card shadow="always" class="section-card slide-in" style="animation-delay: 0.3s;">
+          <template #header>
+            <div class="section-header">
+              <div class="header-left">
+                <div class="header-icon discussion-icon">
+                  <el-icon><ChatDotRound /></el-icon>
+                </div>
+                <div class="header-text">
+                  <h3 class="section-title">最新讨论</h3>
+                  <p class="section-subtitle">Recent Discussions</p>
+                </div>
+              </div>
+              <el-button type="primary" link @click="goToDiscussions" size="small">
+                查看更多 <el-icon><ArrowRight /></el-icon>
+              </el-button>
+            </div>
+          </template>
+          <div class="content-table">
+            <div class="table-header discussion-header">
+              <div class="col-title">帖子标题</div>
+              <div class="col-category">板块</div>
+              <div class="col-author">作者</div>
+              <div class="col-stats">回复/浏览</div>
+            </div>
+            <div v-for="post in recentPosts" :key="post.id" 
+                 class="table-row discussion-row"
+                 @click="viewPost(post.id)">
+              <div class="col-title">
+                <span class="row-icon">💬</span>
+                <span class="text">{{ post.title }}</span>
+              </div>
+              <div class="col-category">
+                <el-tag size="small" effect="light" type="info">
+                  {{ post.categoryName || '综合' }}
+                </el-tag>
+              </div>
+              <div class="col-author">
+                <el-icon><User /></el-icon>
+                #{{ post.userId || '未知' }}
+              </div>
+              <div class="col-stats">
+                <span class="stat-text">
+                  💬 {{ post.commentCount || 0 }} / 👁️ {{ post.viewCount || 0 }}
+                </span>
+              </div>
+            </div>
+            <el-empty v-if="recentPosts.length === 0" description="暂无讨论" :image-size="80" />
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -235,7 +281,8 @@ import { getRecordList } from '@/api/record'
 import { getContestList } from '@/api/contest'
 import { getProblemList } from '@/api/problem'
 import { getProblemsetList } from '@/api/problemset'
-import { Trophy, Collection, Document, List, Plus, Operation, TrendCharts, Bell, Timer, Notebook, FolderOpened, ArrowRight, User, Clock, Cpu } from '@element-plus/icons-vue'
+import { getPostList } from '@/api/discussion'
+import { Trophy, Collection, Document, List, Plus, Operation, TrendCharts, Bell, Timer, Notebook, FolderOpened, ArrowRight, User, Clock, Cpu, ChatDotRound } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -249,6 +296,7 @@ const recentRecords = ref([])
 const recentContests = ref([])
 const latestProblems = ref([])
 const recentProblemsets = ref([])
+const recentPosts = ref([])
 
 const getStatusType = (status) => {
   const statusMap = {
@@ -290,6 +338,10 @@ const goToRecords = () => {
   router.push('/records')
 }
 
+const goToDiscussions = () => {
+  router.push('/discussions')
+}
+
 const createProblem = () => {
   router.push('/problem/create')
 }
@@ -308,6 +360,10 @@ const viewProblem = (id) => {
 
 const viewProblemset = (id) => {
   router.push(`/problemset/${id}`)
+}
+
+const viewPost = (id) => {
+  router.push(`/discussion/${id}`)
 }
 
 const formatContestTime = (time) => {
@@ -383,11 +439,21 @@ const loadRecentProblemsets = async () => {
   }
 }
 
+const loadRecentPosts = async () => {
+  try {
+    const res = await getPostList({ page: 1, pageSize: 12 }) // 获取第一页，12 条帖子
+    recentPosts.value = res.data?.records || res.data?.list || res.data || []
+  } catch (error) {
+    console.error('加载最新讨论失败:', error)
+  }
+}
+
 onMounted(() => {
   loadRecentContests()
   loadRecentProblemsets()
   loadLatestProblems()
   loadRecentRecords()
+  loadRecentPosts()
 })
 </script>
 
@@ -494,6 +560,11 @@ onMounted(() => {
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
+.discussion-icon {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+}
+
 .header-text {
   display: flex;
   flex-direction: column;
@@ -548,12 +619,17 @@ onMounted(() => {
 
 /* Problem header */
 .problem-header {
-  grid-template-columns: 100px 2fr 100px 120px;
+  grid-template-columns: 100px 2fr 120px;
 }
 
 /* Record header */
 .record-header {
   grid-template-columns: 100px 1.5fr 120px 120px 1fr;
+}
+
+/* Discussion header */
+.discussion-header {
+  grid-template-columns: 2fr 100px 120px 150px;
 }
 
 .table-row {
@@ -655,15 +731,11 @@ onMounted(() => {
 
 /* Problem Row */
 .problem-row {
-  grid-template-columns: 100px 2fr 100px 120px;
+  grid-template-columns: 100px 2fr 120px;
 }
 
 .problem-row .col-id {
   justify-self: start;
-}
-
-.problem-row .col-difficulty {
-  justify-self: center;
 }
 
 .problem-row .col-stats {
@@ -709,6 +781,33 @@ onMounted(() => {
   justify-content: flex-end;
 }
 
+/* Discussion Row */
+.discussion-row {
+  grid-template-columns: 2fr 100px 120px 150px;
+}
+
+.discussion-row .col-category {
+  justify-self: center;
+}
+
+.discussion-row .col-author {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.discussion-row .col-author .el-icon {
+  font-size: 1rem;
+}
+
+.discussion-row .col-stats {
+  text-align: right;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
 /* Element Plus Cards */
 :deep(.el-card) {
   border-radius: var(--radius-lg);
@@ -749,7 +848,8 @@ onMounted(() => {
   .contest-row,
   .problemset-row,
   .problem-row,
-  .record-row {
+  .record-row,
+  .discussion-row {
     grid-template-columns: 1fr;
     gap: var(--spacing-sm);
   }
@@ -764,11 +864,11 @@ onMounted(() => {
   .col-status,
   .col-count,
   .col-author,
-  .col-difficulty,
   .col-stats,
   .col-problem,
   .col-user,
-  .col-performance {
+  .col-performance,
+  .col-category {
     justify-self: start !important;
     text-align: left !important;
   }
