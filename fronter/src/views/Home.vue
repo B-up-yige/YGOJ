@@ -28,7 +28,7 @@
             </div>
           </template>
           <div class="content-table">
-            <div class="table-header">
+            <div class="table-header contest-header">
               <div class="col-title">比赛名称</div>
               <div class="col-time">时间</div>
               <div class="col-status">状态</div>
@@ -77,7 +77,7 @@
             </div>
           </template>
           <div class="content-table">
-            <div class="table-header">
+            <div class="table-header problemset-header">
               <div class="col-title">题集名称</div>
               <div class="col-count">题目数</div>
               <div class="col-author">创建者</div>
@@ -125,7 +125,7 @@
             </div>
           </template>
           <div class="content-table">
-            <div class="table-header">
+            <div class="table-header problem-header">
               <div class="col-id">题号</div>
               <div class="col-title">题目名称</div>
               <div class="col-difficulty">难度</div>
@@ -182,7 +182,7 @@
             </div>
           </template>
           <div class="content-table">
-            <div class="table-header">
+            <div class="table-header record-header">
               <div class="col-id">提交ID</div>
               <div class="col-problem">题目</div>
               <div class="col-user">用户</div>
@@ -534,6 +534,26 @@ onMounted(() => {
   color: var(--color-text-secondary);
   border-bottom: 2px solid var(--color-border);
   margin-bottom: var(--spacing-sm);
+}
+
+/* Contest header */
+.contest-header {
+  grid-template-columns: 2fr 2fr 1fr;
+}
+
+/* Problemset header */
+.problemset-header {
+  grid-template-columns: 2fr 1fr 1fr;
+}
+
+/* Problem header */
+.problem-header {
+  grid-template-columns: 100px 2fr 100px 120px;
+}
+
+/* Record header */
+.record-header {
+  grid-template-columns: 100px 1.5fr 120px 120px 1fr;
 }
 
 .table-row {
