@@ -598,9 +598,33 @@ onMounted(() => {
   grid-template-columns: 2fr 2fr 1fr;
 }
 
+.contest-header .col-title {
+  justify-self: start;
+}
+
+.contest-header .col-time {
+  justify-self: start;
+}
+
+.contest-header .col-status {
+  justify-self: center;
+}
+
 /* Problemset header */
 .problemset-header {
   grid-template-columns: 2fr 1fr 1fr;
+}
+
+.problemset-header .col-title {
+  justify-self: start;
+}
+
+.problemset-header .col-count {
+  justify-self: center;
+}
+
+.problemset-header .col-author {
+  justify-self: center;
 }
 
 /* Problem header */
@@ -608,14 +632,58 @@ onMounted(() => {
   grid-template-columns: 100px 2fr 120px;
 }
 
+.problem-header .col-id {
+  justify-self: start;
+}
+
+.problem-header .col-title {
+  justify-self: start;
+}
+
+.problem-header .col-stats {
+  justify-self: end;
+}
+
 /* Record header */
 .record-header {
   grid-template-columns: 100px 2fr 120px 120px;
 }
 
+.record-header .col-id {
+  justify-self: start;
+}
+
+.record-header .col-problem {
+  justify-self: start;
+}
+
+.record-header .col-user {
+  justify-self: start;
+}
+
+.record-header .col-status {
+  justify-self: center;
+}
+
 /* Discussion header */
 .discussion-header {
   grid-template-columns: 2fr 100px 120px 150px;
+}
+
+.discussion-header .col-title {
+  justify-self: start;
+}
+
+.discussion-header .col-category {
+  justify-self: center;
+}
+
+.discussion-header .col-author {
+  justify-self: start;
+}
+
+.discussion-header .col-stats {
+  justify-self: end;
 }
 
 .table-row {
@@ -684,21 +752,34 @@ onMounted(() => {
   grid-template-columns: 2fr 2fr 1fr;
 }
 
+.contest-row .col-title {
+  justify-self: start;
+}
+
 .contest-row .col-time {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
   font-size: 0.875rem;
   color: var(--color-text-secondary);
+  justify-self: start;
 }
 
 .contest-row .col-time .el-icon {
   font-size: 1rem;
 }
 
+.contest-row .col-status {
+  justify-self: center;
+}
+
 /* Problemset Row */
 .problemset-row {
   grid-template-columns: 2fr 1fr 1fr;
+}
+
+.problemset-row .col-title {
+  justify-self: start;
 }
 
 .problemset-row .col-count,
@@ -708,6 +789,7 @@ onMounted(() => {
   gap: var(--spacing-xs);
   font-size: 0.875rem;
   color: var(--color-text-secondary);
+  justify-self: center;
 }
 
 .problemset-row .col-count .el-icon,
@@ -724,10 +806,15 @@ onMounted(() => {
   justify-self: start;
 }
 
+.problem-row .col-title {
+  justify-self: start;
+}
+
 .problem-row .col-stats {
   text-align: right;
   font-size: 0.875rem;
   color: var(--color-text-secondary);
+  justify-self: end;
 }
 
 /* Record Row */
@@ -743,6 +830,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
+  justify-self: start;
 }
 
 .record-row .col-user {
@@ -751,6 +839,7 @@ onMounted(() => {
   gap: var(--spacing-xs);
   font-size: 0.875rem;
   color: var(--color-text-secondary);
+  justify-self: start;
 }
 
 .record-row .col-user .el-icon {
@@ -766,6 +855,10 @@ onMounted(() => {
   grid-template-columns: 2fr 100px 120px 150px;
 }
 
+.discussion-row .col-title {
+  justify-self: start;
+}
+
 .discussion-row .col-category {
   justify-self: center;
 }
@@ -776,6 +869,7 @@ onMounted(() => {
   gap: var(--spacing-xs);
   font-size: 0.875rem;
   color: var(--color-text-secondary);
+  justify-self: start;
 }
 
 .discussion-row .col-author .el-icon {
@@ -786,6 +880,7 @@ onMounted(() => {
   text-align: right;
   font-size: 0.875rem;
   color: var(--color-text-secondary);
+  justify-self: end;
 }
 
 /* Element Plus Cards */
