@@ -98,7 +98,19 @@
               </el-avatar>
               <span class="comment-author-name">{{ comment.author?.nickname || '未知用户' }}</span>
             </router-link>
-            <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
+            <div class="comment-meta">
+              <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
+              <el-button 
+                v-if="canDeleteComment(comment)"
+                link 
+                type="danger" 
+                size="small"
+                @click="handleDeleteComment(comment)"
+              >
+                <el-icon><Delete /></el-icon>
+                删除
+              </el-button>
+            </div>
           </div>
           <div class="comment-content">{{ comment.content }}</div>
         </div>
@@ -112,7 +124,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Delete, Edit, Top } from '@element-plus/icons-vue'
-import { getPostById, deletePost, getComments, createComment, togglePinPost } from '@/api/discussion'
+import { getPostById, deletePost, getComments, createComment, togglePinPost, deleteComment } from '@/api/discussion'
 import { useUserStore, PERMISSIONS } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
@@ -173,6 +185,25 @@ const canManageAllPosts = computed(() => {
   if (!userStore.token || !post.value) return false
   return userStore.hasPermission(PERMISSIONS.PERM_POST_MANAGE_ALL)
 })
+
+// 检查是否可以删除评论
+const canDeleteComment = (comment) => {
+  if (!userStore.token || !comment) return false
+  const currentUserId = userStore.userInfo?.id
+  
+  // 管理员权限可以删除所有评论
+  if (userStore.hasPermission(PERMISSIONS.PERM_COMMENT_DELETE_ALL)) {
+    return true
+  }
+  
+  // 作者本人且有删除自己评论的权限
+  if (currentUserId === comment.authorId && 
+      userStore.hasPermission(PERMISSIONS.PERM_COMMENT_DELETE_OWN)) {
+    return true
+  }
+  
+  return false
+}
 
 const loadPost = async () => {
   loading.value = true
@@ -262,6 +293,27 @@ const handleTogglePin = async () => {
     if (error !== 'cancel') {
       console.error('操作失败:', error)
       ElMessage.error('操作失败')
+    }
+  }
+}
+
+// 删除评论
+const handleDeleteComment = async (comment) => {
+  try {
+    await ElMessageBox.confirm('确定要删除这条评论吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await deleteComment(comment.id)
+    ElMessage.success('删除成功')
+    // 重新加载评论和帖子
+    await Promise.all([loadComments(), loadPost()])
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除失败:', error)
+      ElMessage.error('删除失败')
     }
   }
 }
@@ -597,6 +649,12 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
+}
+
+.comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .comment-author {
