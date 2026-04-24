@@ -128,7 +128,6 @@
             <div class="table-header problem-header">
               <div class="col-id">题号</div>
               <div class="col-title">题目名称</div>
-              <div class="col-stats">通过率</div>
             </div>
             <div v-for="problem in latestProblems" :key="problem.id" 
                  class="table-row problem-row"
@@ -139,11 +138,6 @@
               <div class="col-title">
                 <span class="row-icon">💻</span>
                 <span class="text">{{ problem.title }}</span>
-              </div>
-              <div class="col-stats">
-                <span class="stat-text">
-                  {{ problem.accepted || 0 }} / {{ problem.submitted || 0 }}
-                </span>
               </div>
             </div>
             <el-empty v-if="latestProblems.length === 0" description="暂无题目" :image-size="60" />
@@ -629,7 +623,7 @@ onMounted(() => {
 
 /* Problem header */
 .problem-header {
-  grid-template-columns: 100px 2fr 120px;
+  grid-template-columns: 100px 2fr;
 }
 
 .problem-header .col-id {
@@ -638,10 +632,6 @@ onMounted(() => {
 
 .problem-header .col-title {
   justify-self: start;
-}
-
-.problem-header .col-stats {
-  justify-self: end;
 }
 
 /* Record header */
@@ -799,7 +789,7 @@ onMounted(() => {
 
 /* Problem Row */
 .problem-row {
-  grid-template-columns: 100px 2fr 120px;
+  grid-template-columns: 100px 2fr;
 }
 
 .problem-row .col-id {
@@ -808,13 +798,6 @@ onMounted(() => {
 
 .problem-row .col-title {
   justify-self: start;
-}
-
-.problem-row .col-stats {
-  text-align: right;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  justify-self: end;
 }
 
 /* Record Row */
