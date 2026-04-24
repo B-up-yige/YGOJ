@@ -242,14 +242,15 @@ public class DiscussionController {
      */
     @PreAuthorize("hasAuthority('POST_MANAGE_ALL') or hasAuthority('ADMIN') or hasAuthority('SUPER_ADMIN')")
     @PutMapping("/post/{id}/pin")
-    public Result togglePinPost(@PathVariable Long id, @RequestBody Boolean isPinned) {
+    public Result togglePinPost(@PathVariable Long id, @RequestBody java.util.Map<String, Boolean> request) {
         try {
-            log.info("切换帖子置顶状态请求, postId: {}, isPinned: {}", id, isPinned);
+            log.info("切换帖子置顶状态请求, postId: {}, request: {}", id, request);
             
             if (id == null) {
                 return Result.error(400, "帖子ID不能为空");
             }
             
+            Boolean isPinned = request.get("isPinned");
             if (isPinned == null) {
                 return Result.error(400, "置顶状态不能为空");
             }

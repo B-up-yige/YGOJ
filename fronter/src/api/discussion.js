@@ -73,7 +73,7 @@ export function togglePinPost(id, isPinned) {
   return request({
     url: `/discuss/post/${id}/pin`,
     method: 'put',
-    data: isPinned
+    data: { isPinned }
   })
 }
 
