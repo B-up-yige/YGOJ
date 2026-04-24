@@ -101,6 +101,20 @@ public class ProblemsetServiceImpl implements ProblemsetService {
                 }
             }
             
+            // 填充作者信息
+            if (problemset.getAuthorId() != null) {
+                try {
+                    Result userInfoResult = userFeignClient.userinfo(problemset.getAuthorId());
+                    if (userInfoResult != null && userInfoResult.getData() != null) {
+                        Userinfo author = JSON.parseObject(JSON.toJSONString(userInfoResult.getData()), Userinfo.class);
+                        problemset.setAuthor(author);
+                        log.debug("获取题集作者信息成功, problemsetId: {}, author: {}", id, author.getUsername());
+                    }
+                } catch (Exception e) {
+                    log.warn("获取题集作者信息失败, problemsetId: {}, authorId: {}", problemset.getId(), problemset.getAuthorId(), e);
+                }
+            }
+            
             return problemset;
         } catch (SecurityException e) {
             throw e;

@@ -33,7 +33,8 @@ public class RecordController {
                 return Result.error(400, "记录ID不能为空");
             }
             
-            Record record = recordService.getRecordinfoById(id);
+            // 使用带信息的方法，返回用户昵称和题目标题
+            com.ygoj.record.RecordWithInfo record = recordService.getRecordWithInfoById(id);
             if (record == null) {
                 log.warn("提交记录不存在, recordId: {}", id);
                 return Result.error(404, "提交记录不存在");

@@ -11,7 +11,7 @@
           <div class="problemset-meta">
             <span class="meta-item">
               <el-icon><User /></el-icon>
-              <span>作者：用户 {{ problemset.authorId }}</span>
+              <span>作者：{{ problemset.author?.nickname || '未知用户' }}</span>
             </span>
             <span class="meta-separator">•</span>
             <span class="meta-item">

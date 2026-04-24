@@ -11,12 +11,12 @@
           <div class="record-meta">
             <span class="meta-item">
               <el-icon><User /></el-icon>
-              <span>用户 {{ record.userId }}</span>
+              <span>{{ record.userName || '未知用户' }}</span>
             </span>
             <span class="meta-separator">•</span>
             <span class="meta-item">
               <el-icon><Document /></el-icon>
-              <span>题目 {{ record.problemId }}</span>
+              <span>{{ record.problemTitle || '未知题目' }}</span>
             </span>
             <span class="meta-separator">•</span>
             <span class="meta-item">
@@ -131,7 +131,9 @@ const notFound = ref(false)
 const record = ref({
   id: route.params.id,
   userId: '',
+  userName: '',
   problemId: '',
+  problemTitle: '',
   status: '',
   language: '',
   code: '',

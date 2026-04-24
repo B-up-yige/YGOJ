@@ -84,6 +84,20 @@ public class ContestServiceImpl implements ContestService {
             if (contest != null) {
                 updateContestStatus(contest);
                 contestMapper.updateById(contest);
+                
+                // 填充作者信息
+                if (contest.getAuthorId() != null) {
+                    try {
+                        Result userInfoResult = userFeignClient.userinfo(contest.getAuthorId());
+                        if (userInfoResult != null && userInfoResult.getData() != null) {
+                            Userinfo author = JSON.parseObject(JSON.toJSONString(userInfoResult.getData()), Userinfo.class);
+                            contest.setAuthor(author);
+                            log.debug("获取比赛作者信息成功, contestId: {}, author: {}", id, author.getUsername());
+                        }
+                    } catch (Exception e) {
+                        log.warn("获取比赛作者信息失败, contestId: {}, authorId: {}", contest.getId(), contest.getAuthorId(), e);
+                    }
+                }
             }
             return contest;
         } catch (Exception e) {

@@ -14,6 +14,11 @@ public interface RecordService {
 //    void submit(String status, Long userId);
 
     Record getRecordinfoById(Long id);
+    
+    /**
+     * 获取带题目名称和用户昵称的提交记录详情
+     */
+    RecordWithInfo getRecordWithInfoById(Long id);
 
     Result addRecord(Record record);
 

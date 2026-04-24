@@ -76,6 +76,77 @@ public class RecordServiceImpl implements RecordService {
             throw new RuntimeException("获取提交记录失败: " + e.getMessage(), e);
         }
     }
+    
+    /**
+     * 获取带题目名称和用户昵称的提交记录详情
+     *
+     * @param id 提交记录id
+     * @return {@link RecordWithInfo}
+     */
+    @Override
+    public RecordWithInfo getRecordWithInfoById(Long id) {
+        try {
+            log.debug("获取提交记录(带信息), recordId: {}", id);
+            
+            if (id == null) {
+                throw new IllegalArgumentException("记录ID不能为空");
+            }
+            
+            // 获取原始记录
+            Record record = recordMapper.selectById(id);
+            if (record == null) {
+                return null;
+            }
+            
+            // 转换为RecordWithInfo并填充信息
+            RecordWithInfo recordWithInfo = new RecordWithInfo();
+            recordWithInfo.setId(record.getId());
+            recordWithInfo.setUserId(record.getUserId());
+            recordWithInfo.setProblemId(record.getProblemId());
+            recordWithInfo.setContestId(record.getContestId());
+            recordWithInfo.setCode(record.getCode());
+            recordWithInfo.setStatus(record.getStatus());
+            recordWithInfo.setLanguage(record.getLanguage());
+            recordWithInfo.setCompileTime(record.getCompileTime());
+            recordWithInfo.setCompileMemory(record.getCompileMemory());
+            recordWithInfo.setCompileStdout(record.getCompileStdout());
+            recordWithInfo.setCompileStderr(record.getCompileStderr());
+            recordWithInfo.setSubmitTime(record.getSubmitTime());
+            
+            // 通过Feign获取用户信息
+            try {
+                Result userInfoResult = userFeignClient.userinfo(record.getUserId());
+                if (userInfoResult != null && userInfoResult.getData() != null) {
+                    com.fasterxml.jackson.databind.JsonNode userInfo = objectMapper.convertValue(
+                        userInfoResult.getData(), com.fasterxml.jackson.databind.JsonNode.class);
+                    recordWithInfo.setUserName(userInfo.get("nickname").asText());
+                }
+            } catch (Exception e) {
+                log.warn("获取用户信息失败, userId: {}", record.getUserId(), e);
+                recordWithInfo.setUserName("未知用户");
+            }
+            
+            // 通过Feign获取题目信息
+            try {
+                Result problemInfoResult = problemFeignClient.getProblemInfo(record.getProblemId());
+                if (problemInfoResult != null && problemInfoResult.getData() != null) {
+                    com.fasterxml.jackson.databind.JsonNode problemInfo = objectMapper.convertValue(
+                        problemInfoResult.getData(), com.fasterxml.jackson.databind.JsonNode.class);
+                    recordWithInfo.setProblemTitle(problemInfo.get("title").asText());
+                }
+            } catch (Exception e) {
+                log.warn("获取题目信息失败, problemId: {}", record.getProblemId(), e);
+                recordWithInfo.setProblemTitle("未知题目");
+            }
+            
+            return recordWithInfo;
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("获取提交记录(带信息)异常, recordId: {}", id, e);
+            throw new RuntimeException("获取提交记录失败: " + e.getMessage(), e);
+        }
+    }
 
     /**
      * 添加提交记录

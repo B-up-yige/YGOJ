@@ -10,7 +10,7 @@
           <h1 class="problem-title">{{ problem.title }}</h1>
           <div class="problem-author">
             <span class="author-label">作者：</span>
-            <el-tag type="info" size="small">用户 {{ problem.authorId }}</el-tag>
+            <el-tag type="info" size="small">{{ problem.author?.nickname || '未知用户' }}</el-tag>
           </div>
           <div class="problem-tags-line" v-if="tags.length > 0">
             <div class="header-tags">
