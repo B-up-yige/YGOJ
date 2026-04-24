@@ -237,7 +237,7 @@
               </div>
               <div class="col-author">
                 <el-icon><User /></el-icon>
-                {{ post.author?.username || post.author?.nickname || `#${post.authorId || '未知'}` }}
+                {{ post.author?.nickname || post.author?.username || `#${post.authorId || '未知'}` }}
               </div>
               <div class="col-stats">
                 <span class="stat-text">
