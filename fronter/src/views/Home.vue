@@ -8,32 +8,49 @@
     </div>
 
     <!-- 最近比赛 -->
-    <el-row :gutter="24" style="margin-top: 24px;">
+    <el-row :gutter="24" style="margin-top: 32px;">
       <el-col :span="24">
-        <el-card shadow="always" class="contest-card slide-in" style="animation-delay: 0.1s;">
+        <el-card shadow="always" class="section-card slide-in" style="animation-delay: 0.1s;">
           <template #header>
-            <div class="card-header">
-              <span><el-icon><Timer /></el-icon> 最近比赛</span>
-              <el-button link type="primary" @click="goToContests" size="small">查看更多</el-button>
+            <div class="section-header">
+              <div class="header-left">
+                <div class="header-icon contest-icon">
+                  <el-icon><Trophy /></el-icon>
+                </div>
+                <div class="header-text">
+                  <h3 class="section-title">最近比赛</h3>
+                  <p class="section-subtitle">Recent Contests</p>
+                </div>
+              </div>
+              <el-button type="primary" link @click="goToContests" size="small">
+                查看更多 <el-icon><ArrowRight /></el-icon>
+              </el-button>
             </div>
           </template>
-          <div class="contest-list-full">
-            <div v-for="contest in recentContests" :key="contest.id" class="contest-item-full" @click="viewContest(contest.id)">
-              <div class="contest-info-full">
-                <h4 class="contest-title-full">{{ contest.title }}</h4>
-                <p class="contest-time-full">
-                  <el-icon><Timer /></el-icon>
-                  {{ formatContestTime(contest.startTime) }}
-                  <span v-if="contest.endTime" class="contest-end-time"> - {{ formatContestTime(contest.endTime) }}</span>
-                </p>
+          <div class="content-table">
+            <div class="table-header">
+              <div class="col-title">比赛名称</div>
+              <div class="col-time">时间</div>
+              <div class="col-status">状态</div>
+            </div>
+            <div v-for="contest in recentContests" :key="contest.id" 
+                 class="table-row contest-row"
+                 @click="viewContest(contest.id)">
+              <div class="col-title">
+                <span class="row-icon">🏆</span>
+                <span class="text">{{ contest.title }}</span>
               </div>
-              <div class="contest-meta">
-                <el-tag :type="getContestStatusType(contest.status)" size="default">
+              <div class="col-time">
+                <el-icon><Timer /></el-icon>
+                {{ formatContestTime(contest.startTime) }}
+              </div>
+              <div class="col-status">
+                <el-tag :type="getContestStatusType(contest.status)" size="small" effect="light">
                   {{ getContestStatusText(contest.status) }}
                 </el-tag>
               </div>
             </div>
-            <el-empty v-if="recentContests.length === 0" description="暂无比赛" :image-size="60" />
+            <el-empty v-if="recentContests.length === 0" description="暂无比赛" :image-size="80" />
           </div>
         </el-card>
       </el-col>
@@ -42,34 +59,46 @@
     <!-- 最新题集 -->
     <el-row :gutter="24" style="margin-top: 24px;">
       <el-col :span="24">
-        <el-card shadow="always" class="problemset-card slide-in" style="animation-delay: 0.15s;">
+        <el-card shadow="always" class="section-card slide-in" style="animation-delay: 0.15s;">
           <template #header>
-            <div class="card-header">
-              <span><el-icon><FolderOpened /></el-icon> 最新题集</span>
-              <el-button link type="primary" @click="goToProblemsets" size="small">查看更多</el-button>
+            <div class="section-header">
+              <div class="header-left">
+                <div class="header-icon problemset-icon">
+                  <el-icon><FolderOpened /></el-icon>
+                </div>
+                <div class="header-text">
+                  <h3 class="section-title">最新题集</h3>
+                  <p class="section-subtitle">Latest Problem Sets</p>
+                </div>
+              </div>
+              <el-button type="primary" link @click="goToProblemsets" size="small">
+                查看更多 <el-icon><ArrowRight /></el-icon>
+              </el-button>
             </div>
           </template>
-          <div class="problemset-list-full">
-            <div v-for="problemset in recentProblemsets" :key="problemset.id" class="problemset-item-full" @click="viewProblemset(problemset.id)">
-              <div class="problemset-info-full">
-                <h4 class="problemset-title-full">{{ problemset.title }}</h4>
-                <p class="problemset-meta">
-                  <span v-if="problemset.problemCount" class="problemset-count">
-                    <el-icon><Document /></el-icon>
-                    题目数: {{ problemset.problemCount }}
-                  </span>
-                  <span v-if="problemset.createUser" class="problemset-author">
-                    创建者: #{{ problemset.createUser }}
-                  </span>
-                </p>
+          <div class="content-table">
+            <div class="table-header">
+              <div class="col-title">题集名称</div>
+              <div class="col-count">题目数</div>
+              <div class="col-author">创建者</div>
+            </div>
+            <div v-for="problemset in recentProblemsets" :key="problemset.id" 
+                 class="table-row problemset-row"
+                 @click="viewProblemset(problemset.id)">
+              <div class="col-title">
+                <span class="row-icon">📚</span>
+                <span class="text">{{ problemset.title }}</span>
               </div>
-              <div class="problemset-action">
-                <el-button type="primary" size="default" @click.stop="viewProblemset(problemset.id)">
-                  查看题集
-                </el-button>
+              <div class="col-count">
+                <el-icon><Document /></el-icon>
+                {{ problemset.problemCount || 0 }} 题
+              </div>
+              <div class="col-author">
+                <el-icon><User /></el-icon>
+                #{{ problemset.createUser || '未知' }}
               </div>
             </div>
-            <el-empty v-if="recentProblemsets.length === 0" description="暂无题集" :image-size="60" />
+            <el-empty v-if="recentProblemsets.length === 0" description="暂无题集" :image-size="80" />
           </div>
         </el-card>
       </el-col>
@@ -78,60 +107,119 @@
     <!-- 最新题库 -->
     <el-row :gutter="24" style="margin-top: 24px;">
       <el-col :span="24">
-        <el-card shadow="always" class="problem-card slide-in" style="animation-delay: 0.2s;">
+        <el-card shadow="always" class="section-card slide-in" style="animation-delay: 0.2s;">
           <template #header>
-            <div class="card-header">
-              <span><el-icon><Notebook /></el-icon> 最新题库</span>
-              <el-button link type="primary" @click="goToProblems" size="small">查看更多</el-button>
+            <div class="section-header">
+              <div class="header-left">
+                <div class="header-icon problem-icon">
+                  <el-icon><Notebook /></el-icon>
+                </div>
+                <div class="header-text">
+                  <h3 class="section-title">最新题库</h3>
+                  <p class="section-subtitle">Problem Library</p>
+                </div>
+              </div>
+              <el-button type="primary" link @click="goToProblems" size="small">
+                查看更多 <el-icon><ArrowRight /></el-icon>
+              </el-button>
             </div>
           </template>
-          <div class="problem-list-full">
-            <div v-for="problem in latestProblems" :key="problem.id" class="problem-item-full" @click="viewProblem(problem.id)">
-              <div class="problem-info-full">
-                <span class="problem-id">#{{ problem.id }}</span>
-                <span class="problem-title">{{ problem.title }}</span>
+          <div class="content-table">
+            <div class="table-header">
+              <div class="col-id">题号</div>
+              <div class="col-title">题目名称</div>
+              <div class="col-difficulty">难度</div>
+              <div class="col-stats">通过率</div>
+            </div>
+            <div v-for="problem in latestProblems" :key="problem.id" 
+                 class="table-row problem-row"
+                 @click="viewProblem(problem.id)">
+              <div class="col-id">
+                <span class="id-badge">#{{ problem.id }}</span>
               </div>
-              <div class="problem-meta">
-                <el-tag v-if="problem.difficulty" :type="getDifficultyType(problem.difficulty)" size="small">
+              <div class="col-title">
+                <span class="row-icon">💻</span>
+                <span class="text">{{ problem.title }}</span>
+              </div>
+              <div class="col-difficulty">
+                <el-tag v-if="problem.difficulty" 
+                        :type="getDifficultyType(problem.difficulty)" 
+                        size="small" 
+                        effect="light">
                   {{ getDifficultyText(problem.difficulty) }}
                 </el-tag>
-                <span v-if="problem.accepted" class="problem-stats">
-                  通过: {{ problem.accepted }} / {{ problem.submitted || 0 }}
+              </div>
+              <div class="col-stats">
+                <span class="stat-text">
+                  {{ problem.accepted || 0 }} / {{ problem.submitted || 0 }}
                 </span>
               </div>
             </div>
-            <el-empty v-if="latestProblems.length === 0" description="暂无题目" :image-size="60" />
+            <el-empty v-if="latestProblems.length === 0" description="暂无题目" :image-size="80" />
           </div>
         </el-card>
       </el-col>
     </el-row>
 
     <!-- 最新提交 -->
-    <el-row :gutter="24" style="margin-top: 24px;">
+    <el-row :gutter="24" style="margin-top: 24px; margin-bottom: 32px;">
       <el-col :span="24">
-        <el-card shadow="always" class="record-card slide-in" style="animation-delay: 0.25s;">
+        <el-card shadow="always" class="section-card slide-in" style="animation-delay: 0.25s;">
           <template #header>
-            <div class="card-header">
-              <span><el-icon><TrendCharts /></el-icon> 最新提交</span>
-              <el-button link type="primary" @click="goToRecords" size="small">查看更多</el-button>
+            <div class="section-header">
+              <div class="header-left">
+                <div class="header-icon record-icon">
+                  <el-icon><TrendCharts /></el-icon>
+                </div>
+                <div class="header-text">
+                  <h3 class="section-title">最新提交</h3>
+                  <p class="section-subtitle">Latest Submissions</p>
+                </div>
+              </div>
+              <el-button type="primary" link @click="goToRecords" size="small">
+                查看更多 <el-icon><ArrowRight /></el-icon>
+              </el-button>
             </div>
           </template>
-          <div class="record-list-full">
-            <div v-for="record in recentRecords" :key="record.id" class="record-item-full" @click="viewRecord(record.id)">
-              <div class="record-info-full">
-                <span class="record-id">#{{ record.id }}</span>
-                <span class="record-problem">题目 #{{ record.problemId }}</span>
-                <span v-if="record.userId" class="record-user">用户 #{{ record.userId }}</span>
+          <div class="content-table">
+            <div class="table-header">
+              <div class="col-id">提交ID</div>
+              <div class="col-problem">题目</div>
+              <div class="col-user">用户</div>
+              <div class="col-status">状态</div>
+              <div class="col-performance">性能</div>
+            </div>
+            <div v-for="record in recentRecords" :key="record.id" 
+                 class="table-row record-row"
+                 @click="viewRecord(record.id)">
+              <div class="col-id">
+                <span class="id-badge">#{{ record.id }}</span>
               </div>
-              <div class="record-meta">
-                <el-tag :type="getStatusType(record.status)" size="default">
+              <div class="col-problem">
+                <span class="row-icon">📝</span>
+                <span class="text">题目 #{{ record.problemId }}</span>
+              </div>
+              <div class="col-user">
+                <el-icon><User /></el-icon>
+                #{{ record.userId || '未知' }}
+              </div>
+              <div class="col-status">
+                <el-tag :type="getStatusType(record.status)" size="small" effect="light">
                   {{ getStatusText(record.status) }}
                 </el-tag>
-                <span v-if="record.time" class="record-stat">时间: {{ record.time }}ms</span>
-                <span v-if="record.memory" class="record-stat">内存: {{ record.memory }}KB</span>
+              </div>
+              <div class="col-performance">
+                <span v-if="record.time" class="perf-stat">
+                  <el-icon><Clock /></el-icon>
+                  {{ record.time }}ms
+                </span>
+                <span v-if="record.memory" class="perf-stat">
+                  <el-icon><Cpu /></el-icon>
+                  {{ record.memory }}KB
+                </span>
               </div>
             </div>
-            <el-empty v-if="recentRecords.length === 0" description="暂无提交记录" :image-size="60" />
+            <el-empty v-if="recentRecords.length === 0" description="暂无提交记录" :image-size="80" />
           </div>
         </el-card>
       </el-col>
@@ -147,7 +235,7 @@ import { getRecordList } from '@/api/record'
 import { getContestList } from '@/api/contest'
 import { getProblemList } from '@/api/problem'
 import { getProblemsetList } from '@/api/problemset'
-import { Trophy, Collection, Document, List, Plus, Operation, TrendCharts, Bell, Timer, Notebook, FolderOpened } from '@element-plus/icons-vue'
+import { Trophy, Collection, Document, List, Plus, Operation, TrendCharts, Bell, Timer, Notebook, FolderOpened, ArrowRight, User, Clock, Cpu } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -261,7 +349,7 @@ const getDifficultyText = (difficulty) => {
 
 const loadRecentRecords = async () => {
   try {
-    const res = await getRecordList(1, 10) // 获取第一页，10 条记录
+    const res = await getRecordList(1, 12) // 获取第一页，12 条记录
     recentRecords.value = res.data?.records || res.data?.list || res.data || []
   } catch (error) {
     console.error('加载最新记录失败:', error)
@@ -270,7 +358,7 @@ const loadRecentRecords = async () => {
 
 const loadRecentContests = async () => {
   try {
-    const res = await getContestList(1, 10, '') // 获取第一页，10 条比赛
+    const res = await getContestList(1, 12, '') // 获取第一页，12 条比赛
     recentContests.value = res.data?.records || res.data?.list || res.data || []
   } catch (error) {
     console.error('加载最近比赛失败:', error)
@@ -279,7 +367,7 @@ const loadRecentContests = async () => {
 
 const loadLatestProblems = async () => {
   try {
-    const res = await getProblemList(1, 10, '', '') // 获取第一页，10 条题目
+    const res = await getProblemList(1, 12, '', '') // 获取第一页，12 条题目
     latestProblems.value = res.data?.records || res.data?.list || res.data || []
   } catch (error) {
     console.error('加载最新题目失败:', error)
@@ -288,7 +376,7 @@ const loadLatestProblems = async () => {
 
 const loadRecentProblemsets = async () => {
   try {
-    const res = await getProblemsetList(1, 10, '') // 获取第一页，10 条题集
+    const res = await getProblemsetList(1, 12, '') // 获取第一页，12 条题集
     recentProblemsets.value = res.data?.records || res.data?.list || res.data || []
   } catch (error) {
     console.error('加载最新题集失败:', error)
@@ -355,25 +443,250 @@ onMounted(() => {
   margin: 0;
 }
 
-/* Card Header */
-.card-header {
+/* Section Cards */
+.section-card {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* Section Header */
+.section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: 600;
-  font-size: 1.125rem;
-  color: var(--color-text-primary);
 }
 
-.card-header span {
+.header-left {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
 }
 
-.card-header span .el-icon {
+.header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.contest-icon {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.problemset-icon {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.problem-icon {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.record-icon {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.section-title {
+  margin: 0;
   font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+.section-subtitle {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Content Table */
+.content-table {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.table-header {
+  display: grid;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: linear-gradient(to right, rgba(37, 99, 235, 0.03), transparent);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-border);
+  margin-bottom: var(--spacing-sm);
+}
+
+.table-row {
+  display: grid;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.table-row:hover {
+  background-color: rgba(37, 99, 235, 0.04);
+  border-color: var(--color-primary-light);
+  transform: translateX(4px);
+  box-shadow: var(--shadow-sm);
+}
+
+.row-icon {
+  font-size: 1.125rem;
+  margin-right: var(--spacing-xs);
+}
+
+.text {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.id-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0.05));
   color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.875rem;
+  font-family: 'Courier New', monospace;
+}
+
+.stat-text {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.perf-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  margin-right: var(--spacing-md);
+}
+
+.perf-stat .el-icon {
+  font-size: 0.875rem;
+}
+
+/* Contest Row */
+.contest-row {
+  grid-template-columns: 2fr 2fr 1fr;
+}
+
+.contest-row .col-time {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.contest-row .col-time .el-icon {
+  font-size: 1rem;
+}
+
+/* Problemset Row */
+.problemset-row {
+  grid-template-columns: 2fr 1fr 1fr;
+}
+
+.problemset-row .col-count,
+.problemset-row .col-author {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.problemset-row .col-count .el-icon,
+.problemset-row .col-author .el-icon {
+  font-size: 1rem;
+}
+
+/* Problem Row */
+.problem-row {
+  grid-template-columns: 100px 2fr 100px 120px;
+}
+
+.problem-row .col-id {
+  justify-self: start;
+}
+
+.problem-row .col-difficulty {
+  justify-self: center;
+}
+
+.problem-row .col-stats {
+  text-align: right;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+/* Record Row */
+.record-row {
+  grid-template-columns: 100px 1.5fr 120px 120px 1fr;
+}
+
+.record-row .col-id {
+  justify-self: start;
+}
+
+.record-row .col-problem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.record-row .col-user {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.record-row .col-user .el-icon {
+  font-size: 1rem;
+}
+
+.record-row .col-status {
+  justify-self: center;
+}
+
+.record-row .col-performance {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 /* Element Plus Cards */
@@ -393,484 +706,51 @@ onMounted(() => {
 
 :deep(.el-card__header) {
   padding: var(--spacing-lg) var(--spacing-xl);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 2px solid var(--color-border);
   background: linear-gradient(to right, rgba(37, 99, 235, 0.02), transparent);
 }
 
 :deep(.el-card__body) {
-  padding: var(--spacing-xl);
-}
-
-/* Quick Actions */
-.action-card .quick-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.action-btn {
-  height: 48px;
-  width: 100%;
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 0 var(--spacing-lg);
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all var(--transition-base);
-  position: relative;
-  overflow: hidden;
-}
-
-.action-btn .el-icon {
-  font-size: 1.125rem;
-  flex-shrink: 0;
-}
-
-.action-btn span {
-  text-align: center;
-}
-
-.action-btn-primary {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-}
-
-.action-btn-primary:hover {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-}
-
-.action-btn-success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-.action-btn-success:hover {
-  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-.action-btn-warning {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-}
-
-.action-btn-warning:hover {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-}
-
-.action-btn-warning {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-}
-
-.action-btn-warning:hover {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-}
-
-.action-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.action-btn:hover::before {
-  left: 100%;
-}
-
-.action-btn:hover {
-  transform: translateX(4px);
-  box-shadow: var(--shadow-md);
-}
-
-.action-btn .el-icon {
-  font-size: 1.125rem;
-  flex-shrink: 0;
-}
-
-.action-btn span {
-  flex: 1;
-  text-align: center;
-}
-
-/* Record List - Full Width */
-.record-card .record-list-full {
-  max-height: 500px;
-  overflow-y: auto;
-}
-
-.record-item-full {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-sm);
-  background-color: var(--color-bg);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  border: 1px solid transparent;
-}
-
-.record-item-full:hover {
-  background-color: rgba(37, 99, 235, 0.04);
-  border-color: var(--color-primary-light);
-  transform: translateX(4px);
-}
-
-.record-info-full {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex: 1;
-  min-width: 0;
-}
-
-.record-info-full .record-id {
-  font-weight: 600;
-  color: var(--color-primary);
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.record-info-full .record-problem {
-  color: var(--color-text-primary);
-  font-size: 1rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.record-info-full .record-user {
-  color: var(--color-text-secondary);
-  font-size: 0.9375rem;
-  white-space: nowrap;
-}
-
-.record-meta {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex-shrink: 0;
-}
-
-.record-stat {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-}
-
-/* Contest List - Full Width */
-.contest-card .contest-list-full {
-  max-height: 500px;
-  overflow-y: auto;
-}
-
-.contest-item-full {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-sm);
-  background-color: var(--color-bg);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  border: 1px solid transparent;
-}
-
-.contest-item-full:hover {
-  background-color: rgba(16, 185, 129, 0.04);
-  border-color: #10b981;
-  transform: translateX(4px);
-}
-
-.contest-info-full {
-  flex: 1;
-  min-width: 0;
-}
-
-.contest-title-full {
-  margin: 0 0 var(--spacing-sm);
-  font-size: 1.125rem;
-  color: var(--color-text-primary);
-  font-weight: 600;
-}
-
-.contest-time-full {
-  margin: 0 0 var(--spacing-xs);
-  font-size: 0.9375rem;
-  color: var(--color-text-secondary);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.contest-time-full .el-icon {
-  font-size: 1rem;
-}
-
-.contest-end-time {
-  color: var(--color-text-tertiary);
-}
-
-.contest-desc {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.contest-meta {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex-shrink: 0;
-}
-
-/* Problem List - Full Width */
-.problem-card .problem-list-full {
-  max-height: 500px;
-  overflow-y: auto;
-}
-
-.problem-item-full {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-sm);
-  background-color: var(--color-bg);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  border: 1px solid transparent;
-}
-
-.problem-item-full:hover {
-  background-color: rgba(245, 158, 11, 0.04);
-  border-color: #f59e0b;
-  transform: translateX(4px);
-}
-
-.problem-info-full {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex: 1;
-  min-width: 0;
-}
-
-.problem-info-full .problem-id {
-  font-weight: 600;
-  color: var(--color-primary);
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.problem-info-full .problem-title {
-  color: var(--color-text-primary);
-  font-size: 1rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.problem-meta {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex-shrink: 0;
-}
-
-.problem-stats {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-}
-
-/* Problemset List - Full Width */
-.problemset-card .problemset-list-full {
-  max-height: 500px;
-  overflow-y: auto;
-}
-
-.problemset-item-full {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-sm);
-  background-color: var(--color-bg);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  border: 1px solid transparent;
-}
-
-.problemset-item-full:hover {
-  background-color: rgba(139, 92, 246, 0.04);
-  border-color: #8b5cf6;
-  transform: translateX(4px);
-}
-
-.problemset-info-full {
-  flex: 1;
-  min-width: 0;
-}
-
-.problemset-title-full {
-  margin: 0 0 var(--spacing-sm);
-  font-size: 1.125rem;
-  color: var(--color-text-primary);
-  font-weight: 600;
-}
-
-.problemset-meta {
-  margin: 0 0 var(--spacing-xs);
-  font-size: 0.9375rem;
-  color: var(--color-text-secondary);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-}
-
-.problemset-count {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.problemset-count .el-icon {
-  font-size: 1rem;
-}
-
-.problemset-author {
-  color: var(--color-text-tertiary);
-}
-
-.problemset-desc {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.problemset-action {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex-shrink: 0;
-}
-
-.record-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-sm);
-  background-color: var(--color-bg);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  border: 1px solid transparent;
-}
-
-.record-item:hover {
-  background-color: rgba(37, 99, 235, 0.04);
-  border-color: var(--color-primary-light);
-  transform: translateX(4px);
-}
-
-.record-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.record-id {
-  font-weight: 600;
-  color: var(--color-primary);
-  font-size: 0.9375rem;
-}
-
-.record-problem {
-  color: var(--color-text-secondary);
-  font-size: 0.875rem;
-}
-
-/* Timeline */
-.notice-card :deep(.el-timeline) {
-  padding-top: var(--spacing-sm);
-}
-
-.notice-card :deep(.el-timeline-item__node) {
-  width: 12px;
-  height: 12px;
-  border: 2px solid;
-}
-
-.notice-card :deep(.el-timeline-item__timestamp) {
-  font-size: 0.8125rem;
-  color: var(--color-text-tertiary);
-  font-weight: 500;
-}
-
-.notice-card :deep(.el-timeline-item__content) {
-  margin-top: var(--spacing-sm);
-}
-
-.notice-item {
-  border: none;
-  box-shadow: none;
-  background-color: transparent;
-  padding: 0;
-}
-
-.notice-item h4 {
-  margin: 0 0 var(--spacing-xs);
-  font-size: 1rem;
-  color: var(--color-text-primary);
-  font-weight: 600;
-}
-
-.notice-item p {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  line-height: 1.6;
+  padding: var(--spacing-lg) var(--spacing-xl);
 }
 
 /* Empty State */
 :deep(.el-empty) {
-  padding: var(--spacing-xl) 0;
+  padding: var(--spacing-2xl) 0;
+}
+
+:deep(.el-empty__description) {
+  font-size: 0.9375rem;
+  color: var(--color-text-tertiary);
 }
 
 /* Responsive */
 @media (max-width: 1200px) {
-  .el-col {
-    margin-bottom: var(--spacing-xl);
+  .contest-row,
+  .problemset-row,
+  .problem-row,
+  .record-row {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .table-header {
+    display: none;
+  }
+  
+  .col-id,
+  .col-title,
+  .col-time,
+  .col-status,
+  .col-count,
+  .col-author,
+  .col-difficulty,
+  .col-stats,
+  .col-problem,
+  .col-user,
+  .col-performance {
+    justify-self: start !important;
+    text-align: left !important;
   }
 }
 
@@ -880,7 +760,27 @@ onMounted(() => {
   }
   
   :deep(.el-card__body) {
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md);
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .header-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+  
+  .section-title {
+    font-size: 1.125rem;
+  }
+  
+  .section-subtitle {
+    font-size: 0.75rem;
   }
 }
 </style>
