@@ -2,7 +2,7 @@
   <div class="problem-list">
     <div class="header">
       <h2>题目列表</h2>
-      <el-button type="primary" @click="handleCreate" v-permission="PERMISSIONS.PERM_PROBLEM_CREATE">
+      <el-button type="primary" @click="handleCreate" v-permission="{ type: 'or', values: [PERMISSIONS.PERM_PROBLEM_CREATE, PERMISSIONS.PERM_PROBLEM_MANAGE_ALL] }">
         <el-icon><Plus /></el-icon>
         创建题目
       </el-button>
@@ -52,8 +52,8 @@
         <template #default="scope">
           <div class="action-buttons">
             <el-button size="small" @click="handleView(scope.row.id)">查看</el-button>
-            <el-button size="small" type="primary" @click="handleEdit(scope.row.id)" v-permission="PERMISSIONS.PERM_PROBLEM_EDIT">编辑</el-button>
-            <el-button size="small" type="danger" @click="handleDelete(scope.row.id)" v-permission="PERMISSIONS.PERM_PROBLEM_DELETE">删除</el-button>
+            <el-button size="small" type="primary" @click="handleEdit(scope.row.id)" v-permission="{ type: 'or', values: [PERMISSIONS.PERM_PROBLEM_MANAGE_OWN, PERMISSIONS.PERM_PROBLEM_MANAGE_ALL] }">编辑</el-button>
+            <el-button size="small" type="danger" @click="handleDelete(scope.row.id)" v-permission="{ type: 'or', values: [PERMISSIONS.PERM_PROBLEM_MANAGE_OWN, PERMISSIONS.PERM_PROBLEM_MANAGE_ALL] }">删除</el-button>
           </div>
         </template>
       </el-table-column>

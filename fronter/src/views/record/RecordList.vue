@@ -74,7 +74,7 @@
       <el-table-column label="操作" width="200" fixed="right">
         <template #default="scope">
           <el-button link type="primary" @click="handleView(scope.row.id)">详情</el-button>
-          <el-button link type="warning" @click="handleRejudge(scope.row.id)" v-permission="PERMISSIONS.PERM_SYSTEM_CONFIG">重测</el-button>
+          <el-button link type="warning" @click="handleRejudge(scope.row.id)" v-permission="{ type: 'or', values: [PERMISSIONS.PERM_PROBLEM_MANAGE_ALL, PERMISSIONS.PERM_CONTEST_MANAGE_ALL] }">重测</el-button>
         </template>
       </el-table-column>
     </el-table>

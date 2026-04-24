@@ -68,8 +68,8 @@
         <template #default="scope">
           <div class="action-buttons">
             <el-button size="small" @click="handleView(scope.row.id)">查看</el-button>
-            <el-button size="small" type="primary" @click="handleEdit(scope.row.id)" v-permission="PERMISSIONS.PERM_CONTEST_MANAGE">编辑</el-button>
-            <el-button size="small" type="danger" @click="handleDelete(scope.row.id)" v-permission="PERMISSIONS.PERM_CONTEST_MANAGE">删除</el-button>
+            <el-button size="small" type="primary" @click="handleEdit(scope.row.id)" v-permission="{ type: 'or', values: [PERMISSIONS.PERM_CONTEST_MANAGE_OWN, PERMISSIONS.PERM_CONTEST_MANAGE_ALL] }">编辑</el-button>
+            <el-button size="small" type="danger" @click="handleDelete(scope.row.id)" v-permission="{ type: 'or', values: [PERMISSIONS.PERM_CONTEST_MANAGE_OWN, PERMISSIONS.PERM_CONTEST_MANAGE_ALL] }">删除</el-button>
           </div>
         </template>
       </el-table-column>

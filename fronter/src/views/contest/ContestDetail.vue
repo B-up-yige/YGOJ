@@ -64,7 +64,7 @@
             <el-button 
               type="primary" 
               @click="showAddProblemDialog" 
-              v-permission="PERMISSIONS.PERM_CONTEST_MANAGE"
+              v-permission="{ type: 'or', values: [PERMISSIONS.PERM_CONTEST_MANAGE_OWN, PERMISSIONS.PERM_CONTEST_MANAGE_ALL] }"
             >
               添加题目
             </el-button>
@@ -94,7 +94,7 @@
                   link 
                   type="danger" 
                   @click="handleDeleteProblem(scope.row.problemId)" 
-                  v-permission="PERMISSIONS.PERM_CONTEST_MANAGE"
+                  v-permission="{ type: 'or', values: [PERMISSIONS.PERM_CONTEST_MANAGE_OWN, PERMISSIONS.PERM_CONTEST_MANAGE_ALL] }"
                 >
                   删除
                 </el-button>
@@ -114,7 +114,7 @@
           <el-icon><List /></el-icon>
           <span>提交列表</span>
         </el-button>
-        <el-button size="large" @click="editContest" v-permission="PERMISSIONS.PERM_CONTEST_MANAGE" class="sidebar-btn">
+        <el-button size="large" @click="editContest" v-permission="{ type: 'or', values: [PERMISSIONS.PERM_CONTEST_MANAGE_OWN, PERMISSIONS.PERM_CONTEST_MANAGE_ALL] }" class="sidebar-btn">
           <el-icon><Edit /></el-icon>
           <span>编辑比赛</span>
         </el-button>
@@ -838,4 +838,3 @@ onMounted(() => {
     font-size: 12px;
   }
 }
-</style>

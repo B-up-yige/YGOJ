@@ -250,7 +250,8 @@ const canEditOrDelete = (problemset) => {
   
   // 如果有管理权限，也可以编辑删除
   const userStore = useUserStore()
-  return userStore.hasPermission(PERMISSIONS.PERM_PROBLEMSET_MANAGE)
+  return userStore.hasPermission(PERMISSIONS.PERM_PROBLEMSET_MANAGE_OWN) || 
+         userStore.hasPermission(PERMISSIONS.PERM_PROBLEMSET_MANAGE_ALL)
 }
 
 const handleDelete = async (id) => {

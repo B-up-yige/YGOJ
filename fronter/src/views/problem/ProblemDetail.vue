@@ -85,7 +85,7 @@
           type="warning" 
           size="large" 
           @click="editProblem" 
-          v-permission="PERMISSIONS.PERM_PROBLEM_EDIT"
+          v-permission="{ type: 'or', values: [PERMISSIONS.PERM_PROBLEM_MANAGE_OWN, PERMISSIONS.PERM_PROBLEM_MANAGE_ALL] }"
           class="sidebar-btn"
         >
           <el-icon><Edit /></el-icon>

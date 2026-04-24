@@ -100,7 +100,7 @@
           type="warning" 
           size="large" 
           @click="handleRejudge" 
-          v-permission="PERMISSIONS.PERM_SYSTEM_CONFIG"
+          v-permission="{ type: 'or', values: [PERMISSIONS.PERM_PROBLEM_MANAGE_ALL, PERMISSIONS.PERM_CONTEST_MANAGE_ALL] }"
           class="sidebar-btn"
         >
           <el-icon><Refresh /></el-icon>
