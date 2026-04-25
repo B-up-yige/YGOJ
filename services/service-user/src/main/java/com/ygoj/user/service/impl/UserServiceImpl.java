@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import cn.hutool.crypto.digest.DigestUtil;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -176,6 +178,12 @@ public class UserServiceImpl implements UserService {
 
                 //设置redis缓存
                 redisTemplate.opsForValue().set(token, jwt, 7, TimeUnit.DAYS);
+                
+                // 维护 userId -> tokens 的映射关系
+                String userTokensKey = "user:tokens:" + userinfo.getId();
+                redisTemplate.opsForSet().add(userTokensKey, token);
+                redisTemplate.expire(userTokensKey, 7, TimeUnit.DAYS);
+                
                 log.debug("生成token并缓存到Redis, userId: {}, role: {}, permission: {}", 
                     userinfo.getId(), role, permission);
 
@@ -209,6 +217,19 @@ public class UserServiceImpl implements UserService {
                 throw new IllegalArgumentException("Token不能为空");
             }
             
+            // 从 Redis 中获取 JWT 以提取 userId
+            Object jwtValue = redisTemplate.opsForValue().get(token);
+            if (jwtValue != null) {
+                Long userId = jwtUtils.getUserIdFromToken(jwtValue.toString());
+                if (userId != null) {
+                    // 从用户token集合中移除该token
+                    String userTokensKey = "user:tokens:" + userId;
+                    redisTemplate.opsForSet().remove(userTokensKey, token);
+                    log.debug("已从用户token集合中移除, userId: {}", userId);
+                }
+            }
+            
+            // 删除token本身
             redisTemplate.delete(token);
             log.debug("Token已从Redis删除");
         } catch (IllegalArgumentException e) {
@@ -342,11 +363,68 @@ public class UserServiceImpl implements UserService {
             user.setPermission(permission);
             userinfoMapper.updateById(user);
             
+            // 更新Redis中该用户所有token对应的JWT
+            updateUserTokensInRedis(userId, role, permission);
+            
             log.info("用户权限更新成功, userId: {}", userId);
             return Result.success("权限更新成功");
         } catch (Exception e) {
             log.error("更新用户权限异常, userId: {}", userId, e);
             return Result.error(500, "更新用户权限失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 更新Redis中用户所有token对应的JWT
+     */
+    private void updateUserTokensInRedis(Long userId, String role, Long permission) {
+        try {
+            String userTokensKey = "user:tokens:" + userId;
+            
+            // 获取该用户所有的token
+            Set<Object> tokens = redisTemplate.opsForSet().members(userTokensKey);
+            
+            if (tokens == null || tokens.isEmpty()) {
+                log.debug("用户没有活跃的token, userId: {}", userId);
+                return;
+            }
+            
+            log.info("开始更新用户token, userId: {}, token数量: {}", userId, tokens.size());
+            
+            int updatedCount = 0;
+            for (Object tokenObj : tokens) {
+                String token = tokenObj.toString();
+                
+                // 检查token是否仍然存在（可能已过期）
+                if (Boolean.TRUE.equals(redisTemplate.hasKey(token))) {
+                    // 获取用户信息用于生成新的JWT
+                    Userinfo user = userinfoMapper.selectById(userId);
+                    if (user != null) {
+                        // 重新生成JWT
+                        String newJwt = jwtUtils.generateToken(
+                            user.getId(),
+                            user.getUsername(),
+                            role,
+                            permission
+                        );
+                        
+                        // 更新Redis中的JWT，保持原有过期时间
+                        Long remainingTime = redisTemplate.getExpire(token, TimeUnit.SECONDS);
+                        if (remainingTime != null && remainingTime > 0) {
+                            redisTemplate.opsForValue().set(token, newJwt, remainingTime, TimeUnit.SECONDS);
+                            updatedCount++;
+                        }
+                    }
+                } else {
+                    // token已过期，从集合中移除
+                    redisTemplate.opsForSet().remove(userTokensKey, token);
+                }
+            }
+            
+            log.info("用户token更新完成, userId: {}, 更新数量: {}", userId, updatedCount);
+        } catch (Exception e) {
+            log.error("更新用户token异常, userId: {}", userId, e);
+            // 不抛出异常，避免影响主流程
         }
     }
 
