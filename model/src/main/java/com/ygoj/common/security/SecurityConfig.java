@@ -56,16 +56,16 @@ public class SecurityConfig {
                     "/problem/probleminfo/*/tag"
                 ).permitAll()
                 
-                // 公开接口 - 比赛相关
+                // 公开接口 - 比赛相关（仅查询接口）
                 .requestMatchers(
                     "/contest/list",
-                    "/contest/**"
+                    "/contest/{id}"  // 只公开比赛详情查询，不包括 add/edit/del 等管理接口
                 ).permitAll()
                 
-                // 公开接口 - 题集相关
+                // 公开接口 - 题集相关（仅查询接口）
                 .requestMatchers(
                     "/problemset/list",
-                    "/problemset/**"
+                    "/problemset/{id}"  // 只公开题集详情查询，不包括 add/edit/del 等管理接口
                 ).permitAll()
                 
                 // 公开接口 - 提交记录相关
