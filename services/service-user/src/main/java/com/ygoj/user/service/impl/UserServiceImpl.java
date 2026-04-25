@@ -52,12 +52,11 @@ public class UserServiceImpl implements UserService {
                 userinfo.setRole("USER");
             }
             
-            // 设置默认权限值: 5731
-            // 包含权限: 查看题目(0), 提交代码(1), 查看提交记录(5), 查看排行榜(6), 
-            //          参加比赛(9), 创建题集(10), 查看题集(12)
-            // 计算: 2^0 + 2^1 + 2^5 + 2^6 + 2^9 + 2^10 + 2^12 = 1 + 2 + 32 + 64 + 512 + 1024 + 4096 = 5731
+            // 设置默认权限值: 4611
+            // 包含权限: 代码提交(0), 参加比赛(1), 管理自己的题集(9), 管理自己的帖子(12)
+            // 计算: 2^0 + 2^1 + 2^9 + 2^12 = 1 + 2 + 512 + 4096 = 4611
             if (userinfo.getPermission() == null) {
-                userinfo.setPermission(5731L);
+                userinfo.setPermission(4611L);
             }
             
             // 设置默认为未拉黑状态
